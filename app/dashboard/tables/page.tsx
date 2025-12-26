@@ -58,7 +58,7 @@ export default async function TablesPage() {
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {tables.map((table: any) => {
                         const qrCode = table.qr_codes?.[0]
-                        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+                        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
                         const qrUrl = qrCode ? `${baseUrl}/qr/${qrCode.id}` : '#'
 
                         return (

@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { AddToCartDrawer } from '@/components/modules/menu/components/add-to-cart-drawer'
 import { CartSummary } from '@/components/modules/cart/cart-summary'
+import { TableSync } from '@/components/modules/qr-code/components/table-sync'
+import { Suspense } from 'react'
 
 export default async function RestaurantPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
@@ -22,6 +24,9 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
 
     return (
         <div className="relative pb-24">
+            <Suspense>
+                <TableSync />
+            </Suspense>
             {/* Hero / Header */}
             <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
                 <div className="p-4">

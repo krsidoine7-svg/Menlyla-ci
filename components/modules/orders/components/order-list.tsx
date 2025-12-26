@@ -46,11 +46,11 @@ export function OrderList() {
     const handleStatusChange = async (orderId: string, newStatus: string) => {
         toast.promise(updateOrderStatus(orderId, newStatus), {
             loading: 'Mise à jour...',
-            success: (data) => {
+            success: () => {
                 fetchOrders() // Refresh immediately
                 return "Statut mis à jour"
             },
-            error: 'Erreur'
+            error: (err) => err.message || "Erreur de mise à jour"
         })
     }
 
@@ -135,7 +135,10 @@ function OrderCard({ order, onAction }: { order: any, onAction: (id: string, s: 
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-2">
                 {order.status === 'pending' && (
-                    <Button size="sm" onClick={() => onAction(order.id, 'confirmed')}>Accepter</Button>
+                    <>
+                        <Button size="sm" variant="destructive" onClick={() => onAction(order.id, 'cancelled')}>Refuser</Button>
+                        <Button size="sm" onClick={() => onAction(order.id, 'confirmed')}>Accepter</Button>
+                    </>
                 )}
                 {order.status === 'confirmed' && (
                     <Button size="sm" onClick={() => onAction(order.id, 'preparing')}>Lancer Cuisson</Button>

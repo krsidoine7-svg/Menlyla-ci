@@ -23,7 +23,7 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
     startDate.setDate(now.getDate() - (range === '7d' ? 7 : 30))
 
     // Fetch Orders within range
-    const { data: orders } = await supabase
+    const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select(`
             id,
@@ -43,31 +43,44 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: true })
 
-    if (!orders) return null
+    if (ordersError) {
+        console.error("Analytics fetch error:", ordersError)
+    }
+
+    const safeOrders = orders || []
 
     // Process Data
     const dailyRevenue: Record<string, number> = {}
-    const productSales: Record<string, number> = {}
+
+    // Product Stats: { [name]: { ordered: 0, refused: 0, served: 0, revenue: 0 } }
+    const dishPerformance: Record<string, { name: string, ordered: number, refused: number, served: number, revenue: number }> = {}
 
     let totalRevenue = 0
-    let totalOrders = orders.length
+    let totalOrders = safeOrders.length
 
-    orders.forEach(order => {
-        if (['cancelled', 'pending'].includes(order.status)) return // Filter out cancelled/pending for revenue? Or keep paid/delivered? 
-        // For accurate revenue, stick to 'paid' or completed statuses.
-        // Let's assume delivered/paid/completed are valid sales.
-        if (!['delivered', 'completed', 'paid'].includes(order.status)) return
+    safeOrders.forEach(order => {
+        const isRevenueStatus = ['delivered', 'completed', 'paid'].includes(order.status)
+        const isRefused = order.status === 'cancelled'
+        const isServed = ['delivered', 'completed'].includes(order.status)
 
-        totalRevenue += Number(order.total_amount)
+        if (isRevenueStatus) {
+            totalRevenue += Number(order.total_amount)
+            const day = new Date(order.created_at).toLocaleDateString('fr-FR', { weekday: 'short' })
+            dailyRevenue[day] = (dailyRevenue[day] || 0) + Number(order.total_amount)
+        }
 
-        // Daily aggregation
-        const day = new Date(order.created_at).toLocaleDateString('fr-FR', { weekday: 'short' })
-        dailyRevenue[day] = (dailyRevenue[day] || 0) + Number(order.total_amount)
-
-        // Product aggregation
         order.order_items?.forEach((item: any) => {
-            const productName = item.dishes?.name || 'Inconnu'
-            productSales[productName] = (productSales[productName] || 0) + item.quantity
+            const dishName = item.dishes?.name || 'Inconnu'
+            if (!dishPerformance[dishName]) {
+                dishPerformance[dishName] = { name: dishName, ordered: 0, refused: 0, served: 0, revenue: 0 }
+            }
+
+            const stats = dishPerformance[dishName]
+            stats.ordered += item.quantity
+
+            if (isRefused) stats.refused += item.quantity
+            if (isServed) stats.served += item.quantity
+            if (isRevenueStatus) stats.revenue += Number(item.total_price)
         })
     })
 
@@ -77,11 +90,8 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
         total: dailyRevenue[day]
     }))
 
-    // Top Products
-    const topProducts = Object.entries(productSales)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 5)
-        .map(([name, count]) => ({ name, count }))
+    // Sort to find best sellers
+    const performanceList = Object.values(dishPerformance).sort((a, b) => b.ordered - a.ordered)
 
     return {
         revenue: totalRevenue,
@@ -89,6 +99,7 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
         averageBasket: totalOrders > 0 ? totalRevenue / totalOrders : 0,
         currency: restaurant.currency,
         chartData,
-        topProducts
+        topProducts: performanceList.slice(0, 5).map(p => ({ name: p.name, count: p.ordered })),
+        dishPerformance: performanceList // Full list for detailed table
     }
 }

@@ -17,9 +17,8 @@ export default function CartPage() {
     const router = useRouter()
     const slug = params.slug as string
 
-    const { items, removeItem, updateQuantity, total, clearCart, restaurantId } = useCartStore()
+    const { items, removeItem, updateQuantity, total, clearCart, restaurantId, tableId } = useCartStore()
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [tableNumber, setTableNumber] = useState('')
 
     if (items.length === 0) {
         return (
@@ -39,7 +38,7 @@ export default function CartPage() {
         const result = await submitOrder({
             restaurant_id: restaurantId,
             items: items.map(i => ({ dish_id: i.dishId, quantity: i.quantity, price: i.price, name: i.name })),
-            // table_id logic missing here, simplified for MVP
+            table_id: tableId,
         })
 
         if (result.success) {

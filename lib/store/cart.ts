@@ -12,9 +12,11 @@ export type CartItem = {
 type CartState = {
     items: CartItem[]
     restaurantId: string | null
+    tableId: string | null
     addItem: (item: CartItem, restaurantId: string) => void
     removeItem: (dishId: string) => void
     updateQuantity: (dishId: string, quantity: number) => void
+    setTableId: (id: string | null) => void
     clearCart: () => void
     total: () => number
 }
@@ -24,12 +26,11 @@ export const useCartStore = create<CartState>()(
         (set, get) => ({
             items: [],
             restaurantId: null,
+            tableId: null,
             addItem: (item, restaurantId) => {
                 const currentResto = get().restaurantId
                 if (currentResto && currentResto !== restaurantId) {
-                    // Confirm clear cart? For now, auto-clear or throw.
-                    // Let's auto-clear for simplicity in MVP
-                    set({ items: [item], restaurantId })
+                    set({ items: [item], restaurantId, tableId: null })
                     return
                 }
 
@@ -58,7 +59,8 @@ export const useCartStore = create<CartState>()(
                         ? state.items.map((i) => (i.dishId === dishId ? { ...i, quantity } : i))
                         : state.items.filter((i) => i.dishId !== dishId)
                 })),
-            clearCart: () => set({ items: [], restaurantId: null }),
+            setTableId: (id) => set({ tableId: id }),
+            clearCart: () => set({ items: [], restaurantId: null, tableId: null }),
             total: () => get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
         }),
         {

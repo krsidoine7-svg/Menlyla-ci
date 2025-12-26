@@ -43,19 +43,20 @@ export async function getRestaurantOrders() {
 
 export async function updateOrderStatus(orderId: string, status: string) {
     const supabase = await createClient()
-
-    // Auth check implicitly handled by RLS 'has_role_in_restaurant' but simple owner check here is good too
-    // For now, trust RLS + getUser
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { message: "Non connecté" }
+    if (!user) throw new Error("Non connecté")
 
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('orders')
         .update({ status: status as any })
         .eq('id', orderId)
+        .select() // Ensures we get feedback
 
-    if (error) return { message: "Erreur mise à jour" }
+    if (error) {
+        console.error("Order update error:", error)
+        throw new Error(error.message || "Erreur lors de la mise à jour")
+    }
 
     revalidatePath('/dashboard/orders')
-    return { message: "Statut mis à jour" }
+    return { success: true }
 }

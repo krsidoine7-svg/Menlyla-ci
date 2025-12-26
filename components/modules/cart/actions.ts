@@ -11,7 +11,7 @@ const orderSchema = z.object({
         price: z.number(),
         name: z.string()
     })),
-    table_number: z.number().optional(), // Or table_id
+    table_id: z.string().uuid().optional().nullable(),
     customer_name: z.string().optional(),
 })
 
@@ -23,16 +23,7 @@ export async function submitOrder(data: any) {
         return { success: false, message: "Données invalides" }
     }
 
-    const { restaurant_id, items, table_number } = validated.data
-
-    // 1. Create Order
-    // Need table_id if table_number provided?
-    // Schema has table_id. Let's find table_id from number if possible, or leave null for counter order.
-    // For MVP, if table_number is purely informational in UI, we might need to look it up.
-    // Let's assume table_id comes from QR or manual input maps to an ID. 
-    // Simplified: Just store table_id if we have it, or NULL.
-    // For now, let's create the order with status 'pending'.
-
+    const { restaurant_id, items, table_id } = validated.data
     const total_amount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
     const { data: order, error } = await supabase
@@ -41,7 +32,7 @@ export async function submitOrder(data: any) {
             restaurant_id,
             status: 'pending',
             total_amount,
-            // table_id: ... // Implement logic to find table by number if needed or passed
+            table_id: table_id
         })
         .select()
         .single()

@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { getAnalyticsData } from '@/components/modules/analytics/actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SalesChart } from '@/components/modules/analytics/components/sales-chart'
-import { DollarSign, ShoppingBag, TrendingUp, CreditCard } from 'lucide-react'
+import { DishComparisonChart } from '@/components/modules/analytics/components/dish-comparison-chart'
+import { DollarSign, ShoppingBag, TrendingUp, CreditCard, BarChart3 } from 'lucide-react'
 
 export default async function AnalyticsPage() {
     const supabase = await createClient()
@@ -15,7 +16,18 @@ export default async function AnalyticsPage() {
 
     const stats = await getAnalyticsData('7d')
 
-    if (!stats) return <div>Chargement...</div>
+    if (!stats) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <BarChart3 className="h-12 w-12 text-muted-foreground opacity-20" />
+                <h2 className="text-xl font-semibold">Restaurant non configuré</h2>
+                <p className="text-muted-foreground text-center max-w-sm">
+                    Nous n'avons pas trouvé de restaurant associé à votre compte.
+                    Assurez-vous d'avoir configuré votre établissement dans les paramètres.
+                </p>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">
@@ -69,29 +81,81 @@ export default async function AnalyticsPage() {
                 {/* TOP PRODUCTS */}
                 <Card className="col-span-3">
                     <CardHeader>
-                        <CardTitle>Top Produits</CardTitle>
-                        <CardDescription>Vos meilleures ventes cette semaine.</CardDescription>
+                        <CardTitle>Top Produits ⭐</CardTitle>
+                        <CardDescription>Vos plats les plus "Aimés" (les plus commandés).</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-8">
+                    <CardContent drop-shadow-sm>
+                        <div className="space-y-6">
                             {stats.topProducts.map((product, index) => (
-                                <div key={index} className="flex items-center">
-                                    <div className="ml-4 space-y-1">
-                                        <p className="text-sm font-medium leading-none">{product.name}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {product.count} ventes
-                                        </p>
+                                <div key={index} className="flex items-center gap-4">
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-orange-600 font-bold">
+                                        {index + 1}
                                     </div>
-                                    <div className="ml-auto font-medium">#{index + 1}</div>
+                                    <div className="flex-1 space-y-1">
+                                        <p className="text-sm font-medium leading-none">{product.name}</p>
+                                        <p className="text-xs text-muted-foreground">{product.count} commandes au total</p>
+                                    </div>
+                                    <TrendingUp className="h-4 w-4 text-green-500" />
                                 </div>
                             ))}
-                            {stats.topProducts.length === 0 && (
-                                <div className="text-sm text-muted-foreground">Aucune vente enregistrée.</div>
-                            )}
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* NEW: DISH COMPARISON CHART */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-orange-500" />
+                        Comparaison de Performance des Plats
+                    </CardTitle>
+                    <CardDescription>Volume de commandes vs Plats servis vs Refusés (Top 10)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DishComparisonChart data={stats.dishPerformance} />
+                </CardContent>
+            </Card>
+
+            {/* PRODUCT PERFORMANCE TABLE */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Détails de Performance des Plats</CardTitle>
+                    <CardDescription>Analyse précise des plats commandés, servis et refusés.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="relative w-full overflow-auto">
+                        <table className="w-full caption-bottom text-sm">
+                            <thead className="[&_tr]:border-b">
+                                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Plat</th>
+                                    <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Commandés</th>
+                                    <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground text-green-600">Servis (Payés)</th>
+                                    <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground text-red-600">Refusés</th>
+                                    <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Revenue Total</th>
+                                </tr>
+                            </thead>
+                            <tbody className="[&_tr:last-child]:border-0">
+                                {stats.dishPerformance.map((p: any, i: number) => (
+                                    <tr key={i} className="border-b transition-colors hover:bg-muted/50">
+                                        <td className="p-4 align-middle font-semibold">{p.name}</td>
+                                        <td className="p-4 align-middle text-center">{p.ordered}</td>
+                                        <td className="p-4 align-middle text-center font-bold text-green-600">{p.served}</td>
+                                        <td className="p-4 align-middle text-center font-bold text-red-600">{p.refused}</td>
+                                        <td className="p-4 align-middle text-right font-bold">{p.revenue.toLocaleString()} {stats.currency}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {stats.dishPerformance.length === 0 && (
+                            <div className="py-10 text-center text-muted-foreground">
+                                Aucune donnée de performance disponible.
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
         </div>
     )
 }

@@ -74,7 +74,7 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
                         <TablePrintCard
                             qrId={`qr-new-${createdData.table.id}`}
                             tableName={createdData.table.name}
-                            qrUrl={`${window.location.origin}/qr/${createdData.qrCode.id}`}
+                            qrUrl={`${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/qr/${createdData.qrCode.id}`}
                             restaurantName={restaurantName}
                             restaurantLogo={restaurantLogo}
                         />
