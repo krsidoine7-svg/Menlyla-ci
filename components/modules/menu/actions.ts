@@ -101,7 +101,10 @@ const dishSchema = z.object({
     price: z.number().min(0),
     category_id: z.string().uuid(),
     image_url: z.string().optional(),
-    is_available: z.boolean().default(true)
+    is_available: z.boolean().default(true),
+    is_featured: z.boolean().default(false),
+    is_promo: z.boolean().default(false),
+    old_price: z.number().optional().nullable()
 })
 
 export async function createDish(prevState: any, formData: FormData) {
@@ -125,7 +128,10 @@ export async function createDish(prevState: any, formData: FormData) {
         description: formData.get('description'),
         price: Number(formData.get('price')),
         category_id: formData.get('category_id'),
-        image_url: formData.get('image_url')?.toString() || undefined
+        image_url: formData.get('image_url')?.toString() || undefined,
+        is_featured: formData.get('is_featured') === 'on',
+        is_promo: formData.get('is_promo') === 'on',
+        old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null
     })
 
     if (!validated.success) {
@@ -165,8 +171,10 @@ export async function updateDish(id: string, prevState: any, formData: FormData)
         description: formData.get('description'),
         price: Number(formData.get('price')),
         category_id: formData.get('category_id'),
-        // we use the schema for validation, but for update we might only update if provided
-        is_available: true // Assuming available by default for validation
+        is_available: true,
+        is_featured: formData.get('is_featured') === 'on',
+        is_promo: formData.get('is_promo') === 'on',
+        old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null
     })
 
     if (!validated.success) {
@@ -174,15 +182,13 @@ export async function updateDish(id: string, prevState: any, formData: FormData)
     }
 
     const updateData: any = {
-        name: validated.data.name,
-        description: validated.data.description,
-        price: validated.data.price,
-        category_id: validated.data.category_id,
+        ...validated.data,
     }
 
     if (image_urls) {
         updateData.image_urls = image_urls
     }
+    delete (updateData as any).image_url
 
     const { error } = await supabase
         .from('dishes')
@@ -213,5 +219,23 @@ export async function deleteDish(id: string) {
     if (error) return { message: error.message }
     revalidatePath('/dashboard/menu')
     return { message: "Plat supprimé" }
+}
+
+export async function likeDish(dishId: string) {
+    const supabase = await createClient()
+
+    // RPC or direct increment?
+    // Using select + update for simplicity in MVP, but RPC is better for high volume.
+    const { data: dish } = await supabase.from('dishes').select('likes_count').eq('id', dishId).single()
+
+    const { data, error } = await supabase
+        .from('dishes')
+        .update({ likes_count: (dish?.likes_count || 0) + 1 })
+        .eq('id', dishId)
+        .select()
+        .single()
+
+    if (error) return { message: error.message }
+    return { success: true, likes: data.likes_count }
 }
 

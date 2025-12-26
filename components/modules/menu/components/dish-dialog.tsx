@@ -72,16 +72,33 @@ export function DishDialog({ categoryId }: Props) {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid items-center gap-2">
-                                <Label htmlFor="price">Prix (FCFA)</Label>
+                                <Label htmlFor="price">Prix Actuel (FCFA)</Label>
                                 <Input id="price" name="price" type="number" min="0" required />
                             </div>
                             <div className="grid items-center gap-2">
-                                <ImageUpload
-                                    defaultImage={imageUrl}
-                                    onImageUploaded={setImageUrl}
-                                    onImageRemoved={() => setImageUrl(undefined)}
-                                />
+                                <Label htmlFor="old_price">Ancien Prix (Optionnel)</Label>
+                                <Input id="old_price" name="old_price" type="number" min="0" placeholder="Ex: 5000" />
                             </div>
+                        </div>
+
+                        <div className="flex gap-6 py-2">
+                            <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="is_featured" name="is_featured" className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                                <Label htmlFor="is_featured" className="text-sm font-medium leading-none cursor-pointer">✨ Spécial (Favori)</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="is_promo" name="is_promo" className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                                <Label htmlFor="is_promo" className="text-sm font-medium leading-none cursor-pointer">🔥 Promotion</Label>
+                            </div>
+                        </div>
+
+                        <div className="grid items-center gap-2">
+                            <Label>Photo du plat</Label>
+                            <ImageUpload
+                                defaultImage={imageUrl}
+                                onImageUploaded={setImageUrl}
+                                onImageRemoved={() => setImageUrl(undefined)}
+                            />
                         </div>
                     </div>
                     <DialogFooter>

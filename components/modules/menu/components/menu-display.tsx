@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, List, MoreVertical, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
+import { LayoutGrid, List, MoreVertical, Pencil, Trash2, Power, PowerOff, Star, Flame } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -200,10 +200,20 @@ export function MenuDisplay({ categories }: Props) {
                                                     Pas d'image
                                                 </div>
                                             )}
-                                            <div className="absolute top-2 right-2 flex gap-2">
+                                            <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
                                                 <Badge variant={dish.is_available ? 'default' : 'destructive'} className={dish.is_available ? 'bg-green-600/90 shadow-sm' : ''}>
                                                     {dish.is_available ? 'En stock' : 'Épuisé'}
                                                 </Badge>
+                                                {dish.is_featured && (
+                                                    <Badge className="bg-orange-500 text-white border-0 shadow-sm px-2">
+                                                        <Star className="h-3 w-3 mr-1 fill-current" /> Spécial
+                                                    </Badge>
+                                                )}
+                                                {dish.is_promo && (
+                                                    <Badge className="bg-red-500 text-white border-0 shadow-sm px-2">
+                                                        <Flame className="h-3 w-3 mr-1 fill-current" /> Promo
+                                                    </Badge>
+                                                )}
                                             </div>
                                             <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <DropdownMenu>
