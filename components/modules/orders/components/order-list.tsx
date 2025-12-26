@@ -56,7 +56,19 @@ export function OrderList() {
 
     if (loading) return <div>Chargement des commandes...</div>
 
-    if (orders.length === 0) return <div>Aucune commande pour le moment.</div>
+    if (orders.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4 border-2 border-dashed rounded-3xl bg-muted/20 opacity-60">
+                <div className="bg-background p-4 rounded-full shadow-sm animate-bounce">
+                    <Clock className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="text-center">
+                    <h3 className="text-xl font-bold">Le calme plat...</h3>
+                    <p className="text-muted-foreground">Aucune commande en cours pour le moment.</p>
+                </div>
+            </div>
+        )
+    }
 
     const pendingOrders = orders.filter(o => o.status === 'pending')
     const inProgressOrders = orders.filter(o => ['confirmed', 'preparing'].includes(o.status))

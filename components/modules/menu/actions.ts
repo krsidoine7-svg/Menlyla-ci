@@ -27,7 +27,7 @@ export async function createCategory(prevState: any, formData: FormData) {
 
     const validated = categorySchema.safeParse({
         name: formData.get('name'),
-        rank: Number(formData.get('rank') || 0) // Changed from display_order
+        rank: Number(formData.get('rank') || 0)
     })
 
     if (!validated.success) {
@@ -61,7 +61,6 @@ export async function updateCategory(id: string, prevState: any, formData: FormD
         return { message: "Validation echouée" }
     }
 
-    // Improve: Check if category belongs to user's restaurant
     const { error } = await supabase
         .from('categories')
         .update(validated.data)
@@ -104,7 +103,11 @@ const dishSchema = z.object({
     is_available: z.boolean().default(true),
     is_featured: z.boolean().default(false),
     is_promo: z.boolean().default(false),
-    old_price: z.number().optional().nullable()
+    old_price: z.number().optional().nullable(),
+    is_vegetarian: z.boolean().default(false),
+    is_spicy: z.boolean().default(false),
+    is_gluten_free: z.boolean().default(false),
+    upsell_ids: z.array(z.string().uuid()).optional().default([]),
 })
 
 export async function createDish(prevState: any, formData: FormData) {
@@ -128,10 +131,13 @@ export async function createDish(prevState: any, formData: FormData) {
         description: formData.get('description'),
         price: Number(formData.get('price')),
         category_id: formData.get('category_id'),
-        image_url: formData.get('image_url')?.toString() || undefined,
         is_featured: formData.get('is_featured') === 'on',
         is_promo: formData.get('is_promo') === 'on',
-        old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null
+        old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null,
+        is_vegetarian: formData.get('is_vegetarian') === 'on',
+        is_spicy: formData.get('is_spicy') === 'on',
+        is_gluten_free: formData.get('is_gluten_free') === 'on',
+        upsell_ids: formData.get('upsell_ids') ? JSON.parse(formData.get('upsell_ids') as string) : []
     })
 
     if (!validated.success) {
@@ -174,7 +180,11 @@ export async function updateDish(id: string, prevState: any, formData: FormData)
         is_available: true,
         is_featured: formData.get('is_featured') === 'on',
         is_promo: formData.get('is_promo') === 'on',
-        old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null
+        old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null,
+        is_vegetarian: formData.get('is_vegetarian') === 'on',
+        is_spicy: formData.get('is_spicy') === 'on',
+        is_gluten_free: formData.get('is_gluten_free') === 'on',
+        upsell_ids: formData.get('upsell_ids') ? JSON.parse(formData.get('upsell_ids') as string) : []
     })
 
     if (!validated.success) {
@@ -223,9 +233,6 @@ export async function deleteDish(id: string) {
 
 export async function likeDish(dishId: string) {
     const supabase = await createClient()
-
-    // RPC or direct increment?
-    // Using select + update for simplicity in MVP, but RPC is better for high volume.
     const { data: dish } = await supabase.from('dishes').select('likes_count').eq('id', dishId).single()
 
     const { data, error } = await supabase
@@ -239,3 +246,30 @@ export async function likeDish(dishId: string) {
     return { success: true, likes: data.likes_count }
 }
 
+export async function getPossibleUpsells(restaurantId: string, excludeId?: string) {
+    const supabase = await createClient()
+    let query = supabase
+        .from('dishes')
+        .select('id, name, price, image_urls')
+        .eq('restaurant_id', restaurantId)
+        .eq('is_available', true)
+
+    if (excludeId) {
+        query = query.neq('id', excludeId)
+    }
+
+    const { data } = await query.order('name')
+    return data || []
+}
+
+export async function getDishesByIds(ids: string[]) {
+    if (!ids || ids.length === 0) return []
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from('dishes')
+        .select('id, name, price, image_urls')
+        .in('id', ids)
+        .eq('is_available', true)
+
+    return data || []
+}

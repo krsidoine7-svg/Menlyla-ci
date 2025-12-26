@@ -10,15 +10,13 @@ export default async function MenuPage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { data: restaurant } = await supabase.from('restaurants').select('id').eq('owner_id', user?.id).single()
+    const { data: restaurant } = await supabase.from('restaurants').select('id, currency').eq('owner_id', user?.id).single()
 
     if (!restaurant) return <div>Configurez d'abord votre restaurant</div>
 
     const { data: categories } = await supabase
         .from('categories')
-        .select('*, dishes(*)')
-        .eq('restaurant_id', restaurant.id)
-        .order('rank', { ascending: true })
+        .select('*, dishes(*)').eq('restaurant_id', restaurant.id).order('rank', { ascending: true })
 
     return (
         <div className="flex flex-col gap-6">
@@ -27,7 +25,7 @@ export default async function MenuPage() {
                 <CategoryDialog />
             </div>
 
-            <MenuDisplay categories={categories || []} />
+            <MenuDisplay categories={categories || []} restaurant={restaurant} />
         </div>
     )
 }

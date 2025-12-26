@@ -17,7 +17,7 @@ export default function CartPage() {
     const router = useRouter()
     const slug = params.slug as string
 
-    const { items, removeItem, updateQuantity, total, clearCart, restaurantId, tableId } = useCartStore()
+    const { items, removeItem, updateQuantity, getTotalPrice, clearCart, restaurantId, tableId } = useCartStore()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     if (items.length === 0) {
@@ -86,7 +86,7 @@ export default function CartPage() {
                     <CardContent className="p-4 space-y-4">
                         <div className="flex justify-between items-center text-lg font-bold">
                             <span>Total</span>
-                            <span>{total()} FCFA</span>
+                            <span className="text-orange-600">{getTotalPrice().toLocaleString()} FCFA</span>
                         </div>
                     </CardContent>
                 </Card>

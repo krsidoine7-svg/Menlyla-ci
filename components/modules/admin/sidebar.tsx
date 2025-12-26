@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, ChefHat, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const navItems = [
     { name: 'Vue d\'ensemble', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard Cuisine', href: '/dashboard/kitchen', icon: ChefHat },
     { name: 'Menu & Carte', href: '/dashboard/menu', icon: UtensilsCrossed },
     { name: 'QR Codes & Tables', href: '/dashboard/tables', icon: QrCode },
     { name: 'Commandes', href: '/dashboard/orders', icon: Receipt },
+    { name: 'Avis Clients', href: '/dashboard/reviews', icon: MessageSquare },
     { name: 'Statistiques', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Paramètres', href: '/dashboard/settings', icon: Settings },
 ]

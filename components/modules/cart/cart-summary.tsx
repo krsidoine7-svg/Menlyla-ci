@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 export function CartSummary() {
     const items = useCartStore((state) => state.items)
-    const total = useCartStore((state) => state.total())
+    const getTotalPrice = useCartStore((state) => state.getTotalPrice)
     const [mounted, setMounted] = useState(false)
     const params = useParams()
     const slug = params.slug as string // Public route always has slug
@@ -32,7 +32,7 @@ export function CartSummary() {
                         </div>
                         <span>Voir le panier</span>
                     </div>
-                    <span className="font-bold">{total} FCFA</span>
+                    <span className="font-bold">{getTotalPrice().toLocaleString()} FCFA</span>
                 </Button>
             </Link>
         </div>

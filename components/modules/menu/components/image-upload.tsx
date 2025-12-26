@@ -12,9 +12,11 @@ type Props = {
     defaultImage?: string
     onImageUploaded: (url: string) => void
     onImageRemoved: () => void
+    label?: string
+    id?: string
 }
 
-export function ImageUpload({ defaultImage, onImageUploaded, onImageRemoved }: Props) {
+export function ImageUpload({ defaultImage, onImageUploaded, onImageRemoved, label, id = 'image-upload' }: Props) {
     const [image, setImage] = useState<string | undefined>(defaultImage)
     const [uploading, setUploading] = useState(false)
 
@@ -63,7 +65,7 @@ export function ImageUpload({ defaultImage, onImageUploaded, onImageRemoved }: P
 
     return (
         <div className="grid gap-2">
-            <Label>Image du plat</Label>
+            {label && <Label>{label}</Label>}
 
             {image ? (
                 <div className="relative aspect-video w-full max-w-[200px] overflow-hidden rounded-md border">
@@ -88,7 +90,7 @@ export function ImageUpload({ defaultImage, onImageUploaded, onImageRemoved }: P
                         type="button"
                         variant="outline"
                         disabled={uploading}
-                        onClick={() => document.getElementById('image-upload')?.click()}
+                        onClick={() => document.getElementById(id)?.click()}
                     >
                         {uploading ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -98,7 +100,7 @@ export function ImageUpload({ defaultImage, onImageUploaded, onImageRemoved }: P
                         {uploading ? 'Téléchargement...' : 'Choisir une image'}
                     </Button>
                     <input
-                        id="image-upload"
+                        id={id}
                         type="file"
                         accept="image/*"
                         className="hidden"

@@ -18,7 +18,7 @@ type CartState = {
     updateQuantity: (dishId: string, quantity: number) => void
     setTableId: (id: string | null) => void
     clearCart: () => void
-    total: () => number
+    getTotalPrice: () => number
 }
 
 export const useCartStore = create<CartState>()(
@@ -61,7 +61,7 @@ export const useCartStore = create<CartState>()(
                 })),
             setTableId: (id) => set({ tableId: id }),
             clearCart: () => set({ items: [], restaurantId: null, tableId: null }),
-            total: () => get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+            getTotalPrice: () => get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
         }),
         {
             name: 'manly-cart',
