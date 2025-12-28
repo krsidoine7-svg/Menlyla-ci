@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { CategoryDialog } from '@/components/modules/menu/components/category-dialog'
 import { DishDialog } from '@/components/modules/menu/components/dish-dialog'
 import { MenuDisplay } from '@/components/modules/menu/components/menu-display'
+import { NoRestaurantState } from '@/components/modules/admin/no-restaurant'
 
 
 export default async function MenuPage() {
@@ -12,7 +13,7 @@ export default async function MenuPage() {
 
     const { data: restaurant } = await supabase.from('restaurants').select('id, currency').eq('owner_id', user?.id).single()
 
-    if (!restaurant) return <div>Configurez d'abord votre restaurant</div>
+    if (!restaurant) return <NoRestaurantState />
 
     const { data: categories } = await supabase
         .from('categories')

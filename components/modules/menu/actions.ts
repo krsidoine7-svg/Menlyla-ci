@@ -273,3 +273,23 @@ export async function getDishesByIds(ids: string[]) {
 
     return data || []
 }
+export async function getOrdersByIds(ids: string[]) {
+    if (!ids || ids.length === 0) return []
+    const supabase = await createClient()
+
+    const { data } = await supabase
+        .from('orders')
+        .select(`
+            *,
+            tables(name),
+            order_items(
+                quantity,
+                unit_price,
+                dishes(name)
+            )
+        `)
+        .in('id', ids)
+        .order('created_at', { ascending: false })
+
+    return data || []
+}

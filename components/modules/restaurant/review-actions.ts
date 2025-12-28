@@ -10,6 +10,7 @@ const reviewSchema = z.object({
     rating: z.number().min(1).max(5),
     comment: z.string().min(2, "Le commentaire est trop court"),
     customer_name: z.string().optional().default('Client Anonyme'),
+    image_urls: z.array(z.string()).optional().default([]),
 })
 
 export async function submitReview(data: any) {
@@ -33,17 +34,22 @@ export async function submitReview(data: any) {
     return { success: true, message: "Merci pour votre avis !" }
 }
 
-export async function getRestaurantReviews(restaurantId: string) {
+export async function getRestaurantReviews(restaurantId: string, isAdmin: boolean = false) {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    let query = supabase
         .from('reviews')
         .select(`
             *,
             dishes(name)
         `)
         .eq('restaurant_id', restaurantId)
-        .eq('is_published', true)
         .order('created_at', { ascending: false })
+
+    if (!isAdmin) {
+        query = query.eq('status', 'approved')
+    }
+
+    const { data, error } = await query
 
     if (error) {
         console.error("Error fetching reviews:", error)
@@ -62,5 +68,34 @@ export async function deleteReview(reviewId: string) {
 
     if (error) throw new Error(error.message)
     revalidatePath('/dashboard/reviews')
+    return { success: true }
+}
+
+export async function replyToReview(reviewId: string, reply: string) {
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('reviews')
+        .update({
+            owner_reply: reply,
+            replied_at: new Date().toISOString()
+        })
+        .eq('id', reviewId)
+
+    if (error) throw new Error(error.message)
+    revalidatePath('/dashboard/reviews')
+    revalidatePath('/[slug]', 'layout')
+    return { success: true }
+}
+
+export async function updateReviewStatus(reviewId: string, status: 'approved' | 'rejected') {
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('reviews')
+        .update({ status })
+        .eq('id', reviewId)
+
+    if (error) throw new Error(error.message)
+    revalidatePath('/dashboard/reviews')
+    revalidatePath('/[slug]', 'layout')
     return { success: true }
 }

@@ -17,7 +17,7 @@ export default function CartPage() {
     const router = useRouter()
     const slug = params.slug as string
 
-    const { items, removeItem, updateQuantity, getTotalPrice, clearCart, restaurantId, tableId } = useCartStore()
+    const { items, removeItem, updateQuantity, getTotalPrice, clearCart, restaurantId, tableId, addActiveOrder } = useCartStore()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     if (items.length === 0) {
@@ -43,6 +43,7 @@ export default function CartPage() {
 
         if (result.success) {
             toast.success("Commande envoyée !")
+            addActiveOrder(result.orderId)
             clearCart()
             router.push(`/${slug}/order/${result.orderId}`)
         } else {

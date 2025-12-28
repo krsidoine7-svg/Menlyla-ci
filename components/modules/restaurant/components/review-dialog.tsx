@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, MessageSquarePlus, Loader2 } from 'lucide-react'
+import { Star, MessageSquarePlus, Loader2, X, Camera, Upload } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -30,7 +31,42 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
     const [hover, setHover] = useState(0)
     const [comment, setComment] = useState('')
     const [name, setName] = useState('')
+    const [imageUrls, setImageUrls] = useState<string[]>([])
     const [isPending, setIsPending] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files
+        if (!files || files.length === 0) return
+
+        setIsUploading(true)
+        const supabase = createClient()
+        const newUrls = [...imageUrls]
+
+        for (const file of Array.from(files)) {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${Math.random()}.${fileExt}`
+            const filePath = `${restaurantId}/${fileName}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('review-photos')
+                .upload(filePath, file)
+
+            if (uploadError) {
+                toast.error("Erreur lors de l'upload d'une image")
+                continue
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('review-photos')
+                .getPublicUrl(filePath)
+
+            newUrls.push(publicUrl)
+        }
+
+        setImageUrls(newUrls)
+        setIsUploading(false)
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -41,16 +77,18 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
             dish_id: dishId,
             rating,
             comment,
-            customer_name: name || 'Client Anonyme'
+            customer_name: name || 'Client Anonyme',
+            image_urls: imageUrls
         })
 
         if (result.success) {
-            toast.success(result.message)
+            toast.success("Avis envoyé ! Il sera visible après modération.")
             setOpen(false)
             // Reset form
             setRating(5)
             setComment('')
             setName('')
+            setImageUrls([])
         } else {
             toast.error(result.message)
         }
@@ -116,6 +154,49 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
                             onChange={(e) => setComment(e.target.value)}
                             className="rounded-2xl border-muted bg-muted/20 focus:bg-background min-h-[100px]"
                         />
+                    </div>
+
+                    <div className="space-y-4">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Photos de votre expérience</Label>
+
+                        <div className="grid grid-cols-4 gap-3">
+                            {/* Bouton Upload / Appareil Photo */}
+                            <label className={cn(
+                                "aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-2xl cursor-pointer transition-all active:scale-95",
+                                "border-orange-100 bg-orange-50/30 text-orange-600 hover:border-orange-300 hover:bg-orange-50",
+                                isUploading && "opacity-50 pointer-events-none"
+                            )}>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    multiple
+                                    onChange={handleFileUpload}
+                                />
+                                {isUploading ? (
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : (
+                                    <>
+                                        <Camera className="h-6 w-6 mb-1" />
+                                        <span className="text-[10px] font-black uppercase">Ajouter</span>
+                                    </>
+                                )}
+                            </label>
+
+                            {/* Prévisualisations */}
+                            {imageUrls.map((url, i) => (
+                                <div key={i} className="relative aspect-square rounded-2xl overflow-hidden group border border-muted">
+                                    <img src={url} className="h-full w-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setImageUrls(imageUrls.filter((_, idx) => idx !== i))}
+                                        className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <X className="h-6 w-6 text-white" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <Button

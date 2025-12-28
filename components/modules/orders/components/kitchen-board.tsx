@@ -9,7 +9,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Clock, CheckCircle2, PlayCircle, Loader2, AlertCircle } from 'lucide-react'
 import { updateOrderStatus } from '../actions'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, formatOrderId } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
 
 type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled'
 
@@ -23,49 +25,105 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: a
     cancelled: { label: 'Annulé', color: 'bg-red-500', icon: AlertCircle },
 }
 
-export function KitchenBoard({ initialOrders }: { initialOrders: any[] }) {
+export function KitchenBoard({ initialOrders, restaurantId }: { initialOrders: any[], restaurantId: string }) {
     const [orders, setOrders] = useState(initialOrders)
     const [loading, setLoading] = useState<string | null>(null)
-    const supabase = createClient()
+    const supabase = useMemo(() => createClient(), [])
+    const router = useRouter()
 
-    const playNotificationSound = () => {
+    const playNotificationSound = (order?: any) => {
         if (typeof window !== 'undefined') {
-            const utterance = new SpeechSynthesisUtterance('Nouvelle commande reçue !')
+            const tableInfo = order?.tables?.name || 'Vente à emporter'
+            const text = `Nouvelle commande reçue. ${tableInfo}.`
+
+            const utterance = new SpeechSynthesisUtterance(text)
             utterance.lang = 'fr-FR'
             utterance.rate = 1
             utterance.pitch = 1.1
             window.speechSynthesis.speak(utterance)
+
             toast.info("🔔 Nouvelle commande !", {
-                description: "Une nouvelle commande vient d'arriver.",
+                description: tableInfo,
                 duration: 5000
             })
+
+            // Browser notification
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Nouvelle Commande ! 🍽️", {
+                    body: `Une nouvelle commande vient d'arriver: ${tableInfo}`,
+                    icon: "/favicon.ico"
+                })
+            }
         }
     }
 
     useEffect(() => {
+        // Request notification permission once on mount
+        if (typeof window !== 'undefined' && "Notification" in window) {
+            if (Notification.permission === "default") {
+                Notification.requestPermission()
+            }
+        }
+    }, [])
+
+    useEffect(() => {
         const channel = supabase
-            .channel('kitchen-orders')
+            .channel(`kitchen-orders-${restaurantId}`)
             .on(
                 'postgres_changes',
-                { event: '*', table: 'orders', schema: 'public' },
-                async (payload) => {
+                {
+                    event: '*',
+                    table: 'orders',
+                    schema: 'public',
+                    filter: `restaurant_id=eq.${restaurantId}`
+                },
+                async (payload: any) => {
                     if (payload.eventType === 'INSERT') {
-                        playNotificationSound()
-                        // Small delay before reload to let toast show
-                        setTimeout(() => window.location.reload(), 1500)
+                        // Wait slightly for order_items and joins to be populated
+                        setTimeout(async () => {
+                            const { data: newOrder, error } = await supabase
+                                .from('orders')
+                                .select(`
+                                    *,
+                                    tables(name),
+                                    order_items(
+                                        quantity,
+                                        unit_price,
+                                        dishes(name)
+                                    ),
+                                    profiles(full_name)
+                                `)
+                                .eq('id', payload.new.id)
+                                .single()
+
+                            if (!error && newOrder) {
+                                playNotificationSound(newOrder)
+                                setOrders((current) => {
+                                    if (current.find(o => o.id === newOrder.id)) return current
+                                    return [newOrder, ...current]
+                                })
+                            }
+                        }, 1500)
                     } else if (payload.eventType === 'UPDATE') {
-                        setOrders((current) =>
-                            current.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
-                        )
+                        router.refresh()
                     }
                 }
             )
-            .subscribe()
+            .subscribe((status: string) => {
+                if (status !== 'SUBSCRIBED') {
+                    console.warn("Realtime subscription status:", status)
+                }
+            })
 
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [supabase])
+    }, [supabase, restaurantId, router])
+
+    // Sync local state when props change
+    useEffect(() => {
+        setOrders(initialOrders)
+    }, [initialOrders])
 
     const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
         setLoading(orderId)
@@ -128,7 +186,7 @@ function OrderCard({ order, onStatusUpdate, loading }: any) {
         <Card className="rounded-3xl border-none shadow-sm hover:shadow-md transition-all overflow-hidden bg-card">
             <CardHeader className="p-4 pb-2 border-b border-muted bg-muted/10">
                 <div className="flex justify-between items-start">
-                    <div className="font-black text-lg">#{order.id.slice(-4).toUpperCase()}</div>
+                    <div className="font-black text-lg">#{formatOrderId(order.id, order.created_at)}</div>
                     <div className={cn(
                         "text-[10px] font-bold flex items-center gap-1",
                         elapsed > 15 ? "text-red-500 animate-pulse" : "text-muted-foreground"

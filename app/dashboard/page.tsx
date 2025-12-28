@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getDashboardStats } from '@/components/modules/admin/actions'
+import { getDashboardStats, getRecentOrders, getWeeklyRevenue, getOnboardingStatus } from '@/components/modules/admin/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { SalesChart } from '@/components/modules/analytics/components/sales-chart'
+import { RecentActivity } from '@/components/modules/admin/recent-activity'
+import { OnboardingChecklist } from '@/components/modules/admin/onboarding-checklist'
 import { DollarSign, ShoppingBag, Activity } from 'lucide-react'
 
 export default async function DashboardPage() {
@@ -13,10 +17,17 @@ export default async function DashboardPage() {
     }
 
     const stats = await getDashboardStats()
+    const recentOrders = await getRecentOrders()
+    const weeklyRevenue = await getWeeklyRevenue()
+    const onboardingStatus = await getOnboardingStatus()
+
+    const { data: restaurant } = await supabase.from('restaurants').select('id').eq('owner_id', user.id).single()
 
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold tracking-tight">Vue d'ensemble</h1>
+
+            {onboardingStatus && <OnboardingChecklist status={onboardingStatus} />}
 
             {stats ? (
                 <div className="grid gap-4 md:grid-cols-3">
@@ -57,9 +68,24 @@ export default async function DashboardPage() {
                 <div className="text-muted-foreground">Chargement des statistiques...</div>
             )}
 
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                <h3 className="font-semibold leading-none tracking-tight mb-4">Activité Récente</h3>
-                <p className="text-sm text-muted-foreground">Visualisez les commandes en temps réel dans l'onglet "Commandes".</p>
+            {/* Charts Section */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-4">
+                    <CardHeader>
+                        <CardTitle>Revenus (7 jours)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pl-2">
+                        <SalesChart data={weeklyRevenue} currency={stats?.currency || 'FCFA'} />
+                    </CardContent>
+                </Card>
+
+                <div className="col-span-3">
+                    <RecentActivity
+                        initialOrders={recentOrders}
+                        currency={stats?.currency || 'FCFA'}
+                        restaurantId={restaurant?.id}
+                    />
+                </div>
             </div>
         </div>
     )

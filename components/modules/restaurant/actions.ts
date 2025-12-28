@@ -18,6 +18,7 @@ const restaurantSchema = z.object({
     logo_url: z.string().optional(),
     banner_url: z.string().optional(),
     social_links: z.any().optional(),
+    settings: z.any().optional(),
 })
 
 export type RestaurantState = {
@@ -45,15 +46,16 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
 
     // 2. Validate Input
     const rawData = {
-        name: formData.get('name'),
-        slug: formData.get('slug'),
-        description: formData.get('description'),
-        phone: formData.get('phone'),
-        address: formData.get('address'),
-        email: formData.get('email'),
-        currency: formData.get('currency'),
-        logo_url: formData.get('logo_url'),
-        banner_url: formData.get('banner_url'),
+        name: formData.get('name') || undefined,
+        slug: formData.get('slug') || undefined,
+        description: formData.get('description') || undefined,
+        phone: formData.get('phone') || undefined,
+        address: formData.get('address') || undefined,
+        email: formData.get('email') || undefined,
+        currency: formData.get('currency') || undefined,
+        logo_url: formData.get('logo_url') || undefined,
+        banner_url: formData.get('banner_url') || undefined,
+        settings: formData.get('settings') ? JSON.parse(formData.get('settings') as string) : {},
     }
 
     const validatedFields = restaurantSchema.safeParse(rawData)
@@ -104,16 +106,17 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
     const supabase = await createClient()
 
     const rawData = {
-        name: formData.get('name'),
-        slug: formData.get('slug'),
-        description: formData.get('description'),
-        phone: formData.get('phone'),
-        address: formData.get('address'),
-        email: formData.get('email'),
-        currency: formData.get('currency'),
-        logo_url: formData.get('logo_url'),
-        banner_url: formData.get('banner_url'),
+        name: formData.get('name') || undefined,
+        slug: formData.get('slug') || undefined,
+        description: formData.get('description') || undefined,
+        phone: formData.get('phone') || undefined,
+        address: formData.get('address') || undefined,
+        email: formData.get('email') || undefined,
+        currency: formData.get('currency') || undefined,
+        logo_url: formData.get('logo_url') || undefined,
+        banner_url: formData.get('banner_url') || undefined,
         social_links: formData.get('social_links') ? JSON.parse(formData.get('social_links') as string) : {},
+        settings: formData.get('settings') ? JSON.parse(formData.get('settings') as string) : {},
     }
 
     const validatedFields = restaurantSchema.safeParse(rawData)
@@ -140,4 +143,24 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
 
     revalidatePath('/dashboard/settings')
     return { message: "Restaurant mis à jour avec succès !" }
+}
+export async function getOrdersByIds(ids: string[]) {
+    if (!ids || ids.length === 0) return []
+    const supabase = await createClient()
+
+    const { data } = await supabase
+        .from('orders')
+        .select(`
+            *,
+            tables(name),
+            order_items(
+                quantity,
+                unit_price,
+                dishes(name)
+            )
+        `)
+        .in('id', ids)
+        .order('created_at', { ascending: false })
+
+    return data || []
 }

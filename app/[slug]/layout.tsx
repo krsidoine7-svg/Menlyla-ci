@@ -29,6 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
+import { LiveOrderStatus } from '@/components/modules/orders/components/live-order-status'
+
 export default async function RestaurantLayout({
     children,
     params,
@@ -49,6 +51,7 @@ export default async function RestaurantLayout({
 
     return (
         <div className="min-h-screen bg-background pb-20">
+            <LiveOrderStatus />
             {/* Mobile-first layout */}
             {children}
         </div>

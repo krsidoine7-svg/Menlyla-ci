@@ -13,10 +13,13 @@ type CartState = {
     items: CartItem[]
     restaurantId: string | null
     tableId: string | null
+    activeOrderIds: string[]
     addItem: (item: CartItem, restaurantId: string) => void
     removeItem: (dishId: string) => void
     updateQuantity: (dishId: string, quantity: number) => void
     setTableId: (id: string | null) => void
+    addActiveOrder: (id: string) => void
+    removeActiveOrder: (id: string) => void
     clearCart: () => void
     getTotalPrice: () => number
 }
@@ -27,6 +30,7 @@ export const useCartStore = create<CartState>()(
             items: [],
             restaurantId: null,
             tableId: null,
+            activeOrderIds: [],
             addItem: (item, restaurantId) => {
                 const currentResto = get().restaurantId
                 if (currentResto && currentResto !== restaurantId) {
@@ -60,6 +64,12 @@ export const useCartStore = create<CartState>()(
                         : state.items.filter((i) => i.dishId !== dishId)
                 })),
             setTableId: (id) => set({ tableId: id }),
+            addActiveOrder: (id) => set((state) => ({
+                activeOrderIds: [...new Set([...state.activeOrderIds, id])]
+            })),
+            removeActiveOrder: (id) => set((state) => ({
+                activeOrderIds: state.activeOrderIds.filter(oid => oid !== id)
+            })),
             clearCart: () => set({ items: [], restaurantId: null, tableId: null }),
             getTotalPrice: () => get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
         }),

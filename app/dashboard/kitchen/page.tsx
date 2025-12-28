@@ -1,7 +1,15 @@
 import { getRestaurantOrders } from '@/components/modules/orders/actions'
 import { KitchenBoard } from '@/components/modules/orders/components/kitchen-board'
+import { createClient } from '@/lib/supabase/server'
+import { NoRestaurantState } from '@/components/modules/admin/no-restaurant'
 
 export default async function KitchenPage() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: restaurant } = await supabase.from('restaurants').select('id').eq('owner_id', user?.id).single()
+
+    if (!restaurant) return <NoRestaurantState />
+
     const orders = await getRestaurantOrders()
 
     return (
@@ -14,7 +22,7 @@ export default async function KitchenPage() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-                <KitchenBoard initialOrders={orders} />
+                <KitchenBoard initialOrders={orders} restaurantId={restaurant.id} />
             </div>
         </div>
     )

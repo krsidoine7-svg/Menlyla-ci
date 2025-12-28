@@ -64,6 +64,12 @@ export async function deleteTable(id: string) {
     revalidatePath('/dashboard/tables')
 }
 
+export async function deleteTables(ids: string[]) {
+    const supabase = await createClient()
+    await supabase.from('tables').delete().in('id', ids)
+    revalidatePath('/dashboard/tables')
+}
+
 export async function regenerateQrCode(tableId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

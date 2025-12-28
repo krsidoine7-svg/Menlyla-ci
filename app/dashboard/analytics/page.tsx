@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getAnalyticsData } from '@/components/modules/analytics/actions'
+import { NoRestaurantState } from '@/components/modules/admin/no-restaurant'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SalesChart } from '@/components/modules/analytics/components/sales-chart'
 import { DishComparisonChart } from '@/components/modules/analytics/components/dish-comparison-chart'
+import { TopProductsChart } from '@/components/modules/analytics/components/top-products-chart'
+import { ExportButton } from '@/components/modules/analytics/components/export-button'
 import { DollarSign, ShoppingBag, TrendingUp, CreditCard, BarChart3 } from 'lucide-react'
 
 export default async function AnalyticsPage() {
@@ -14,16 +17,19 @@ export default async function AnalyticsPage() {
         redirect('/login')
     }
 
+    const { data: restaurant } = await supabase.from('restaurants').select('id').eq('owner_id', user?.id).single()
+
+    if (!restaurant) return <NoRestaurantState />
+
     const stats = await getAnalyticsData('7d')
 
     if (!stats) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
                 <BarChart3 className="h-12 w-12 text-muted-foreground opacity-20" />
-                <h2 className="text-xl font-semibold">Restaurant non configuré</h2>
+                <h2 className="text-xl font-semibold">Données non disponibles</h2>
                 <p className="text-muted-foreground text-center max-w-sm">
-                    Nous n'avons pas trouvé de restaurant associé à votre compte.
-                    Assurez-vous d'avoir configuré votre établissement dans les paramètres.
+                    Aucune statistique n'a été générée pour le moment. Attendez les premières commandes !
                 </p>
             </div>
         )
@@ -31,7 +37,10 @@ export default async function AnalyticsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+                <ExportButton stats={stats} restaurantId={restaurant.id} />
+            </div>
 
             {/* KPI GRID */}
             <div className="grid gap-4 md:grid-cols-3">
@@ -84,7 +93,8 @@ export default async function AnalyticsPage() {
                         <CardTitle>Top Produits ⭐</CardTitle>
                         <CardDescription>Vos plats les plus "Aimés" (les plus commandés).</CardDescription>
                     </CardHeader>
-                    <CardContent drop-shadow-sm>
+                    <CardContent className="drop-shadow-sm space-y-6">
+                        <TopProductsChart data={stats.topProducts} />
                         <div className="space-y-6">
                             {stats.topProducts.map((product, index) => (
                                 <div key={index} className="flex items-center gap-4">
@@ -125,6 +135,7 @@ export default async function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="relative w-full overflow-auto">
+
                         <table className="w-full caption-bottom text-sm">
                             <thead className="[&_tr]:border-b">
                                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">

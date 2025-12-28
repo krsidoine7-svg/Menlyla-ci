@@ -6,14 +6,8 @@ import { Trash2, MoreVertical, RefreshCw, QrCode } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import { TableQrSection } from '@/components/modules/qr-code/components/table-qr-section'
 import { AddTableDialog } from '@/components/modules/qr-code/components/add-table-dialog'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { NoRestaurantState } from '@/components/modules/admin/no-restaurant'
+import { TableGrid } from '@/components/modules/qr-code/components/table-grid'
 
 
 export default async function TablesPage() {
@@ -31,15 +25,14 @@ export default async function TablesPage() {
         .eq('owner_id', user?.id)
         .single()
 
-    if (!restaurant) return <div>Configurez d'abord votre restaurant</div>
+    if (!restaurant) return <NoRestaurantState />
 
     // Fetch Tables with QR Codes
     const { data: tables } = await supabase
         .from('tables')
         .select('*, qr_codes(*)')
         .eq('restaurant_id', restaurant.id)
-        .order('name', { ascending: true }) // Can be tricky with strings "1", "10", "2", usually needs natural sort or int casting.
-    // For MVP, standard string sort is fine or we accept 1, 10, 2.
+        .order('name', { ascending: true })
 
     return (
         <div className="flex flex-col gap-8">
@@ -55,56 +48,7 @@ export default async function TablesPage() {
             </div>
 
             {tables && tables.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {tables.map((table: any) => {
-                        const qrCode = table.qr_codes?.[0]
-                        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
-                        const qrUrl = qrCode ? `${baseUrl}/qr/${qrCode.id}` : '#'
-
-                        return (
-                            <Card key={table.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-muted/20">
-                                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                        <div className="bg-orange-100 p-1.5 rounded-full">
-                                            <QrCode className="h-4 w-4 text-orange-600" />
-                                        </div>
-                                        Table {table.name}
-                                    </CardTitle>
-
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-orange-50">
-                                                <MoreVertical className="h-4 w-4 text-gray-500" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <form action={deleteTable.bind(null, table.id)}>
-                                                <button type="submit" className="w-full text-left">
-                                                    <DropdownMenuItem className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50">
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                                                    </DropdownMenuItem>
-                                                </button>
-                                            </form>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </CardHeader>
-
-                                <CardContent className="pt-6 flex flex-col items-center">
-                                    <TableQrSection
-                                        tableId={table.id}
-                                        tableName={table.name}
-                                        qrCode={qrCode}
-                                        restaurantName={restaurant.name}
-                                        restaurantLogo={(restaurant.restaurant_settings as any)?.logo_url || (restaurant.restaurant_settings as any)?.[0]?.logo_url}
-                                    />
-                                </CardContent>
-                            </Card>
-                        )
-                    })}
-                </div>
-
+                <TableGrid tables={tables} restaurant={restaurant} />
             ) : (
                 <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed rounded-lg bg-muted/10">
                     <div className="p-4 bg-orange-100 rounded-full mb-4">

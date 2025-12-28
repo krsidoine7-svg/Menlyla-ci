@@ -11,7 +11,7 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
     // Get Restaurant
     const { data: restaurant } = await supabase
         .from('restaurants')
-        .select('id, currency')
+        .select('id, currency, settings')
         .eq('owner_id', user.id)
         .single()
 
@@ -100,6 +100,41 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
         currency: restaurant.currency,
         chartData,
         topProducts: performanceList.slice(0, 5).map(p => ({ name: p.name, count: p.ordered })),
-        dishPerformance: performanceList // Full list for detailed table
+        dishPerformance: performanceList, // Full list for detailed table
+        settings: restaurant.settings
+    }
+}
+
+export async function syncToGoogleSheets(stats: any) {
+    const webhookUrl = stats?.settings?.gsheet_webhook
+
+    if (!webhookUrl) {
+        return { success: false, message: "URL du Webhook non configurée dans les paramètres." }
+    }
+
+    try {
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                restaurant_id: stats.restaurant_id,
+                sync_date: new Date().toISOString(),
+                summary: {
+                    revenue: stats.revenue,
+                    orders: stats.ordersCount,
+                    avg_basket: stats.averageBasket,
+                    currency: stats.currency
+                },
+                top_products: stats.topProducts,
+                dish_performance: stats.dishPerformance
+            })
+        })
+
+        if (!response.ok) throw new Error("Erreur lors de l'envoi au webhook")
+
+        return { success: true, message: "Synchronisation réussie !" }
+    } catch (error: any) {
+        console.error("Sync error:", error)
+        return { success: false, message: `Échec de la synchronisation: ${error.message}` }
     }
 }
