@@ -19,7 +19,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Determine Redirect URL
     // Target: /slug?table=table_id
     const slug = (qr.restaurants as any).slug
-    const targetUrl = new URL(`/${slug}`, request.url)
+    // Use NEXT_PUBLIC_APP_URL if defined, otherwise use the request origin
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`
+    const targetUrl = new URL(`/${slug}`, baseUrl)
     if (qr.table_id) {
         targetUrl.searchParams.set('table', qr.table_id)
     }

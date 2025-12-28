@@ -16,6 +16,23 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Configuration Obligatoire
+
+**⚠️ IMPORTANT : Configuration du domaine**
+
+Avant de déployer ou utiliser l'application en production, vous devez configurer la variable d'environnement `NEXT_PUBLIC_APP_URL` :
+
+1. Copiez le fichier `env-example.txt` vers `.env.local`
+2. Remplacez `https://votredomaine.com` par votre vrai domaine (ex: `https://monrestaurant.com`)
+3. Redémarrez votre serveur de développement
+
+Cette variable est **obligatoire** car elle est utilisée pour :
+- Générer les URLs des QR codes
+- Les redirections après scan des QR codes
+- Les liens d'authentification Google
+
+**Sans cette configuration, les QR codes pointeront vers localhost au lieu de votre domaine personnalisé.**
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -1,0 +1,10 @@
+# Configuration de l'application
+# Remplacez cette URL par votre domaine personnalisé (obligatoire pour les QR codes)
+NEXT_PUBLIC_APP_URL=https://votredomaine.com
+
+# Autres variables d'environnement peuvent être ajoutées ici si nécessaire
+
+# Instructions :
+# 1. Copiez ce fichier vers .env.local
+# 2. Remplacez https://votredomaine.com par votre vrai domaine
+# 3. Redémarrez votre serveur de développement
