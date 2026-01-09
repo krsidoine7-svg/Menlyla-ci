@@ -109,8 +109,8 @@ export function RecentActivity({ initialOrders, currency, restaurantId }: { init
                             : order.tables?.name
 
                         return (
-                            <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 animate-in fade-in slide-in-from-right-4 duration-500">
-                                <div className="flex flex-col gap-1">
+                            <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 last:border-0 last:pb-0 gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                                <div className="flex flex-col gap-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                         <span className="font-medium text-sm">
                                             {tableName ? `Table ${tableName}` : 'Vente à emporter'}

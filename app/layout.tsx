@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "MANLY | Menu Digital & Paiement",
   description: "La solution de commande et paiement pour restaurants en Côte d'Ivoire",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 import { Toaster } from "@/components/ui/sonner";

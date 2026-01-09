@@ -132,7 +132,7 @@ export function TableGrid({ tables, restaurant }: { tables: any[], restaurant: a
                                     tableName={table.name}
                                     qrCode={qrCode}
                                     restaurantName={restaurant.name}
-                                    restaurantLogo={(restaurant.restaurant_settings as any)?.logo_url || (restaurant.restaurant_settings as any)?.[0]?.logo_url}
+                                    restaurantLogo={restaurant.logo_url}
                                 />
                             </CardContent>
                         </Card>

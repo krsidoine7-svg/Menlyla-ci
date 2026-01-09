@@ -47,6 +47,12 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
         setCreatedData(null)
     }
 
+    // Calcul de l'URL du QR Code (force l'origine actuelle si localhost est détecté dans le .env)
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const officialUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+    const finalBaseUrl = (officialUrl && !officialUrl.includes('localhost')) ? officialUrl : currentOrigin;
+    const qrUrl = createdData ? `${finalBaseUrl}/qr/${createdData.qrCode.id}` : '';
+
     return (
         <Dialog open={open} onOpenChange={(v) => {
             setOpen(v)
@@ -59,12 +65,12 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>
-                        {createdData ? "Table Créée !" : "Ajouter une Table"}
+                    <DialogTitle className="text-2xl font-black text-orange-600">
+                        {createdData ? "Format Prêt !" : "Ajouter une Table"}
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="font-medium">
                         {createdData
-                            ? "Voici le format généré pour votre nouvelle table."
+                            ? "Votre QR Code premium a été généré avec succès."
                             : "Créez une nouvelle table pour générer son QR Code."}
                     </DialogDescription>
                 </DialogHeader>
@@ -74,7 +80,7 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
                         <TablePrintCard
                             qrId={`qr-new-${createdData.table.id}`}
                             tableName={createdData.table.name}
-                            qrUrl={`${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/qr/${createdData.qrCode.id}`}
+                            qrUrl={qrUrl}
                             restaurantName={restaurantName}
                             restaurantLogo={restaurantLogo}
                         />
@@ -87,7 +93,7 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
                                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 text-lg rounded-xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"
                                 onClick={resetAndClose}
                             >
-                                Terminer
+                                Terminer & Voir sur mon Dashboard
                             </Button>
                         </div>
                     </div>
@@ -110,4 +116,3 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
         </Dialog>
     )
 }
-

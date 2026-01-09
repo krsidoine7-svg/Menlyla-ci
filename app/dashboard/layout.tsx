@@ -16,8 +16,10 @@ export default async function DashboardLayout({
             </div>
             <div className="flex flex-col">
                 <MobileHeader restaurantSlug={slug} />
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                    {children}
+                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-8 lg:p-10">
+                    <div className="mx-auto w-full max-w-7xl">
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

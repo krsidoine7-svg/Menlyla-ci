@@ -8,10 +8,8 @@ export default function SignupPage() {
             <div className="flex items-center justify-center py-12">
                 <div className="mx-auto grid w-[350px] gap-6">
                     <div className="grid gap-2 text-center">
-                        <div className="flex justify-center mb-4">
-                            <div className="p-3 bg-orange-100 rounded-full">
-                                <UtensilsCrossed className="h-8 w-8 text-orange-600" />
-                            </div>
+                        <div className="flex justify-center mb-6">
+                            <img src="/favicon.png" alt="MANLY Logo" className="h-16 w-16 rounded-[1.5rem] shadow-xl shadow-orange-500/20" />
                         </div>
                         <h1 className="text-3xl font-bold">Créer un compte</h1>
                         <p className="text-balance text-muted-foreground">

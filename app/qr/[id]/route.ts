@@ -5,26 +5,40 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params
     const supabase = await createClient()
 
-    // Fetch QR code to find restaurant and table
-    const { data: qr } = await supabase
+    // 1. Récupérer le QR code
+    const { data: qr, error: qrErr } = await supabase
         .from('qr_codes')
-        .select('restaurant_id, table_id, restaurants(slug)')
+        .select('restaurant_id, table_id')
         .eq('id', id)
         .single()
 
-    if (!qr || !qr.restaurants) {
-        return NextResponse.redirect(new URL('/', request.url)) // Not found -> Home
+    if (qrErr || !qr) {
+        return NextResponse.redirect(new URL('/?error=qr_not_found', request.url))
     }
 
-    // Determine Redirect URL
-    // Target: /slug?table=table_id
-    const slug = (qr.restaurants as any).slug
-    // Use NEXT_PUBLIC_APP_URL if defined, otherwise use the request origin
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`
-    const targetUrl = new URL(`/${slug}`, baseUrl)
-    if (qr.table_id) {
-        targetUrl.searchParams.set('table', qr.table_id)
+    // 2. Récupérer le Restaurant
+    const { data: restaurant, error: restErr } = await supabase
+        .from('restaurants')
+        .select('slug, id')
+        .eq('id', qr.restaurant_id)
+        .single()
+
+    if (restErr || !restaurant) {
+        return NextResponse.redirect(new URL('/?error=restaurant_not_found', request.url))
     }
 
-    return NextResponse.redirect(targetUrl)
+    // 3. Construction dynamique de l'URL finale
+    // On récupère le protocole (http/https) et l'hôte (domaine) directement depuis la requête
+    const host = request.headers.get('host') || 'manly-chi.vercel.app'
+    const protocol = request.headers.get('x-forwarded-proto') || 'https'
+
+    const slug = restaurant.slug || `res-${restaurant.id}`
+    const targetPath = `/${slug}${qr.table_id ? `?table=${qr.table_id}` : ''}`
+
+    // On force la redirection vers le même domaine que celui qui a reçu le scan
+    const finalRedirectUrl = `${protocol}://${host}${targetPath}`
+
+    console.log("QR Scan success. Redirecting to:", finalRedirectUrl)
+
+    return NextResponse.redirect(finalRedirectUrl)
 }

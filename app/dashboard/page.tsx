@@ -30,7 +30,7 @@ export default async function DashboardPage() {
             {onboardingStatus && <OnboardingChecklist status={onboardingStatus} />}
 
             {stats ? (
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Revenu du Jour</CardTitle>
@@ -69,8 +69,8 @@ export default async function DashboardPage() {
             )}
 
             {/* Charts Section */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
+            <div className="grid gap-6 xl:grid-cols-7">
+                <Card className="xl:col-span-4">
                     <CardHeader>
                         <CardTitle>Revenus (7 jours)</CardTitle>
                     </CardHeader>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <div className="col-span-3">
+                <div className="xl:col-span-3">
                     <RecentActivity
                         initialOrders={recentOrders}
                         currency={stats?.currency || 'FCFA'}

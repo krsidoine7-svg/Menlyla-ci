@@ -17,7 +17,7 @@ export function TablePrintCard({ tableName, qrUrl, restaurantName, restaurantLog
     const isVeryLongName = tableName.length > 8
 
     return (
-        <div className="flex flex-col items-center bg-white p-6 rounded-2xl shadow-sm border-2 border-orange-100 w-full max-w-[280px] aspect-[1/1.4] justify-between relative overflow-hidden group">
+        <div className="flex flex-col items-center bg-white p-6 rounded-2xl shadow-sm border-2 border-orange-100 w-full min-h-[420px] justify-between relative overflow-hidden group">
             {/* Background Accent */}
             <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
 
@@ -42,19 +42,35 @@ export function TablePrintCard({ tableName, qrUrl, restaurantName, restaurantLog
                     )}>
                         {tableName}
                     </span>
+                    <div className="pt-2 px-4 w-full">
+                        <p className="text-[8px] font-medium text-muted-foreground/40 break-all line-clamp-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                            {qrUrl}
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <div className="relative p-3 bg-white rounded-3xl border-2 border-dashed border-orange-100 group-hover:border-orange-200 transition-colors w-full aspect-square flex items-center justify-center overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center p-1 bg-white">
+                <div className="w-full h-full flex items-center justify-center p-1 bg-white relative">
                     <QRCode
                         id={qrId}
                         value={qrUrl}
                         size={256}
-                        level="Q"
+                        level="H"
                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                         viewBox={`0 0 256 256`}
                     />
+                    {restaurantLogo && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="bg-white p-1 rounded-lg shadow-sm border border-orange-50">
+                                <img
+                                    src={restaurantLogo}
+                                    className="h-10 w-10 object-contain rounded-md"
+                                    alt="Logo overlay"
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

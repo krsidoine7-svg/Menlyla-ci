@@ -19,20 +19,33 @@ export default async function TablesPage() {
         .select(`
             id, 
             slug, 
-            name, 
-            restaurant_settings(logo_url)
+            name,
+            logo_url
         `)
         .eq('owner_id', user?.id)
         .single()
 
     if (!restaurant) return <NoRestaurantState />
 
-    // Fetch Tables with QR Codes
-    const { data: tables } = await supabase
+    // Fetch Tables
+    const { data: rawTables } = await supabase
         .from('tables')
-        .select('*, qr_codes(*)')
+        .select('*')
         .eq('restaurant_id', restaurant.id)
         .order('name', { ascending: true })
+
+    // Fetch All QR Codes for these tables to avoid join issues
+    const tableIds = rawTables?.map(t => t.id) || []
+    const { data: qrCodes } = await supabase
+        .from('qr_codes')
+        .select('*')
+        .in('table_id', tableIds)
+
+    // Map them together
+    const tables = rawTables?.map(table => ({
+        ...table,
+        qr_codes: qrCodes?.filter(q => q.table_id === table.id) || []
+    })) || []
 
     return (
         <div className="flex flex-col gap-8">
@@ -43,7 +56,7 @@ export default async function TablesPage() {
                 </div>
                 <AddTableDialog
                     restaurantName={restaurant.name}
-                    restaurantLogo={(restaurant.restaurant_settings as any)?.logo_url || (restaurant.restaurant_settings as any)?.[0]?.logo_url}
+                    restaurantLogo={restaurant.logo_url}
                 />
             </div>
 
@@ -60,7 +73,7 @@ export default async function TablesPage() {
                     </p>
                     <AddTableDialog
                         restaurantName={restaurant.name}
-                        restaurantLogo={(restaurant.restaurant_settings as any)?.logo_url || (restaurant.restaurant_settings as any)?.[0]?.logo_url}
+                        restaurantLogo={restaurant.logo_url}
                     />
                 </div>
             )}

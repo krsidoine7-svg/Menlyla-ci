@@ -8,7 +8,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-white">
       {/* Navbar */}
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container mx-auto px-6 md:px-8 flex h-16 items-center justify-between">
           <div className="text-2xl font-bold tracking-tight text-orange-600">MANLY</div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4">
@@ -24,18 +24,15 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden pt-20 pb-24 lg:pt-32 lg:pb-40 bg-white">
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <div className="container mx-auto px-6 md:px-8 lg:px-12 relative z-10">
+            <div className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-24">
               <div className="flex flex-col items-start gap-6 text-left">
-                <div className="inline-block rounded-full bg-orange-100 px-4 py-1.5 text-sm text-orange-600 font-black uppercase tracking-widest">
-                  🚀 Le futur de la restauration
-                </div>
-                <h1 className="text-5xl font-black tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9]">
+                <h1 className="text-4xl font-black tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1]">
                   Votre Menu <br />
                   <span className="text-orange-600">Digital</span> <br />
                   <span className="text-slate-900">Premium.</span>
                 </h1>
-                <p className="max-w-[600px] text-gray-500 text-lg md:text-xl leading-relaxed">
+                <p className="max-w-[540px] text-gray-500 text-base md:text-lg leading-relaxed">
                   Créez une expérience mémorable pour vos clients. Photos HD, search intelligent, upselling automatisé et gestion des stocks en temps réel.
                 </p>
                 <div className="flex flex-col gap-3 min-[400px]:flex-row w-full sm:w-auto">
@@ -73,16 +70,6 @@ export default function Home() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  {/* Dynamic Badge */}
-                  <div className="absolute -left-12 bottom-20 bg-white p-4 rounded-3xl shadow-2xl border flex items-center gap-4 animate-bounce duration-[3000ms]">
-                    <div className="h-10 w-10 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600">
-                      <TrendingUp className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Panier Moyen</div>
-                      <div className="text-lg font-black text-slate-900 leading-none">+25%</div>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Abstract Backgrounds */}
@@ -94,7 +81,7 @@ export default function Home() {
 
         {/* Features Grid */}
         <section id="features" className="py-24 bg-white">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-6 md:px-8 lg:px-12">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Tout ce qu'il faut pour gérer</h2>
               <p className="mx-auto mt-4 max-w-[700px] text-gray-500 md:text-xl">
@@ -133,7 +120,7 @@ export default function Home() {
 
         {/* Pricing Section */}
         <section id="pricing" className="py-24 bg-slate-50">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-6 md:px-8 lg:px-12">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Des tarifs transparents</h2>
               <p className="mx-auto mt-4 max-w-[700px] text-gray-500 md:text-xl">
@@ -209,21 +196,21 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
-          <div className="container px-4 md:px-6 text-center relative z-10">
+          <div className="container mx-auto px-6 md:px-8 lg:px-12 text-center relative z-10">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-6">
               Prêt à passer au niveau supérieur ?
             </h2>
             <p className="mx-auto max-w-[600px] text-slate-300 md:text-xl mb-8">
               Rejoignez les restaurants qui utilisent Manly pour simplifier leur service.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/login">
-                <Button size="lg" className="bg-orange-600 hover:bg-orange-700 h-14 px-10 text-lg rounded-2xl shadow-2xl shadow-orange-500/20">
+            <div className="flex flex-col items-center sm:flex-row justify-center gap-4">
+              <Link href="/login" className="w-full sm:w-auto flex justify-center">
+                <Button size="lg" className="bg-orange-600 hover:bg-orange-700 h-14 px-10 text-lg rounded-2xl shadow-2xl shadow-orange-500/20 w-full sm:w-auto">
                   Proposer mon Menu Gratuitement
                 </Button>
               </Link>
-              <Link href="https://wa.me/2250102030405" target="_blank">
-                <Button size="lg" variant="outline" className="h-14 px-10 text-lg rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 text-white">
+              <Link href="https://wa.me/2250503681588" target="_blank" className="w-full sm:w-auto flex justify-center">
+                <Button size="lg" variant="outline" className="h-14 px-10 text-lg rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 text-white w-full sm:w-auto">
                   📞 Échanger sur WhatsApp
                 </Button>
               </Link>
@@ -234,7 +221,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t py-12 bg-white">
-        <div className="container grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="container mx-auto px-6 md:px-8 lg:px-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
             <div className="text-2xl font-black text-orange-600">MANLY</div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -260,14 +247,14 @@ export default function Home() {
           <div className="space-y-4">
             <h4 className="font-black text-sm uppercase tracking-widest">Contact</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>hello@getmanly.com</li>
-              <li>+225 01 02 03 04 05</li>
+              <li>krsidoine7@gmail.com</li>
+              <li>+225 05 03 68 15 88</li>
               <li>Abidjan, Côte d'Ivoire</li>
             </ul>
           </div>
         </div>
-        <div className="container mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400 font-medium">
-          <p>© 2024 Manly - Fait avec ❤️ pour la restauration.</p>
+        <div className="container mx-auto px-6 md:px-8 lg:px-12 mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400 font-medium">
+          <p>© 2026 Manly. Tous droits réservés.</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-slate-900">Twitter</Link>
             <Link href="#" className="hover:text-slate-900">Instagram</Link>

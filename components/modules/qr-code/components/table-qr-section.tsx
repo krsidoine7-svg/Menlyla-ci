@@ -2,12 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
-import QRCode from 'react-qr-code'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { regenerateQrCode } from '../actions'
 import { DownloadQrButton } from './download-qr-button'
-import { Button } from '@/components/ui/button'
-
 import { TablePrintCard } from './table-print-card'
 
 type Props = {
@@ -31,7 +28,6 @@ export function TableQrSection({
     const [isGenerating, setIsGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Sync with prop changes if they happen (e.g. parent refetch)
     useEffect(() => {
         setQrCode(initialQrCode)
         setIsGenerating(false)
@@ -41,17 +37,17 @@ export function TableQrSection({
     }, [initialQrCode])
 
     useEffect(() => {
-        // Only auto-generate if we are SURE there is no QR code and we aren't already doing it, and NO ERROR
         if (!qrCode && !isGenerating && !isPending && !initialQrCode && !error) {
             handleAutoGenerate()
         }
     }, [qrCode, isGenerating, isPending, initialQrCode, error])
 
     const handleAutoGenerate = async () => {
+        if (isGenerating || isPending) return
+
         setIsGenerating(true)
         setError(null)
         try {
-            await new Promise(resolve => setTimeout(resolve, 800))
             const result = await regenerateQrCode(tableId)
 
             if (result?.success && result.data) {
@@ -71,26 +67,32 @@ export function TableQrSection({
     }
 
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
-    const qrUrl = qrCode ? `${baseUrl}/qr/${qrCode.id}` : '#'
+    // Correction de l'URL pour éviter les fuites de localhost
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const officialUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+    const finalBaseUrl = (officialUrl && !officialUrl.includes('localhost')) ? officialUrl : currentOrigin;
+    const qrUrl = qrCode ? `${finalBaseUrl}/qr/${qrCode.id}` : '#'
 
-    if (!qrCode || isGenerating || isPending) {
+    if (error && !qrCode) {
         return (
-            <div className="h-[280px] flex flex-col items-center justify-center text-muted-foreground bg-muted/20 w-full max-w-[280px] rounded-xl border-2 border-dashed p-4 text-center">
-                {error ? (
-                    <>
-                        <p className="text-xs font-bold text-red-500 mb-2">Un problème est survenu</p>
-                        <p className="text-[10px] mb-4 text-muted-foreground">{error}</p>
-                        <Button variant="outline" size="sm" onClick={handleAutoGenerate}>
-                            <RefreshCw className="mr-2 h-3 w-3" /> Réessayer
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Loader2 className="h-8 w-8 animate-spin text-orange-600 mb-2" />
-                        <p className="text-xs font-medium">Initialisation du QR Code...</p>
-                    </>
-                )}
+            <div className="h-[280px] flex flex-col items-center justify-center text-muted-foreground bg-muted/20 w-full rounded-xl border-2 border-dashed p-4 text-center">
+                <p className="text-xs font-bold text-red-500 mb-2">Un problème est survenu</p>
+                <p className="text-[10px] mb-4 text-muted-foreground">{error}</p>
+                <button
+                    onClick={handleAutoGenerate}
+                    className="flex items-center gap-2 text-xs font-bold text-orange-600 hover:text-orange-700"
+                >
+                    <RefreshCw className="h-3 w-3" /> Réessayer
+                </button>
+            </div>
+        )
+    }
+
+    if (!qrCode) {
+        return (
+            <div className="h-[280px] flex flex-col items-center justify-center text-muted-foreground bg-muted/20 w-full rounded-xl border-2 border-dashed p-4 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-600 mb-2" />
+                <p className="text-xs font-medium">Génération du format...</p>
             </div>
         )
     }
@@ -104,7 +106,7 @@ export function TableQrSection({
                 restaurantName={restaurantName}
                 restaurantLogo={restaurantLogo}
             />
-            <div className="w-full max-w-[280px]">
+            <div className="w-full">
                 <DownloadQrButton elementId={`qr-${tableId}`} fileName={`Manly-Table-${tableName}`} />
             </div>
         </div>

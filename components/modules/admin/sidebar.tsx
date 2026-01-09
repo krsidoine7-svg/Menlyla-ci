@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
     { name: 'Vue d\'ensemble', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Dashboard Cuisine', href: '/dashboard/kitchen', icon: ChefHat },
     { name: 'Menu & Carte', href: '/dashboard/menu', icon: UtensilsCrossed },
     { name: 'QR Codes & Tables', href: '/dashboard/tables', icon: QrCode },
     { name: 'Commandes', href: '/dashboard/orders', icon: Receipt },
@@ -26,7 +25,7 @@ export function DashboardSidebar({ className, onItemClick, restaurantSlug }: { c
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                     <span className="text-xl font-bold text-primary">MANLY</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Pro</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary uppercase tracking-tighter">Pro</span>
                 </Link>
             </div>
             <div className="flex-1 overflow-auto py-2">
