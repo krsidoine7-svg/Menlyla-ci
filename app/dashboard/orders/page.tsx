@@ -3,9 +3,6 @@ import { KitchenBoard } from '@/components/modules/orders/components/kitchen-boa
 import { OrderList } from '@/components/modules/orders/components/order-list'
 import { createClient } from '@/lib/supabase/server'
 import { NoRestaurantState } from '@/components/modules/admin/no-restaurant'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChefHat, ListOrdered } from 'lucide-react'
-
 export default async function OrdersPage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -16,34 +13,23 @@ export default async function OrdersPage() {
     const orders = await getRestaurantOrders()
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-black">Gestion des Commandes</h1>
-                    <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest mt-1">Cuisine & Historique</p>
+        <div className="flex flex-col gap-10">
+            <header className="flex flex-col gap-2">
+                <p className="text-xs tracking-[0.5em] text-orange-500 font-black uppercase">Cuisine & Commandes</p>
+                <h1 className="text-3xl font-black tracking-tight">Cuisine Commandes</h1>
+                <p className="text-muted-foreground max-w-2xl">
+                    Suivez vos commandes en temps réel, faites avancer les plats et consultez l’historique complet sans changer d’écran.
+                </p>
+            </header>
+
+            <KitchenBoard initialOrders={orders} restaurantId={restaurant.id} />
+
+            <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-black uppercase tracking-[0.3em] text-slate-500">Historique & Archive</h2>
                 </div>
-            </div>
-
-            <Tabs defaultValue="kitchen" className="w-full">
-                <TabsList className="grid w-full max-w-[400px] grid-cols-2 mb-8">
-                    <TabsTrigger value="kitchen" className="flex items-center gap-2">
-                        <ChefHat className="h-4 w-4" />
-                        Cuisine
-                    </TabsTrigger>
-                    <TabsTrigger value="list" className="flex items-center gap-2">
-                        <ListOrdered className="h-4 w-4" />
-                        Liste / Archive
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="kitchen" className="mt-0 border-none p-0 focus-visible:ring-0">
-                    <KitchenBoard initialOrders={orders} restaurantId={restaurant.id} />
-                </TabsContent>
-
-                <TabsContent value="list" className="mt-0 border-none p-0 focus-visible:ring-0">
-                    <OrderList />
-                </TabsContent>
-            </Tabs>
+                <OrderList />
+            </section>
         </div>
     )
 }

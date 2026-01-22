@@ -1,7 +1,4 @@
 {
-  "css.lint.unknownAtRules": "ignore",
-  "scss.lint.unknownAtRules": "ignore",
-  "files.associations": {
-    "*.css": "tailwindcss"
-  }
+  "json.schemaDownload.enable": false,
+  "json.validate.enable": true
 }

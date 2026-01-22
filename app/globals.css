@@ -153,3 +153,100 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Wave Animation Keyframes - Enhanced */
+@keyframes wave {
+  0% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-30px) translateX(-15px);
+  }
+  50% {
+    transform: translateY(0px) translateX(0px);
+  }
+  75% {
+    transform: translateY(-30px) translateX(15px);
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+}
+
+/* Wave animation classes with infinite loop and staggered delays */
+@layer utilities {
+  .animate-wave-1 {
+    animation: wave 3s ease-in-out infinite;
+    animation-delay: 0s;
+  }
+  
+  .animate-wave-2 {
+    animation: wave 3s ease-in-out infinite;
+    animation-delay: 0.3s;
+  }
+  
+  .animate-wave-3 {
+    animation: wave 3s ease-in-out infinite;
+    animation-delay: 0.6s;
+  }
+
+  /* Floating Background Animations */
+  .animate-float-slow {
+    animation: float-slow 20s ease-in-out infinite;
+  }
+  
+  .animate-float-medium {
+    animation: float-medium 15s ease-in-out infinite;
+  }
+  
+  .animate-float-fast {
+    animation: float-fast 12s ease-in-out infinite;
+  }
+}
+
+/* Floating Keyframes */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -30px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, -50px) scale(0.95);
+  }
+  75% {
+    transform: translate(-40px, -20px) scale(1.02);
+  }
+}
+
+@keyframes float-medium {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 40px) scale(1.08);
+  }
+  66% {
+    transform: translate(30px, -30px) scale(0.92);
+  }
+}
+
+@keyframes float-fast {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    transform: translate(25px, -25px) scale(1.1);
+  }
+  40% {
+    transform: translate(-30px, -40px) scale(0.9);
+  }
+  60% {
+    transform: translate(35px, 20px) scale(1.05);
+  }
+  80% {
+    transform: translate(-15px, 30px) scale(0.95);
+  }
+}

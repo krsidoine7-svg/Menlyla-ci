@@ -12,10 +12,12 @@ export default async function SettingsPage() {
     }
 
     return (
-        <div className="grid gap-6">
-            <div className="flex items-center">
-                <h1 className="text-lg font-semibold md:text-2xl">Paramètres</h1>
-            </div>
+        <div className="space-y-8">
+            <header className="flex flex-col gap-2">
+                <p className="text-xs uppercase tracking-[0.5em] text-orange-500 font-black">Dashboard</p>
+                <h1 className="text-3xl font-black tracking-tight">Paramètres & Identité</h1>
+                <p className="text-muted-foreground">Centralisez tout ce qui définit votre restaurant : profil, réseaux, options Passeport et design.</p>
+            </header>
             <SettingsForm restaurant={restaurant} />
 
             <DemoDataSection />
