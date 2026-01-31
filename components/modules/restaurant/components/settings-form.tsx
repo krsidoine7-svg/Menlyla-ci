@@ -1,15 +1,15 @@
 'use client'
 
-import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { updateRestaurant } from '@/components/modules/restaurant/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { ImageUpload } from '@/components/modules/menu/components/image-upload'
-import { MessageCircle, Instagram, Facebook, Video, Plus, Trash2, UserRound, Share2, Stamp, CalendarDays, Palette } from 'lucide-react'
+import { MessageCircle, Instagram, Facebook, Video, Plus, Trash2, UserRound, Share2, Stamp, CalendarDays, Palette, CheckCircle2, CircleAlert, BellRing, MapPin, Clock3, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -23,6 +23,22 @@ const SOCIAL_PLATFORMS = [
     { id: 'tiktok', name: 'TikTok', icon: Video, prefix: 'https://tiktok.com/@', placeholder: 'votre_nom' },
 ]
 
+const CUISINE_TYPES = ['Ivoirienne', 'Africaine', 'Fast-food', 'Gastronomique', 'Café', 'Street Food', 'Fusion']
+const LANGUAGE_OPTIONS = ['FR', 'EN', 'AR', 'PT', 'ES']
+const MENU_STYLES = ['minimal', 'moderne', 'prime', 'street']
+const TYPOGRAPHY_OPTIONS = ['Sans', 'Serif', 'Mono']
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
+const DAY_LABELS: Record<typeof DAYS[number], string> = {
+    monday: 'Lundi',
+    tuesday: 'Mardi',
+    wednesday: 'Mercredi',
+    thursday: 'Jeudi',
+    friday: 'Vendredi',
+    saturday: 'Samedi',
+    sunday: 'Dimanche',
+}
+const ALLERGENS = ['Arachide', 'Lactose', 'Gluten', 'Crustacés', 'Œufs', 'Soja']
+
 export function SettingsForm({ restaurant }: Props) {
     const updateWithId = updateRestaurant.bind(null, restaurant.id)
     const [state, formAction, isPending] = useActionState(updateWithId, { message: null, errors: {} })
@@ -34,7 +50,78 @@ export function SettingsForm({ restaurant }: Props) {
     const [socialLinks, setSocialLinks] = useState<Record<string, string>>(restaurant.social_links || {})
     const [selectedPlatform, setSelectedPlatform] = useState('whatsapp')
     const [username, setUsername] = useState('')
-    const [settings, setSettings] = useState<Record<string, any>>(restaurant.settings || {})
+    const defaultSettings = useMemo(() => {
+        const base = restaurant.settings || {}
+        const defaultSchedule = {
+            monday: { open: '09:00', close: '22:00', closed: false },
+            tuesday: { open: '09:00', close: '22:00', closed: false },
+            wednesday: { open: '09:00', close: '22:00', closed: false },
+            thursday: { open: '09:00', close: '22:00', closed: false },
+            friday: { open: '09:00', close: '23:00', closed: false },
+            saturday: { open: '09:00', close: '23:00', closed: false },
+            sunday: { open: '09:00', close: '21:00', closed: true },
+        }
+        const mergedSchedule = { ...defaultSchedule }
+        if (base.hours?.schedule) {
+            DAYS.forEach(day => {
+                if (base.hours.schedule[day]) {
+                    mergedSchedule[day] = {
+                        ...defaultSchedule[day],
+                        ...base.hours.schedule[day]
+                    }
+                }
+            })
+        }
+
+        return {
+            show_passport: base.show_passport ?? true,
+            show_wifi: base.show_wifi ?? true,
+            gsheet_webhook: base.gsheet_webhook ?? '',
+            events: base.events ?? [],
+            theme: base.theme ?? { primaryColor: '#FF6B3D' },
+            identity: {
+                slogan: '',
+                cuisine_type: '',
+                established_year: '',
+                primary_language: 'FR',
+                secondary_languages: ['EN'],
+                ...(base.identity || {}),
+            },
+            contact: {
+                whatsapp: '',
+                city: '',
+                neighborhood: '',
+                maps_link: '',
+                website: '',
+                ...(base.contact || {}),
+            },
+            social_visibility: {
+                facebook: true,
+                instagram: true,
+                tiktok: true,
+                ...(base.social_visibility || {}),
+            },
+            hours: {
+                schedule: mergedSchedule,
+                last_order: base.hours?.last_order || '21:30',
+                holidays: base.hours?.holidays || '',
+                is_on_break: base.hours?.is_on_break || false,
+            },
+            menu: {
+                category_order: base.menu?.category_order || [],
+                highlight_allergens: base.menu?.highlight_allergens || [],
+            },
+            branding: {
+                secondaryColor: base.branding?.secondaryColor || '#111827',
+                typography: base.branding?.typography || 'Sans',
+                style: base.branding?.style || 'modern',
+                themeMode: base.branding?.themeMode || 'auto',
+                coverImage: base.branding?.coverImage || '',
+            },
+        }
+    }, [restaurant.settings])
+
+    const [settings, setSettings] = useState<Record<string, any>>(defaultSettings)
 
     const sectionLinks = useMemo(() => ([
         { id: 'profile', label: 'Profil', description: 'Identité publique, coordonnées et présentation.', icon: UserRound },
@@ -59,6 +146,51 @@ export function SettingsForm({ restaurant }: Props) {
     ]), [])
 
     const themeColor = settings?.theme?.primaryColor || '#FF6B3D'
+
+    const completionStatus = useMemo(() => {
+        const profileComplete = Boolean((restaurant.name || '').trim()) && Boolean((restaurant.description || '').trim()) && Boolean((restaurant.phone || '').trim())
+        const socialComplete = Object.keys(socialLinks).length > 0
+        const passportComplete = settings.show_passport !== false && settings.show_wifi !== false
+        const eventsComplete = (settings.events || []).length > 0
+        const designComplete = Boolean(logoUrl) && Boolean(bannerUrl)
+
+        return [
+            { id: 'profile', label: 'Profil', complete: profileComplete, hint: "Complétez nom, description et contact." },
+            { id: 'social', label: 'Réseaux', complete: socialComplete, hint: "Ajoutez au moins un réseau ou numéro WhatsApp." },
+            { id: 'passport', label: 'Passeport', complete: passportComplete, hint: "Activez Passeport + Wi-Fi pour l'expérience complète." },
+            { id: 'events', label: 'Événements', complete: eventsComplete, hint: "Publiez un événement ou une offre à venir." },
+            { id: 'design', label: 'Design', complete: designComplete, hint: "Ajoutez un logo et une bannière cohérents." },
+        ]
+    }, [restaurant.name, restaurant.description, restaurant.phone, socialLinks, settings.show_passport, settings.show_wifi, settings.events, logoUrl, bannerUrl])
+
+    const completedSections = completionStatus.filter(item => item.complete).length
+    const progressValue = Math.round((completedSections / completionStatus.length) * 100)
+
+    const reminders = useMemo(() => {
+        const items: { title: string, description: string, icon: ReactNode }[] = []
+        completionStatus.filter(item => !item.complete).forEach(item => {
+            items.push({
+                title: `${item.label} à finaliser`,
+                description: item.hint,
+                icon: <CircleAlert className="h-4 w-4 text-orange-500" />
+            })
+        })
+        if (!settings.gsheet_webhook) {
+            items.push({
+                title: 'Synchronisation Analytics',
+                description: 'Ajoutez l’URL Make/Zapier pour automatiser vos rapports.',
+                icon: <BellRing className="h-4 w-4 text-sky-500" />
+            })
+        }
+        if (items.length === 0) {
+            items.push({
+                title: 'Tout est prêt ✨',
+                description: 'Vos paramètres sont complets, pensez à vérifier régulièrement vos événements.',
+                icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            })
+        }
+        return items
+    }, [completionStatus, settings.gsheet_webhook])
 
     const initialSnapshotRef = useRef<string>('')
 
@@ -108,7 +240,8 @@ export function SettingsForm({ restaurant }: Props) {
             settings: nextSettings,
         })
         setIsDirty(false)
-    }, [restaurant])
+        setSettings(defaultSettings)
+    }, [restaurant, defaultSettings])
 
     const handleAddSocial = () => {
         if (!username) return
@@ -187,12 +320,27 @@ export function SettingsForm({ restaurant }: Props) {
             </div>
 
             <div className="lg:grid lg:grid-cols-[260px,1fr] gap-8 items-start">
-                <aside className="space-y-4 rounded-3xl border bg-white/80 p-4 shadow-sm lg:sticky lg:top-6">
+                <aside className="space-y-5 rounded-3xl border bg-white/90 p-4 shadow-sm lg:sticky lg:top-6">
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">Progression</p>
+                        <p className="text-sm font-semibold">{completedSections} / {completionStatus.length} sections prêtes</p>
+                        <div className="mt-3 h-1.5 w-full rounded-full bg-muted/60">
+                            <div
+                                className="h-1.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 transition-all"
+                                style={{ width: `${progressValue}%` }}
+                                aria-valuenow={progressValue}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                role="progressbar"
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{progressValue}% complété</p>
+                    </div>
                     <div>
                         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">Navigation</p>
                         <p className="text-sm text-muted-foreground">Choisissez une section à modifier.</p>
                     </div>
-                    <nav className="flex items-center gap-2 overflow-auto pb-1 text-sm font-semibold text-muted-foreground lg:flex-col lg:gap-3 lg:overflow-visible">
+                    <nav className="flex items-stretch gap-3 overflow-x-auto pb-1 text-sm font-semibold text-muted-foreground">
                         {sectionLinks.map((link) => (
                             <button
                                 key={link.id}
@@ -202,10 +350,10 @@ export function SettingsForm({ restaurant }: Props) {
                                     document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                                 }}
                                 className={cn(
-                                    "rounded-full px-4 py-2 transition-colors flex items-center gap-2 whitespace-nowrap lg:w-full",
+                                    "flex items-center gap-2 rounded-2xl border px-4 py-2 transition-colors",
                                     activeSection === link.id
-                                        ? "bg-orange-600/10 text-orange-600 border border-orange-200 shadow-sm"
-                                        : "hover:bg-orange-600/10 hover:text-orange-600"
+                                        ? "border-orange-400 bg-orange-50 text-orange-600 shadow-sm"
+                                        : "border-transparent bg-muted/40 hover:bg-orange-50 hover:text-orange-600"
                                 )}
                                 aria-current={activeSection === link.id ? 'page' : undefined}
                             >
@@ -662,6 +810,27 @@ export function SettingsForm({ restaurant }: Props) {
                                     </div>
                                 </CardContent>
                             </Card>
+                        </div>
+                    </div>
+
+                    <div className="rounded-[2.5rem] border bg-white/95 p-6 shadow-sm space-y-4">
+                        <div className="flex items-center gap-3">
+                            <BellRing className="h-5 w-5 text-orange-500" />
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground font-black">Rappels</p>
+                                <p className="text-sm text-muted-foreground">Gardez un œil sur les éléments restants.</p>
+                            </div>
+                        </div>
+                        <div className="grid gap-3">
+                            {reminders.map((reminder) => (
+                                <div key={reminder.title} className="flex items-start gap-3 rounded-2xl border border-muted/60 bg-muted/30 px-4 py-3">
+                                    <div className="mt-0.5">{reminder.icon}</div>
+                                    <div>
+                                        <p className="text-sm font-semibold">{reminder.title}</p>
+                                        <p className="text-xs text-muted-foreground">{reminder.description}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 

@@ -17,7 +17,7 @@ export default async function MenuPage() {
 
     const { data: categories } = await supabase
         .from('categories')
-        .select('*, dishes(*)').eq('restaurant_id', restaurant.id).order('rank', { ascending: true })
+        .select('*, dishes(*)').eq('restaurant_id', restaurant.id).order('rank', { ascending: true }).order('rank', { foreignTable: 'dishes', ascending: true })
 
     return (
         <div className="flex flex-col gap-6">

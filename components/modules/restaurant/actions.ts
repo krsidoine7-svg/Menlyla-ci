@@ -12,7 +12,10 @@ const restaurantSchema = z.object({
         .regex(/^[a-z0-9-]+$/, "Le slug ne doit contenir que des lettres minuscules, chiffres et tirets"),
     description: z.string().optional(),
     phone: z.string().optional(),
+    whatsapp: z.string().optional().or(z.literal('')),
     address: z.string().optional(),
+    city: z.string().optional(),
+    maps_link: z.string().url("Lien Google Maps invalide").optional().or(z.literal('')),
     email: z.string().email("Email invalide").optional().or(z.literal('')),
     currency: z.string().default('FCFA'),
     logo_url: z.string().optional(),
@@ -27,7 +30,10 @@ export type RestaurantState = {
         slug?: string[]
         description?: string[]
         phone?: string[]
+        whatsapp?: string[]
         address?: string[]
+        city?: string[]
+        maps_link?: string[]
         email?: string[]
         currency?: string[]
         _form?: string[]
@@ -50,11 +56,15 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
         slug: formData.get('slug') || undefined,
         description: formData.get('description') || undefined,
         phone: formData.get('phone') || undefined,
+        whatsapp: formData.get('whatsapp') || undefined,
         address: formData.get('address') || undefined,
+        city: formData.get('city') || undefined,
+        maps_link: formData.get('maps_link') || undefined,
         email: formData.get('email') || undefined,
         currency: formData.get('currency') || undefined,
         logo_url: formData.get('logo_url') || undefined,
         banner_url: formData.get('banner_url') || undefined,
+        social_links: formData.get('social_links') ? JSON.parse(formData.get('social_links') as string) : {},
         settings: formData.get('settings') ? JSON.parse(formData.get('settings') as string) : {},
     }
 
@@ -68,12 +78,14 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
     }
 
     // 3. Insert into DB
-    const { error } = await supabase
+    const { data: restaurant, error } = await supabase
         .from('restaurants')
         .insert({
             ...validatedFields.data,
             owner_id: user.id
         })
+        .select('id')
+        .single()
 
     if (error) {
         if (error.code === '23505') { // Unique violation
@@ -81,6 +93,51 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
         }
         console.error("Erreur création restaurant:", error)
         return { message: `Erreur interne: ${error.message} (Code: ${error.code})` }
+    }
+
+    // 4. Default categories seeding
+    const defaultCategories = [
+        { name: '🍴 Entrées', rank: 0 },
+        { name: '🥘 Plats', rank: 1 },
+        { name: '🥤 Boissons', rank: 2 },
+        { name: '🍰 Desserts', rank: 3 }
+    ]
+
+    if (restaurant?.id) {
+        const { error: seedError } = await supabase
+            .from('categories')
+            .insert(defaultCategories.map(cat => ({
+                ...cat,
+                restaurant_id: restaurant.id
+            })))
+
+        if (seedError) console.error('Erreur seeding catégories par défaut:', seedError)
+    }
+
+    const menuSeed = validatedFields.data.settings?.menu_seed
+    const price = Number(menuSeed?.dish?.price)
+    // Optional: add a sample dish to the first created category if menuSeed exists
+    if (restaurant?.id && menuSeed?.dish?.name && !Number.isNaN(price) && price > 0) {
+        // Get the first category we just created (Entrées or Plats)
+        const { data: firstCat } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('restaurant_id', restaurant.id)
+            .eq('name', '🥘 Plats')
+            .single()
+
+        if (firstCat?.id) {
+            await supabase
+                .from('dishes')
+                .insert({
+                    restaurant_id: restaurant.id,
+                    category_id: firstCat.id,
+                    name: menuSeed.dish.name,
+                    description: menuSeed.dish.description || null,
+                    price,
+                    is_available: true,
+                })
+        }
     }
 
     revalidatePath('/dashboard')
@@ -110,7 +167,10 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
         slug: formData.get('slug') || undefined,
         description: formData.get('description') || undefined,
         phone: formData.get('phone') || undefined,
+        whatsapp: formData.get('whatsapp') || undefined,
         address: formData.get('address') || undefined,
+        city: formData.get('city') || undefined,
+        maps_link: formData.get('maps_link') || undefined,
         email: formData.get('email') || undefined,
         currency: formData.get('currency') || undefined,
         logo_url: formData.get('logo_url') || undefined,
@@ -122,9 +182,10 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
     const validatedFields = restaurantSchema.safeParse(rawData)
 
     if (!validatedFields.success) {
+        console.error("Validation Error:", validatedFields.error.flatten().fieldErrors)
         return {
             errors: validatedFields.error.flatten().fieldErrors,
-            message: "Erreur de validation."
+            message: "Erreur de validation. Vérifiez les champs."
         }
     }
 
@@ -163,4 +224,22 @@ export async function getOrdersByIds(ids: string[]) {
         .order('created_at', { ascending: false })
 
     return data || []
+}
+
+export async function callWaiter(restaurantId: string, tableId: string, type: 'waiter' | 'bill') {
+    const supabase = await createClient()
+
+    // Create a special order of type 0 for calls
+    const { error } = await supabase
+        .from('orders')
+        .insert({
+            restaurant_id: restaurantId,
+            table_id: tableId,
+            total_amount: 0,
+            special_instructions: type === 'bill' ? '[CALL_BILL]' : '[CALL_WAITER]',
+            status: 'pending'
+        })
+
+    if (error) return { message: error.message }
+    return { success: true }
 }

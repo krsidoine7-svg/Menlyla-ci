@@ -10,6 +10,8 @@ import { ReviewDialog } from '@/components/modules/restaurant/components/review-
 import { ReviewsList } from '@/components/modules/restaurant/components/reviews-list'
 import { getRestaurantReviews } from '@/components/modules/restaurant/review-actions'
 import { MobileNavbar } from '@/components/modules/restaurant/components/mobile-navbar'
+import { ThemeInjector } from '@/components/modules/restaurant/components/theme-injector'
+import { WaiterFAB } from '@/components/modules/restaurant/components/waiter-fab'
 
 export default async function RestaurantPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
@@ -39,12 +41,13 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
 
     const { data: categories } = await supabase
         .from('categories')
-        .select('*, dishes(*)').eq('restaurant_id', restaurantData.id).order('rank', { ascending: true })
+        .select('*, dishes(*)').eq('restaurant_id', restaurantData.id).order('rank', { ascending: true }).order('rank', { foreignTable: 'dishes', ascending: true })
 
     const reviews = await getRestaurantReviews(restaurantData.id)
 
     return (
         <div className="relative pb-24 bg-muted/5">
+            <ThemeInjector theme={restaurantData.settings?.theme} />
             <Suspense>
                 <TableSync />
             </Suspense>
@@ -67,14 +70,39 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
                     </div>
                 </div>
 
-                <div className="flex overflow-x-auto pb-4 px-4 gap-2 no-scrollbar">
-                    {categories?.map(cat => (
-                        <a key={cat.id} href={`#cat-${cat.id}`} className="flex-shrink-0">
-                            <Badge variant="secondary" className="px-5 py-2 text-sm whitespace-nowrap hover:bg-orange-600 hover:text-white transition-all cursor-pointer rounded-full border-none bg-slate-100 text-slate-900 font-black shadow-sm">
-                                {cat.name}
-                            </Badge>
-                        </a>
-                    ))}
+                <div className="flex overflow-x-auto pb-6 px-4 gap-4 no-scrollbar pt-2">
+                    {categories?.map((cat, i) => {
+                        // Simple logic to extract emoji if present at start
+                        const hasEmoji = cat.name.match(/^([\p{Emoji}\p{Extended_Pictographic}])/u)
+                        const emoji = hasEmoji ? hasEmoji[0] : null
+                        const label = hasEmoji ? cat.name.substring(emoji!.length).trim() : cat.name
+
+                        // Alternating rotation direction (Left/Right)
+                        // Even: Rotate Right (+90deg) | Odd: Rotate Left (-90deg)
+                        // Applied on Hover (Desktop) and Active (Click/Touch)
+                        const hoverEffects = i % 2 === 0
+                            ? "group-hover:rotate-90 group-active:rotate-90"
+                            : "group-hover:-rotate-90 group-active:-rotate-90"
+
+                        return (
+                            <a key={cat.id} href={`#cat-${cat.id}`} className="flex flex-col items-center gap-2 group min-w-[72px] cursor-pointer">
+                                <div className={`w-[72px] h-[72px] rounded-[1.5rem] bg-white border border-slate-100 shadow-sm flex items-center justify-center text-3xl group-hover:scale-110 group-active:scale-95 transition-all duration-300 group-hover:shadow-[0_8px_30px_-10px_rgba(234,88,12,0.2)] group-hover:border-orange-200 overflow-hidden relative ${hoverEffects}`}>
+                                    {cat.image_url ? (
+                                        <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
+                                    ) : emoji ? (
+                                        <span className="filter grayscale group-hover:grayscale-0 transition-all">{emoji}</span>
+                                    ) : (
+                                        <span className="text-2xl font-black text-slate-300 group-hover:text-orange-500 transition-colors uppercase">
+                                            {cat.name.charAt(0)}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide text-center leading-none group-hover:text-orange-600 transition-colors max-w-[80px] truncate">
+                                    {label}
+                                </span>
+                            </a>
+                        )
+                    })}
                 </div>
             </header>
 
@@ -82,16 +110,17 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
                 <MenuBrowser categories={categories || []} restaurant={restaurantData} />
             </div>
 
-            <div className="p-4 pt-0">
-                <ReviewsList reviews={reviews || []} />
-                <div className="flex justify-center mt-4">
-                    <ReviewDialog restaurantId={restaurantData.id} />
-                </div>
+            <div className="p-1 pt-0">
+                <ReviewsList
+                    reviews={reviews || []}
+                    restaurantId={restaurantData.id}
+                />
             </div>
 
             <SocialLinks socialLinks={restaurantData.social_links} restaurantName={restaurantData.name} />
             <CartSummary />
             <MobileNavbar restaurantSlug={restaurantData.slug} />
+            <WaiterFAB restaurantId={restaurantData.id} />
         </div>
     )
 }

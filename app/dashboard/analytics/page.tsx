@@ -77,7 +77,7 @@ export default async function AnalyticsPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 {/* CHART */}
-                <Card className="col-span-4">
+                <Card className="lg:col-span-4">
                     <CardHeader>
                         <CardTitle>Aperçu des Ventes</CardTitle>
                         <CardDescription>Revenu quotidien sur les 7 derniers jours.</CardDescription>
@@ -88,7 +88,7 @@ export default async function AnalyticsPage() {
                 </Card>
 
                 {/* TOP PRODUCTS */}
-                <Card className="col-span-3">
+                <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Top Produits ⭐</CardTitle>
                         <CardDescription>Vos plats les plus "Aimés" (les plus commandés).</CardDescription>
@@ -134,35 +134,63 @@ export default async function AnalyticsPage() {
                     <CardDescription>Analyse précise des plats commandés, servis et refusés.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="relative w-full overflow-auto">
-
-                        <table className="w-full caption-bottom text-sm">
-                            <thead className="[&_tr]:border-b">
-                                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Plat</th>
-                                    <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Commandés</th>
-                                    <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground text-green-600">Servis (Payés)</th>
-                                    <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground text-red-600">Refusés</th>
-                                    <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Revenue Total</th>
-                                </tr>
-                            </thead>
-                            <tbody className="[&_tr:last-child]:border-0">
-                                {stats.dishPerformance.map((p: any, i: number) => (
-                                    <tr key={i} className="border-b transition-colors hover:bg-muted/50">
-                                        <td className="p-4 align-middle font-semibold">{p.name}</td>
-                                        <td className="p-4 align-middle text-center">{p.ordered}</td>
-                                        <td className="p-4 align-middle text-center font-bold text-green-600">{p.served}</td>
-                                        <td className="p-4 align-middle text-center font-bold text-red-600">{p.refused}</td>
-                                        <td className="p-4 align-middle text-right font-bold">{p.revenue.toLocaleString()} {stats.currency}</td>
+                    <div className="space-y-6">
+                        <div className="hidden md:block">
+                            <table className="w-full caption-bottom text-sm">
+                                <thead className="[&_tr]:border-b">
+                                    <tr className="border-b transition-colors">
+                                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Plat</th>
+                                        <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Commandés</th>
+                                        <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground text-green-600">Servis (Payés)</th>
+                                        <th className="h-12 px-4 text-center align-middle font-medium text-muted-foreground text-red-600">Refusés</th>
+                                        <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Revenue Total</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {stats.dishPerformance.length === 0 && (
-                            <div className="py-10 text-center text-muted-foreground">
-                                Aucune donnée de performance disponible.
-                            </div>
-                        )}
+                                </thead>
+                                <tbody className="[&_tr:last-child]:border-0">
+                                    {stats.dishPerformance.map((p: any, i: number) => (
+                                        <tr key={i} className="border-b transition-colors hover:bg-muted/50">
+                                            <td className="p-4 align-middle font-semibold">{p.name}</td>
+                                            <td className="p-4 align-middle text-center">{p.ordered}</td>
+                                            <td className="p-4 align-middle text-center font-bold text-green-600">{p.served}</td>
+                                            <td className="p-4 align-middle text-center font-bold text-red-600">{p.refused}</td>
+                                            <td className="p-4 align-middle text-right font-bold">{p.revenue.toLocaleString()} {stats.currency}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="space-y-3 md:hidden">
+                            {stats.dishPerformance.map((p: any, i: number) => (
+                                <div key={i} className="rounded-2xl border border-muted bg-muted/20 p-4">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <p className="font-semibold leading-tight">{p.name}</p>
+                                        <span className="text-xs font-bold text-orange-600">
+                                            {p.revenue.toLocaleString()} {stats.currency}
+                                        </span>
+                                    </div>
+                                    <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-black uppercase tracking-widest">
+                                        <div>
+                                            <p className="text-muted-foreground">Cmd</p>
+                                            <p>{p.ordered}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-green-600">Servis</p>
+                                            <p>{p.served}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-red-600">Refusés</p>
+                                            <p>{p.refused}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {stats.dishPerformance.length === 0 && (
+                                <div className="py-6 text-center text-sm text-muted-foreground">
+                                    Aucune donnée de performance disponible.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </CardContent>
             </Card>

@@ -91,6 +91,55 @@ export async function deleteCategory(id: string) {
     return { message: "Catégorie supprimée" }
 }
 
+export async function reorderCategories(items: { id: string, rank: number }[]) {
+    const supabase = await createClient()
+
+    // We update all items in a loop/transaction style
+    // Supabase JS doesn't support bulk update with different values easily in one query
+    // So we loop. Ideally we would use an RPC but loop is fine for < 20 categories.
+
+    for (const item of items) {
+        await supabase
+            .from('categories')
+            .update({ rank: item.rank })
+            .eq('id', item.id)
+    }
+
+    revalidatePath('/dashboard/menu')
+    revalidatePath('/[slug]') // Update public view
+    return { success: true }
+}
+
+export async function seedDefaultCategories() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { message: "Non connecté" }
+
+    const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('owner_id', user.id)
+        .single()
+
+    if (!restaurant) return { message: "Restaurant introuvable" }
+
+    const defaultCategories = [
+        { name: '🍴 Entrées', rank: 0, restaurant_id: restaurant.id },
+        { name: '🥘 Plats', rank: 1, restaurant_id: restaurant.id },
+        { name: '🥤 Boissons', rank: 2, restaurant_id: restaurant.id },
+        { name: '🍰 Desserts', rank: 3, restaurant_id: restaurant.id }
+    ]
+
+    const { error } = await supabase
+        .from('categories')
+        .insert(defaultCategories)
+
+    if (error) return { message: error.message }
+
+    revalidatePath('/dashboard/menu')
+    return { message: "Catégories par défaut ajoutées !" }
+}
+
 
 // --- DISHES ---
 
@@ -229,6 +278,21 @@ export async function deleteDish(id: string) {
     if (error) return { message: error.message }
     revalidatePath('/dashboard/menu')
     return { message: "Plat supprimé" }
+}
+
+export async function reorderDishes(items: { id: string, rank: number }[]) {
+    const supabase = await createClient()
+
+    for (const item of items) {
+        await supabase
+            .from('dishes')
+            .update({ rank: item.rank })
+            .eq('id', item.id)
+    }
+
+    revalidatePath('/dashboard/menu')
+    revalidatePath('/[slug]')
+    return { success: true }
 }
 
 export async function likeDish(dishId: string) {

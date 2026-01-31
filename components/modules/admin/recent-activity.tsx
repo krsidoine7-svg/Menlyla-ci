@@ -5,11 +5,11 @@ import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Bell } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
-import { formatOrderId } from '@/lib/utils'
+import { formatOrderId, cn } from '@/lib/utils'
 
 type Order = {
     id: string
@@ -103,30 +103,43 @@ export function RecentActivity({ initialOrders, currency, restaurantId }: { init
                 {orders.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Aucune activité récente.</p>
                 ) : (
-                    orders.map((order) => {
+                    orders.map((order: any) => {
                         const tableName = Array.isArray(order.tables)
                             ? order.tables[0]?.name
                             : order.tables?.name
 
+                        const isCall = order.special_instructions?.startsWith('[CALL_')
+                        const callType = isCall ? (order.special_instructions === '[CALL_BILL]' ? 'ADDITION' : 'APPEL') : null
+
                         return (
-                            <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 last:border-0 last:pb-0 gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <div key={order.id} className={cn(
+                                "flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 last:border-0 last:pb-0 gap-4 animate-in fade-in slide-in-from-right-4 duration-500",
+                                isCall && "bg-orange-50/50 -mx-4 px-4 py-4 rounded-xl border-orange-100"
+                            )}>
                                 <div className="flex flex-col gap-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">
-                                            {tableName ? `Table ${tableName}` : 'Vente à emporter'}
+                                        <span className={cn("font-black text-sm uppercase tracking-tight", isCall ? "text-orange-700" : "")}>
+                                            {isCall ? (
+                                                <span className="flex items-center gap-2">
+                                                    <Bell className="h-4 w-4 animate-pulse" />
+                                                    {callType === 'ADDITION' ? "Demande d'addition" : "Appel Serveur"} — Table {tableName}
+                                                </span>
+                                            ) : (
+                                                tableName ? `Table ${tableName}` : 'Sur place'
+                                            )}
                                         </span>
                                         <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-muted-foreground">
                                             #{formatOrderId(order.id, order.created_at)}
                                         </span>
                                     </div>
-                                    <span className="text-xs text-muted-foreground">
-                                        {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(order.created_at).toLocaleDateString()}
+                                    <span className="text-xs text-muted-foreground italic">
+                                        {isCall ? "Client attend une intervention..." : `${new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${new Date(order.created_at).toLocaleDateString()}`}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <span className="font-medium text-sm">{order.total_amount} {currency}</span>
-                                    <Badge variant={getStatusVariant(order.status)}>
-                                        {getStatusLabel(order.status)}
+                                    {!isCall && <span className="font-bold text-sm">{order.total_amount} {currency}</span>}
+                                    <Badge variant={isCall ? "destructive" : getStatusVariant(order.status)} className={cn(isCall && "animate-bounce")}>
+                                        {isCall ? "URGENT" : getStatusLabel(order.status)}
                                     </Badge>
                                 </div>
                             </div>

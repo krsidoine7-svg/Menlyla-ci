@@ -81,10 +81,23 @@ export function LiveOrderStatus() {
 
                             const config = STATUS_MAP[newStatus]
                             if (config) {
-                                toast.success(`Commande #${payload.new.id.slice(-4).toUpperCase()}: ${config.label}`, {
-                                    description: config.voice,
-                                    duration: 5000 // 5 seconds
-                                })
+                                const Icon = config.icon
+                                toast.success(
+                                    <div className="flex items-center gap-4">
+                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${config.color}`}>
+                                            <Icon className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-sm">Commande #{payload.new.id.slice(-4).toUpperCase()}</div>
+                                            <div className="text-xs font-semibold opacity-90">{config.voice}</div>
+                                        </div>
+                                    </div>,
+                                    {
+                                        duration: 5000,
+                                        className: 'bg-white border-2 border-orange-100 shadow-2xl',
+                                        descriptionClassName: 'hidden'
+                                    }
+                                )
                                 announce(config.voice)
                             }
                         }
@@ -113,47 +126,7 @@ export function LiveOrderStatus() {
 
     const activeVisibleIds = activeOrderIds.filter(id => visibleNotifications[id])
 
-    if (activeVisibleIds.length === 0) return null
 
-    return (
-        <div className="fixed top-24 right-4 z-[100] flex flex-col gap-3 max-w-[280px] w-full pointer-events-none">
-            {activeVisibleIds.map(id => {
-                const status = orders[id] || 'pending'
-                const config = STATUS_MAP[status]
-                if (!config) return null
-                const Icon = config.icon
-
-                return (
-                    <div
-                        key={id}
-                        className="bg-white border-2 border-orange-100 shadow-2xl rounded-3xl p-4 flex items-center gap-4 animate-in slide-in-from-right-10 duration-500 pointer-events-auto"
-                    >
-                        <div className={cn(
-                            "h-12 w-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg",
-                            config.color
-                        )}>
-                            <Icon className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-0.5">
-                                Suivi Commande
-                            </div>
-                            <div className="font-black text-slate-900 truncate">
-                                #{id.slice(-4).toUpperCase()}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="relative flex h-2 w-2">
-                                    <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", config.color)}></span>
-                                    <span className={cn("relative inline-flex rounded-full h-2 w-2", config.color)}></span>
-                                </span>
-                                <span className={cn("text-xs font-black uppercase tracking-tighter", status === 'pending' || status === 'ready' ? 'text-orange-600' : 'text-slate-500')}>
-                                    {config.label}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                )
-            })}
-        </div>
-    )
+    // Don't render any fixed UI card - only use toast notifications
+    return null
 }

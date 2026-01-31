@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,6 +9,7 @@ import Link from 'next/link'
 import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus } from 'lucide-react'
 import { AddToCartDrawer } from '@/components/modules/menu/components/add-to-cart-drawer'
 import { LikeButton } from '@/components/modules/menu/components/like-button'
+import { EventFocusDrawer } from '@/components/modules/menu/components/event-focus-drawer'
 import { FavoriteButton } from '@/components/modules/menu/components/favorite-button'
 import { toast } from 'sonner'
 import { useFavoritesStore } from '@/lib/store/favorites'
@@ -15,6 +17,17 @@ import { useCartStore } from '@/lib/store/cart'
 import { useUIStore } from '@/lib/store/ui-store'
 import { cn, formatOrderId } from '@/lib/utils'
 import { getOrdersByIds } from '../actions'
+
+const formatDate = (dateStr: string) => {
+    if (!dateStr) return 'À ne pas manquer'
+    try {
+        const date = new Date(dateStr)
+        if (isNaN(date.getTime())) return dateStr
+        return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
+    } catch {
+        return dateStr
+    }
+}
 
 type Props = {
     categories: any[]
@@ -26,6 +39,8 @@ export function MenuBrowser({ categories, restaurant }: Props) {
     const { activeTab: activeFilter, setActiveTab: setActiveFilter } = useUIStore()
     const { dishIds: favoriteIds } = useFavoritesStore()
     const searchRef = useMemo(() => ({ current: null as HTMLInputElement | null }), [])
+
+
 
     // Focus search when tab is 'search'
     useEffect(() => {
@@ -85,7 +100,7 @@ export function MenuBrowser({ categories, restaurant }: Props) {
         <div className="flex flex-col gap-6">
             {/* Contextual Header: Only show search/filters if NOT in a special view */}
             {!['orders', 'profile', 'favorites'].includes(activeFilter || '') && (
-                <div className="sticky top-16 z-20 bg-background/95 backdrop-blur py-4 -mx-4 px-4 border-b">
+                <div className="sticky top-16 z-20 bg-background/60 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/10 shadow-sm support-[backdrop-filter]:bg-background/60">
                     <div className="relative mb-4">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -184,16 +199,23 @@ export function MenuBrowser({ categories, restaurant }: Props) {
                                     <Trophy className="h-5 w-5 text-yellow-500 fill-yellow-500/20" />
                                     <h2 className="text-xl font-black uppercase tracking-wider">Les Incontournables</h2>
                                 </div>
-                                <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 pb-4">
-                                    {popularDishes.map((dish) => (
-                                        <div key={`pop-${dish.id}`} className="flex-shrink-0 w-[280px] group relative">
+                                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 px-4 -mx-4">
+                                    {popularDishes.map((dish, idx) => (
+                                        <motion.div
+                                            key={`pop-${dish.id}`}
+                                            className="flex-shrink-0 w-[70%] group relative"
+                                            initial={{ opacity: 0, x: 50 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 0.6, delay: idx * 0.15, type: "spring" }}
+                                        >
                                             <div className="absolute top-3 left-3 z-10">
                                                 <Badge className="bg-white/90 backdrop-blur-md text-orange-600 border-none shadow-sm font-black text-[10px] uppercase">
                                                     <Heart className="h-3 w-3 mr-1 fill-orange-600" /> Top {dish.likes_count}
                                                 </Badge>
                                             </div>
                                             <DishCard dish={dish} restaurant={restaurant} />
-                                        </div>
+                                        </motion.div>
                                     ))}
                                 </div>
                             </section>
@@ -208,9 +230,24 @@ export function MenuBrowser({ categories, restaurant }: Props) {
                                     <div className="h-1 w-8 bg-orange-500 rounded-full" />
                                     <h2 className="text-xl font-black uppercase tracking-wider">{cat.name}</h2>
                                 </div>
-                                <div className="grid gap-6">
-                                    {cat.dishes.map((dish: any) => (
-                                        <DishCard key={dish.id} dish={dish} restaurant={restaurant} />
+                                <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory no-scrollbar px-4 -mx-4">
+                                    {cat.dishes.map((dish: any, idx: number) => (
+                                        <motion.div
+                                            key={dish.id}
+                                            className="min-w-[calc(50%-0.5rem)] snap-center"
+                                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{
+                                                duration: 0.5,
+                                                delay: idx * 0.1,
+                                                type: "spring",
+                                                stiffness: 100
+                                            }}
+                                            whileHover={{ y: -5 }}
+                                        >
+                                            <DishCard dish={dish} restaurant={restaurant} />
+                                        </motion.div>
                                     ))}
                                 </div>
                             </section>
@@ -324,7 +361,7 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
                                         #{formatOrderId(order.id, order.created_at)}
                                     </Badge>
                                     <div className="text-xl font-black uppercase tracking-tight text-slate-900">
-                                        {order.tables?.name || 'Vente à emporter'}
+                                        {order.tables?.name || 'Sur place'}
                                     </div>
                                 </div>
                                 <div className="text-right flex flex-col items-end gap-2">
@@ -656,7 +693,7 @@ function FilterBadge({ active, onClick, icon, label, color, inactiveColor }: any
             variant={active ? 'default' : 'secondary'}
             className={cn(
                 "px-4 py-1.5 rounded-full cursor-pointer transition-all whitespace-nowrap flex items-center gap-1.5 border-none font-bold text-xs shadow-sm",
-                active ? cn(color, "text-white shadow-md scale-105") : (inactiveColor || "bg-slate-200 text-slate-900 hover:bg-slate-300")
+                active ? cn(color, "text-white shadow-md scale-105") : (inactiveColor || "bg-white/40 backdrop-blur-md border border-white/20 text-slate-700 hover:bg-white/60")
             )}
             onClick={onClick}
         >
@@ -665,6 +702,8 @@ function FilterBadge({ active, onClick, icon, label, color, inactiveColor }: any
         </Badge>
     )
 }
+
+import { DishFocusDrawer } from '@/components/modules/menu/components/dish-focus-drawer'
 
 function DishCard({ dish, restaurant }: any) {
     const handleShare = (e: React.MouseEvent) => {
@@ -685,90 +724,94 @@ function DishCard({ dish, restaurant }: any) {
     }
 
     return (
-        <div className="flex flex-col gap-0 border rounded-3xl shadow-sm bg-card overflow-hidden transition-all hover:shadow-md border-orange-100/50">
-            {/* Image Section */}
-            {dish.image_urls?.[0] && (
-                <div className="relative w-full aspect-[16/9] overflow-hidden">
-                    <img
-                        src={dish.image_urls[0]}
-                        alt={dish.name}
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                        {dish.is_featured && (
-                            <Badge className="bg-orange-500 text-white border-0 py-1 px-3 shadow-lg font-black text-[10px] uppercase">
-                                <Star className="h-3 w-3 mr-1 fill-current" /> Spécial
-                            </Badge>
-                        )}
-                        {dish.is_promo && (
-                            <Badge className="bg-red-500 text-white border-0 py-1 px-3 shadow-lg font-black text-[10px] uppercase">
-                                <Flame className="h-3 w-3 mr-1 fill-current" /> Promo
-                            </Badge>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <div className="p-4 space-y-3">
-                <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1 space-y-1">
-                        <div className="flex flex-wrap gap-1.5 mb-1.5">
-                            {dish.is_vegetarian && <Leaf className="h-4 w-4 text-green-600" />}
-                            {dish.is_spicy && <FlameKindling className="h-4 w-4 text-red-600" />}
-                            {dish.is_gluten_free && <Wheat className="h-4 w-4 text-blue-600" />}
-
-                            {!dish.image_urls?.[0] && (
-                                <>
-                                    {dish.is_featured && (
-                                        <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50/50 font-black text-[9px] uppercase">
-                                            Spécial
-                                        </Badge>
-                                    )}
-                                    {dish.is_promo && (
-                                        <Badge variant="outline" className="text-red-600 border-red-100 bg-red-50/50 font-black text-[9px] uppercase">
-                                            Promo
-                                        </Badge>
-                                    )}
-                                </>
+        <DishFocusDrawer dish={dish} restaurant={restaurant}>
+            <div className="flex flex-col gap-0 border rounded-3xl shadow-sm bg-card/80 backdrop-blur-xl overflow-hidden transition-all hover:shadow-xl hover:shadow-orange-500/10 border-white/20 cursor-pointer group/card">
+                {/* Image Section */}
+                {dish.image_urls?.[0] && (
+                    <div className="relative w-full aspect-[16/9] overflow-hidden">
+                        <img
+                            src={dish.image_urls[0]}
+                            alt={dish.name}
+                            className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                            {dish.is_featured && (
+                                <Badge className="bg-orange-500 text-white border-0 py-1 px-3 shadow-lg font-black text-[10px] uppercase">
+                                    <Star className="h-3 w-3 mr-1 fill-current" /> Spécial
+                                </Badge>
+                            )}
+                            {dish.is_promo && (
+                                <Badge className="bg-red-500 text-white border-0 py-1 px-3 shadow-lg font-black text-[10px] uppercase">
+                                    <Flame className="h-3 w-3 mr-1 fill-current" /> Promo
+                                </Badge>
                             )}
                         </div>
-                        <h3 className="font-bold text-lg leading-tight">{dish.name}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{dish.description}</p>
                     </div>
-                    <div className="flex flex-col gap-2">
-                        <FavoriteButton dishId={dish.id} />
-                        <LikeButton dishId={dish.id} initialLikes={dish.likes_count || 0} />
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 rounded-full bg-muted/30 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                            onClick={handleShare}
-                        >
-                            <Share2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+                )}
 
-                <div className="flex items-center justify-between pt-2">
-                    <div className="flex flex-col">
-                        {dish.is_promo && dish.old_price && (
-                            <span className="text-xs text-muted-foreground line-through opacity-60">
-                                {Math.round(dish.old_price).toLocaleString()} {restaurant.currency}
-                            </span>
-                        )}
-                        <span className="text-xl font-black text-orange-600 tabular-nums">
-                            {Math.round(dish.price).toLocaleString()} <span className="text-xs font-bold opacity-70">{restaurant.currency}</span>
-                        </span>
+                <div className="p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 space-y-1">
+                            <div className="flex flex-wrap gap-1.5 mb-1.5">
+                                {dish.is_vegetarian && <Leaf className="h-4 w-4 text-green-600" />}
+                                {dish.is_spicy && <FlameKindling className="h-4 w-4 text-red-600" />}
+                                {dish.is_gluten_free && <Wheat className="h-4 w-4 text-blue-600" />}
+
+                                {!dish.image_urls?.[0] && (
+                                    <>
+                                        {dish.is_featured && (
+                                            <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50/50 font-black text-[9px] uppercase">
+                                                Spécial
+                                            </Badge>
+                                        )}
+                                        {dish.is_promo && (
+                                            <Badge variant="outline" className="text-red-600 border-red-100 bg-red-50/50 font-black text-[9px] uppercase">
+                                                Promo
+                                            </Badge>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            <h3 className="font-bold text-lg leading-tight group-hover/card:text-orange-600 transition-colors uppercase tracking-tight">{dish.name}</h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">"{dish.description || "Une explosion de saveurs artisanales..."}"</p>
+                        </div>
+                        <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                            <FavoriteButton dishId={dish.id} />
+                            <LikeButton dishId={dish.id} initialLikes={dish.likes_count || 0} />
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-full bg-muted/30 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                                onClick={handleShare}
+                            >
+                                <Share2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
-                    <AddToCartDrawer
-                        dish={dish}
-                        restaurantId={restaurant.id}
-                        currency={restaurant.currency}
-                        upsellIds={dish.upsell_ids}
-                    />
+
+                    <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-col">
+                            {dish.is_promo && dish.old_price && (
+                                <span className="text-xs text-muted-foreground line-through opacity-60">
+                                    {Math.round(dish.old_price).toLocaleString()} {restaurant.currency}
+                                </span>
+                            )}
+                            <span className="text-xl font-black text-orange-600 tabular-nums">
+                                {Math.round(dish.price).toLocaleString()} <span className="text-xs font-bold opacity-70">{restaurant.currency}</span>
+                            </span>
+                        </div>
+                        <div onClick={(e) => e.stopPropagation()}>
+                            <AddToCartDrawer
+                                dish={dish}
+                                restaurantId={restaurant.id}
+                                currency={restaurant.currency}
+                                upsellIds={dish.upsell_ids}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </DishFocusDrawer>
     )
 }
 
@@ -784,52 +827,60 @@ function EventsSection({ settings }: { settings: any }) {
                 <h3 className="font-black uppercase text-xs tracking-[0.2em] text-orange-950">Événements & Offres</h3>
             </div>
 
-            <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar -mx-4 px-4 pb-6">
-                {events.map((event: any) => (
-                    <div key={event.id} className="flex-shrink-0 w-[85vw] md:w-[800px] bg-white rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] border border-slate-100 flex flex-row min-h-[160px] md:min-h-[350px] group">
-                        {/* Left Content */}
-                        <div className="w-[60%] md:flex-1 p-5 md:p-16 flex flex-col items-center justify-center text-center space-y-2 md:space-y-6 bg-[#F8FAFF] relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-1 md:w-2 h-full bg-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 px-4">
+                {events.map((event: any, idx: number) => (
+                    <EventFocusDrawer key={event.id} event={event}>
+                        <motion.div
+                            className="flex-shrink-0 w-[calc(100%-2rem)] bg-white/80 backdrop-blur-xl rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] border border-white/20 flex flex-row min-h-[160px] group cursor-pointer"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: idx * 0.2 }}
+                        >
+                            {/* Left Content */}
+                            <div className="w-[60%] p-5 flex flex-col items-center justify-center text-center space-y-2 bg-[#F8FAFF]/50 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                            <div className="space-y-1.5 md:space-y-3">
-                                <div className="flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm font-black text-orange-600 uppercase tracking-widest mb-1">
-                                    <Calendar className="h-3 w-3 md:h-5 w-5" />
-                                    <span className="truncate">{event.date || 'À ne pas manquer'}</span>
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-center gap-1.5 text-xs font-black text-orange-600 uppercase tracking-widest mb-1">
+                                        <Calendar className="h-3 w-3" />
+                                        <span className="truncate">{formatDate(event.date)}</span>
+                                    </div>
+                                    <h4 className="text-xl font-black text-slate-900 leading-[1.1] tracking-tight transition-colors group-hover:text-orange-600 uppercase">
+                                        {event.title || 'Événement'}
+                                    </h4>
                                 </div>
-                                <h4 className="text-xl md:text-5xl font-black text-slate-900 leading-[1.1] tracking-tight transition-colors group-hover:text-orange-600 uppercase">
-                                    {event.title || 'Événement'}
-                                </h4>
+
+                                <p className="text-slate-600 font-bold leading-normal text-sm line-clamp-3 max-w-md">
+                                    {event.description || 'Venez découvrir notre prochain événement spécial.'}
+                                </p>
+
+                                {event.link && (
+                                    <div className="pt-2">
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-full border border-slate-950 hover:bg-slate-950 hover:text-white transition-all duration-300 font-black text-[11px] uppercase tracking-widest h-10 px-6 shadow-md"
+                                            onClick={() => window.open(event.link, '_blank')}
+                                        >
+                                            Voir
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
 
-                            <p className="text-slate-600 font-bold leading-normal text-sm md:text-xl line-clamp-3 md:line-clamp-none max-w-md">
-                                {event.description || 'Venez découvrir notre prochain événement spécial.'}
-                            </p>
-
-                            {event.link && (
-                                <div className="pt-2 md:pt-8">
-                                    <Button
-                                        variant="outline"
-                                        className="rounded-full border md:border-[3px] border-slate-950 hover:bg-slate-950 hover:text-white transition-all duration-300 font-black text-[11px] md:text-[14px] uppercase tracking-widest h-10 md:h-16 px-6 md:px-14 shadow-md"
-                                        onClick={() => window.open(event.link, '_blank')}
-                                    >
-                                        Voir
-                                    </Button>
+                            {/* Right Image */}
+                            {event.image_url && (
+                                <div className="w-[45%] relative overflow-hidden bg-slate-200">
+                                    <img
+                                        src={event.image_url}
+                                        alt={event.title}
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFF] to-transparent opacity-20" />
                                 </div>
                             )}
-                        </div>
-
-                        {/* Right Image */}
-                        {event.image_url && (
-                            <div className="w-[45%] md:flex-1 relative overflow-hidden bg-slate-200">
-                                <img
-                                    src={event.image_url}
-                                    alt={event.title}
-                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFF] to-transparent opacity-20 md:block hidden" />
-                            </div>
-                        )}
-                    </div>
+                        </motion.div>
+                    </EventFocusDrawer>
                 ))}
             </div>
         </div>

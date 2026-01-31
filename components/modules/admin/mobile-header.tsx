@@ -10,7 +10,7 @@ export function MobileHeader({ restaurantSlug }: { restaurantSlug?: string | nul
     const [open, setOpen] = useState(false)
 
     return (
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:hidden">
+        <header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-muted/70 px-4 backdrop-blur supports-[backdrop-filter]:bg-muted/50 lg:h-[60px] lg:px-6 lg:hidden">
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 md:hidden">

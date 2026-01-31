@@ -12,8 +12,17 @@ import {
     Unlink as UnlinkIcon,
     ExternalLink as ExternalLinkIcon,
     CheckCircle2 as CheckIcon,
-    Loader2 as LoaderIcon
+    Loader2 as LoaderIcon,
+    EllipsisVertical as EllipsisIcon
 } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
 
 type Props = {
     stats: any
@@ -85,64 +94,54 @@ export function ExportButton({ stats, restaurantId }: Props) {
     }
 
     return (
-        <div className="flex items-center gap-3">
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportCSV}
-                className="rounded-xl border-orange-200 hover:bg-orange-50 text-orange-700 font-bold h-10 px-4"
-            >
-                <DownloadIcon className="h-4 w-4 mr-2" />
-                CSV
-            </Button>
-
-            {!isGoogleConnected ? (
-                <Button
-                    onClick={handleGoogleConnect}
-                    disabled={isConnecting}
-                    className="rounded-xl bg-[#4285F4] hover:bg-[#357ae8] text-white font-black uppercase text-[10px] h-10 px-4 shadow-lg shadow-blue-500/20"
-                >
-                    {isConnecting ? (
-                        <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                        <LinkIcon className="h-4 w-4 mr-2" />
-                    )}
-                    Connexion Gmail
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full border-orange-200 text-orange-600">
+                    <EllipsisIcon className="h-5 w-5" />
                 </Button>
-            ) : (
-                <div className="flex items-center gap-2 bg-blue-50/50 p-1 pr-3 rounded-2xl border border-blue-100">
-                    <Button
-                        onClick={handleSync}
-                        disabled={isSyncing}
-                        className="rounded-xl bg-[#4285F4] hover:bg-[#357ae8] text-white font-black uppercase text-[10px] h-8 px-4"
-                    >
-                        {isSyncing ? (
-                            <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                        ) : hasSheet ? (
-                            <CheckIcon className="h-4 w-4 mr-2" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Exports rapides</DropdownMenuLabel>
+                <DropdownMenuItem onClick={handleExportCSV} className="font-medium">
+                    <DownloadIcon className="mr-2 h-4 w-4" /> Export CSV
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {!isGoogleConnected ? (
+                    <DropdownMenuItem onClick={handleGoogleConnect} disabled={isConnecting} className="font-medium">
+                        {isConnecting ? (
+                            <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
                         ) : (
-                            <TableIcon className="h-4 w-4 mr-2" />
+                            <LinkIcon className="mr-2 h-4 w-4" />
                         )}
-                        {isSyncing ? 'Sync...' : hasSheet ? 'Sync Maintenant' : 'Créer le fichier'}
-                    </Button>
-
-                    {sheetUrl && (
-                        <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors">
-                            <ExternalLinkIcon className="h-4 w-4" />
-                        </a>
-                    )}
-
-                    <button
-                        onClick={() => {
+                        Connexion Gmail
+                    </DropdownMenuItem>
+                ) : (
+                    <>
+                        <DropdownMenuItem onClick={handleSync} disabled={isSyncing} className="font-medium">
+                            {isSyncing ? (
+                                <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                            ) : hasSheet ? (
+                                <CheckIcon className="mr-2 h-4 w-4" />
+                            ) : (
+                                <TableIcon className="mr-2 h-4 w-4" />
+                            )}
+                            {isSyncing ? 'Sync...' : hasSheet ? 'Sync Google Sheets' : 'Créer le fichier Sheets'}
+                        </DropdownMenuItem>
+                        {sheetUrl && (
+                            <DropdownMenuItem className="font-medium" asChild>
+                                <a href={sheetUrl} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLinkIcon className="mr-2 h-4 w-4" /> Ouvrir le fichier
+                                </a>
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => {
                             if (confirm("Déconnecter votre compte Google ?")) disconnectGoogle()
-                        }}
-                        className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
-                        title="Déconnecter"
-                    >
-                        <UnlinkIcon className="h-4 w-4" />
-                    </button>
-                </div>
-            )}
-        </div>
+                        }}>
+                            <UnlinkIcon className="mr-2 h-4 w-4" /> Déconnecter Google
+                        </DropdownMenuItem>
+                    </>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }

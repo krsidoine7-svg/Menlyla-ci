@@ -98,8 +98,8 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-xs font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-full h-8 px-3">
-                    <MessageSquarePlus className="h-3.5 w-3.5 mr-1.5" /> Laisser un avis
+                <Button variant="outline" size="sm" className="text-xs font-black uppercase tracking-widest text-orange-600 border-orange-100 hover:bg-orange-50 rounded-full h-9 px-4 shadow-sm active:scale-95 transition-all">
+                    <MessageSquarePlus className="h-4 w-4 mr-2" /> Laisser un avis
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-none shadow-2xl">

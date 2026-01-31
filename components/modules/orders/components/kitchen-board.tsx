@@ -33,7 +33,7 @@ export function KitchenBoard({ initialOrders, restaurantId }: { initialOrders: a
 
     const playNotificationSound = (order?: any) => {
         if (typeof window !== 'undefined') {
-            const tableInfo = order?.tables?.name || 'Vente à emporter'
+            const tableInfo = order?.tables?.name || 'Sur place'
             const text = `Nouvelle commande reçue. ${tableInfo}.`
 
             const utterance = new SpeechSynthesisUtterance(text)
@@ -195,7 +195,7 @@ function OrderCard({ order, onStatusUpdate, loading }: any) {
                     </div>
                 </div>
                 <div className="text-xs font-black uppercase tracking-tighter text-orange-600 mt-1">
-                    {order.tables?.name || 'Vente à emporter'}
+                    {order.tables?.name || 'Sur place'}
                 </div>
             </CardHeader>
             <CardContent className="p-4 space-y-4">

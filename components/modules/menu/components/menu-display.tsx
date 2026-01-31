@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, List, LayoutPanelTop, MoreVertical, Pencil, Trash2, Power, PowerOff, Star, Flame, PackageCheck, PackageX, Table as TableIcon, Square } from 'lucide-react'
+import { LayoutGrid, List, MoreVertical, Pencil, Trash2, Power, PowerOff, Star, Flame, PackageCheck, PackageX, Table as TableIcon, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,12 +15,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { deleteCategory, toggleCategoryStatus, deleteDish, toggleDishStatus } from '../actions'
+import { deleteCategory, toggleCategoryStatus, deleteDish, toggleDishStatus, seedDefaultCategories } from '../actions'
 import { EditCategoryDialog } from './edit-category-dialog'
 import { EditDishDialog } from './edit-dish-dialog'
 import { cn } from '@/lib/utils'
+import { Sparkles } from 'lucide-react'
+import { SortableCategoryList } from './sortable-category-list'
 
-type ViewMode = 'list' | 'grid' | 'compact' | 'table' | 'mini'
+type ViewMode = 'list' | 'grid' | 'table' | 'mini'
 
 type Props = {
     categories: any[]
@@ -29,16 +31,40 @@ type Props = {
 
 export function MenuDisplay({ categories, restaurant }: Props) {
     const [view, setView] = useState<ViewMode>('grid')
+    const [isSeeding, setIsSeeding] = useState(false)
     const [editingCategory, setEditingCategory] = useState<any>(null)
     const [editingDish, setEditingDish] = useState<any>(null)
 
     const currency = restaurant?.currency || 'FCFA'
 
+    const handleSeedDefaults = async () => {
+        setIsSeeding(true)
+        const result = await seedDefaultCategories()
+        setIsSeeding(false)
+        if (result?.message) toast.success(result.message)
+    }
+
     if (!categories || categories.length === 0) {
         return (
-            <div className="text-center text-muted-foreground p-10 border border-dashed rounded-[2rem] bg-muted/5">
-                <div className="mb-4">Votre menu est vide.</div>
-                <div className="text-sm">Commencez par créer une catégorie (ex: Entrées, Boissons).</div>
+            <div className="text-center p-16 border-2 border-dashed rounded-[3rem] bg-muted/5 flex flex-col items-center gap-6">
+                <div className="h-20 w-20 bg-orange-100 rounded-3xl flex items-center justify-center text-orange-600">
+                    <Sparkles className="h-10 w-10" />
+                </div>
+                <div className="space-y-1">
+                    <h3 className="text-xl font-black uppercase tracking-tight">Votre menu est encore vide</h3>
+                    <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                        Vous pouvez créer vos propres catégories ou gagner du temps avec nos modèles prêts à l'emploi.
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                    <Button
+                        onClick={handleSeedDefaults}
+                        disabled={isSeeding}
+                        className="rounded-full h-12 px-8 bg-orange-600 hover:bg-orange-700 font-black uppercase text-xs tracking-widest shadow-lg shadow-orange-600/20"
+                    >
+                        {isSeeding ? "Création..." : "Ajouter les catégories par défaut"}
+                    </Button>
+                </div>
             </div>
         )
     }
@@ -90,14 +116,7 @@ export function MenuDisplay({ categories, restaurant }: Props) {
                 >
                     <List className="mr-2 h-4 w-4" /> Liste
                 </Button>
-                <Button
-                    variant={view === 'compact' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setView('compact')}
-                    className="rounded-full px-6"
-                >
-                    <LayoutPanelTop className="mr-2 h-4 w-4" /> Compact
-                </Button>
+
                 <Button
                     variant={view === 'table' ? 'secondary' : 'ghost'}
                     size="sm"
@@ -118,228 +137,32 @@ export function MenuDisplay({ categories, restaurant }: Props) {
 
             <Tabs value={view} onValueChange={(v: any) => setView(v)} className="w-full">
                 <TabsContent value="list" className="space-y-6 mt-0">
-                    {categories.map((cat) => (
-                        <Card key={cat.id} className={cn("rounded-[2rem] border-none shadow-sm", !cat.is_active && "opacity-60 grayscale")}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                <div className="space-y-1">
-                                    <CardTitle className="text-xl font-black">{cat.name}</CardTitle>
-                                    {!cat.is_active && <Badge variant="destructive" className="text-[10px] uppercase font-black">Hors Ligne</Badge>}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <DishDialog categoryId={cat.id} restaurantId={cat.restaurant_id} />
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="rounded-xl">
-                                            <DropdownMenuItem onClick={() => setEditingCategory(cat)}>
-                                                <Pencil className="mr-2 h-4 w-4" /> Modifier catégorie
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleToggleCategory(cat.id, cat.is_active)}>
-                                                {cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteCategory(cat.id)}>
-                                                <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="px-6">
-                                <div className="grid gap-3">
-                                    {cat.dishes?.map((dish: any) => (
-                                        <div key={dish.id} className={cn(
-                                            "flex items-center justify-between rounded-2xl border p-4 transition-all group",
-                                            !dish.is_available ? 'opacity-50 bg-muted/20 border-muted' : 'bg-card hover:border-orange-200'
-                                        )}>
-                                            <div className="flex items-center gap-4">
-                                                {dish.image_urls?.[0] ? (
-                                                    <img src={dish.image_urls[0]} alt={dish.name} className="h-12 w-12 rounded-xl object-cover bg-muted shadow-sm" />
-                                                ) : (
-                                                    <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-200">
-                                                        <Plus className="h-4 w-4" />
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <div className="font-bold flex items-center gap-2">
-                                                        {dish.name}
-                                                        {!dish.is_available && <Badge variant="destructive" className="text-[9px] px-1 font-black uppercase">Épuisé</Badge>}
-                                                        {dish.is_promo && <Badge className="bg-red-500 text-[9px] px-1 font-black uppercase">Promo</Badge>}
-                                                    </div>
-                                                    <div className="text-sm font-black text-orange-600">{Math.round(dish.price).toLocaleString()} {currency}</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant={dish.is_available ? "outline" : "default"}
-                                                    size="sm"
-                                                    className={cn("h-8 px-3 rounded-full text-[10px] font-black uppercase tracking-tight")}
-                                                    onClick={() => handleToggleDish(dish.id, dish.is_available)}
-                                                >
-                                                    {dish.is_available ? <><PackageX className="h-3 w-3 mr-1" /> Rupture</> : <><PackageCheck className="h-3 w-3 mr-1" /> En Stock</>}
-                                                </Button>
-
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="rounded-xl">
-                                                        <DropdownMenuItem onClick={() => setEditingDish(dish)}>
-                                                            <Pencil className="mr-2 h-4 w-4" /> Modifier
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteDish(dish.id)}>
-                                                            <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    <SortableCategoryList
+                        categories={categories}
+                        restaurant={restaurant}
+                        onEdit={setEditingCategory}
+                        onDelete={handleDeleteCategory}
+                        onToggle={handleToggleCategory}
+                        onToggleDish={handleToggleDish}
+                        onDeleteDish={handleDeleteDish}
+                        onEditDish={setEditingDish}
+                    />
                 </TabsContent>
 
                 <TabsContent value="grid" className="space-y-12 mt-0">
-                    {categories.map((cat) => (
-                        <div key={cat.id} className={cn(!cat.is_active && 'opacity-60 grayscale')}>
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                                    {cat.name}
-                                    {!cat.is_active && <Badge variant="outline" className="text-[10px] uppercase font-black tracking-wide">Inactif</Badge>}
-                                </h2>
-                                <div className="flex items-center gap-2">
-                                    <DishDialog categoryId={cat.id} restaurantId={cat.restaurant_id} />
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-card border shadow-sm">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="rounded-xl">
-                                            <DropdownMenuItem onClick={() => setEditingCategory(cat)}>
-                                                <Pencil className="mr-2 h-4 w-4" /> Modifier catégorie
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleToggleCategory(cat.id, cat.is_active)}>
-                                                {cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteCategory(cat.id)}>
-                                                <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </div>
+                    <SortableCategoryList
+                        categories={categories}
+                        restaurant={restaurant}
+                        onEdit={setEditingCategory}
+                        onDelete={handleDeleteCategory}
+                        onToggle={handleToggleCategory}
+                        onToggleDish={handleToggleDish}
+                        onDeleteDish={handleDeleteDish}
+                        onEditDish={setEditingDish}
+                        viewMode="grid"
+                    />
+                </TabsContent>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {cat.dishes?.map((dish: any) => (
-                                    <Card key={dish.id} className={cn(
-                                        "group overflow-hidden relative rounded-[2rem] border-none shadow-sm transition-all hover:shadow-xl hover:shadow-orange-100",
-                                        !dish.is_available && 'opacity-60 border-muted'
-                                    )}>
-                                        <div className="aspect-video relative overflow-hidden bg-muted">
-                                            {dish.image_urls?.[0] ? (
-                                                <img
-                                                    src={dish.image_urls[0]}
-                                                    alt={dish.name}
-                                                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
-                                                />
-                                            ) : (
-                                                <div className="flex items-center justify-center w-full h-full text-muted-foreground uppercase text-[10px] font-black tracking-widest bg-orange-50/50">
-                                                    Aucune image
-                                                </div>
-                                            )}
-                                            <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-                                                <Badge
-                                                    className={cn(
-                                                        "shadow-lg font-black text-[10px] py-1 border-none cursor-pointer hover:scale-105 transition-transform",
-                                                        dish.is_available ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
-                                                    )}
-                                                    onClick={() => handleToggleDish(dish.id, dish.is_available)}
-                                                >
-                                                    {dish.is_available ? 'EN STOCK' : 'ÉPUISÉ'}
-                                                </Badge>
-                                                {dish.is_featured && (
-                                                    <Badge className="bg-orange-500 text-white border-0 shadow-lg px-2 font-black text-[10px] uppercase">
-                                                        <Star className="h-3 w-3 mr-1 fill-current" /> Spécial
-                                                    </Badge>
-                                                )}
-                                                {dish.is_promo && (
-                                                    <Badge className="bg-red-500 text-white border-0 shadow-lg px-2 font-black text-[10px] uppercase">
-                                                        <Flame className="h-3 w-3 mr-1 fill-current" /> Promo
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-all">
-                                                <Button
-                                                    variant="secondary"
-                                                    size="icon"
-                                                    className="h-10 w-10 rounded-2xl shadow-xl backdrop-blur-md bg-white/50"
-                                                    onClick={() => setEditingDish(dish)}
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <CardContent className="p-6">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <h3 className="font-black text-xl leading-tight group-hover:text-orange-600 transition-colors">{dish.name}</h3>
-                                                <div className="text-right">
-                                                    <div className="font-black text-orange-600 text-lg">{Math.round(dish.price).toLocaleString()} <span className="text-xs">{currency}</span></div>
-                                                    {dish.old_price && <div className="text-xs text-muted-foreground line-through opacity-50">{Math.round(dish.old_price).toLocaleString()} F</div>}
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground line-clamp-2 h-10 leading-relaxed italic">
-                                                {dish.description || "Délicieux plat préparé avec soin..."}
-                                            </p>
-                                        </CardContent>
-                                        <CardFooter className="px-6 pb-6 pt-0 flex justify-between items-center mt-2 border-t pt-4">
-                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                                Modifié le {new Date(dish.created_at).toLocaleDateString()}
-                                            </span>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-destructive h-8 px-2 hover:bg-red-50 hover:text-red-700 rounded-lg text-xs font-black uppercase tracking-tight"
-                                                onClick={() => handleDeleteDish(dish.id)}
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5 mr-1" /> Supprimer
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                                {(!cat.dishes || cat.dishes.length === 0) && (
-                                    <div className="col-span-full py-12 text-center border-2 border-dashed rounded-[2rem] bg-muted/5 text-muted-foreground font-medium">
-                                        Cette catégorie est vide.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </TabsContent>
-                <TabsContent value="compact" className="space-y-4 mt-0">
-                    {categories.map((cat) => (
-                        <div key={cat.id} className={cn(!cat.is_active && "opacity-60 grayscale")}>
-                            <h3 className="text-xl font-bold mb-2">{cat.name}</h3>
-                            <ul className="space-y-1">
-                                {cat.dishes?.map((dish: any) => (
-                                    <li key={dish.id} className="flex justify-between text-sm text-gray-700">
-                                        <span>{dish.name}</span>
-                                        <span>{Math.round(dish.price).toLocaleString()} {restaurant?.currency || 'FCFA'}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </TabsContent>
                 <TabsContent value="table" className="space-y-6 mt-0">
                     {categories.map((cat) => (
                         <Card key={cat.id} className={cn("rounded-[2rem] border border-dashed", !cat.is_active && "opacity-60 grayscale")}>
@@ -417,68 +240,17 @@ export function MenuDisplay({ categories, restaurant }: Props) {
                     ))}
                 </TabsContent>
                 <TabsContent value="mini" className="space-y-10 mt-0">
-                    {categories.map((cat) => (
-                        <div key={cat.id} className={cn("space-y-4", !cat.is_active && "opacity-60 grayscale")}>
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-2xl font-black tracking-tight">{cat.name}</h3>
-                                {cat.dishes?.length && (
-                                    <Badge variant="secondary" className="rounded-full px-3 text-[10px] uppercase tracking-[0.2em]">
-                                        {cat.dishes.length} plat(s)
-                                    </Badge>
-                                )}
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {cat.dishes?.map((dish: any) => (
-                                    <div key={dish.id} className="rounded-2xl border bg-white shadow-sm hover:shadow-md transition-all p-4 flex flex-col gap-3">
-                                        <div className="flex items-center gap-3">
-                                            {dish.image_urls?.[0] ? (
-                                                <img src={dish.image_urls[0]} alt={dish.name} className="h-14 w-14 rounded-xl object-cover border" />
-                                            ) : (
-                                                <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground">
-                                                    No Img
-                                                </div>
-                                            )}
-                                            <div>
-                                                <p className="font-black text-sm uppercase tracking-[0.1em]">{dish.name}</p>
-                                                <p className="text-xs text-muted-foreground line-clamp-1">{dish.description || "Sans description"}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-lg font-black text-orange-600">{Math.round(dish.price).toLocaleString()} {currency}</span>
-                                            <Badge variant={dish.is_available ? "default" : "secondary"} className="text-[9px] font-black uppercase tracking-wide">
-                                                {dish.is_available ? "Actif" : "Off"}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-2">
-                                            <Button size="sm" variant="outline" className="flex-1 rounded-full text-[10px] uppercase tracking-[0.2em]" onClick={() => handleToggleDish(dish.id, dish.is_available)}>
-                                                {dish.is_available ? "Désactiver" : "Activer"}
-                                            </Button>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="rounded-xl">
-                                                    <DropdownMenuItem onClick={() => setEditingDish(dish)}>
-                                                        <Pencil className="mr-2 h-4 w-4" /> Modifier
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteDish(dish.id)}>
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </div>
-                                ))}
-                                {(!cat.dishes || cat.dishes.length === 0) && (
-                                    <div className="col-span-full py-10 border-2 border-dashed rounded-2xl text-center text-sm text-muted-foreground">
-                                        Aucun plat enregistré pour le moment.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                    <SortableCategoryList
+                        categories={categories}
+                        restaurant={restaurant}
+                        onEdit={setEditingCategory}
+                        onDelete={handleDeleteCategory}
+                        onToggle={handleToggleCategory}
+                        onToggleDish={handleToggleDish}
+                        onDeleteDish={handleDeleteDish}
+                        onEditDish={setEditingDish}
+                        viewMode="mini"
+                    />
                 </TabsContent>
             </Tabs>
 
