@@ -49,7 +49,7 @@ export function MobileNavbar({ restaurantSlug }: Props) {
     const isCartActive = pathname.endsWith('/cart')
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-[50] px-3 pb-6 pointer-events-none md:max-w-[500px] md:mx-auto">
+        <nav className="fixed bottom-0 left-0 right-0 z-[100] px-3 pb-6 pointer-events-none md:max-w-[500px] md:mx-auto">
             <div className="relative flex items-center justify-between h-18 bg-white/70 backdrop-blur-xl border border-white/20 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] px-1.5 pointer-events-auto">
 
                 {navItems.map((item) => {

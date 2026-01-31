@@ -4,7 +4,7 @@ import { useCartStore } from '@/lib/store/cart'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 export function CartSummary() {
@@ -18,12 +18,13 @@ export function CartSummary() {
         setMounted(true)
     }, [])
 
-    if (!mounted || items.length === 0) return null
+    const pathname = usePathname()
+    if (!mounted || items.length === 0 || pathname.endsWith('/cart')) return null
 
     const count = items.reduce((acc, item) => acc + item.quantity, 0)
 
     return (
-        <div className="fixed bottom-4 left-0 right-0 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 md:max-w-[500px] md:mx-auto px-4">
+        <div className="fixed bottom-28 left-0 right-0 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 md:max-w-[500px] md:mx-auto px-4">
             <Link href={`/${slug}/cart`}>
                 <Button className="w-full h-14 text-lg shadow-xl shadow-primary/20 flex items-center justify-between px-6 rounded-full">
                     <div className="flex items-center gap-2">

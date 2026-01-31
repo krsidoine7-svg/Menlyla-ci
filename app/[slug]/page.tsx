@@ -52,7 +52,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
                 <TableSync />
             </Suspense>
             {/* Hero / Header */}
-            <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm overflow-hidden">
+            <header className="sticky top-0 z-[80] bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm overflow-hidden">
                 {restaurantData.banner_url && (
                     <div className="absolute inset-0 -z-10 opacity-20">
                         <img src={restaurantData.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -118,9 +118,6 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
             </div>
 
             <SocialLinks socialLinks={restaurantData.social_links} restaurantName={restaurantData.name} />
-            <CartSummary />
-            <MobileNavbar restaurantSlug={restaurantData.slug} />
-            <WaiterFAB restaurantId={restaurantData.id} />
         </div>
     )
 }
