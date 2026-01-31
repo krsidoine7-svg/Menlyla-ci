@@ -460,6 +460,51 @@ function ProfileView({ restaurant }: { restaurant: any }) {
                 </div>
             </div>
 
+            {/* Passport Fidelity Section */}
+            {settings.show_passport !== false && (
+                <div className="bg-slate-950 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/20 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="relative z-10 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <div className="space-y-1">
+                                <h3 className="text-xl font-black uppercase tracking-tight">Passeport Fidélité</h3>
+                                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Votre collection de tampons</p>
+                            </div>
+                            <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                                <Star className="h-6 w-6 text-orange-500 fill-orange-500" />
+                            </div>
+                        </div>
+
+                        {/* Stamps Grid */}
+                        <div className="grid grid-cols-5 gap-3">
+                            {Array.from({ length: settings.passport_goal || 10 }).map((_, i) => (
+                                <div key={i} className={cn(
+                                    "aspect-square rounded-2xl border-2 flex items-center justify-center transition-all duration-500",
+                                    i < 3 // Demo: 3 stamps collected
+                                        ? "bg-orange-600 border-orange-500 shadow-[0_0_15px_rgba(234,88,12,0.4)]"
+                                        : "bg-white/5 border-white/10"
+                                )}>
+                                    {i < 3 ? (
+                                        <div className="font-black text-xs">OK</div>
+                                    ) : (
+                                        <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="pt-2">
+                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                                <p className="text-[10px] font-black uppercase text-white/40 mb-1">Objectif Récompense</p>
+                                <p className="text-sm font-bold text-orange-400 italic">
+                                    "{settings.passport_reward || "Une surprise vous attend !"}"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Passport Details Section */}
             <div className="bg-white border-2 border-orange-100 rounded-[3rem] pt-8 pb-10 px-8 shadow-[0_30px_60px_-15px_rgba(234,88,12,0.15)]">
                 <div className="space-y-8">
@@ -582,7 +627,12 @@ function ProfileView({ restaurant }: { restaurant: any }) {
                                             </div>
                                             <span className="text-[10px] font-black uppercase text-slate-400">Wi-Fi Client</span>
                                         </div>
-                                        <p className="font-bold text-sm text-slate-900 ml-1">{settings.wifi_name || "DEMANDER_AU_STAFF"}</p>
+                                        <div className="space-y-0.5 ml-1">
+                                            <p className="font-bold text-xs text-slate-900 leading-tight truncate">{settings.wifi_name || "WiFi-Restaurant"}</p>
+                                            {settings.wifi_password && (
+                                                <p className="text-[10px] font-medium text-slate-400 font-mono tracking-tighter">{settings.wifi_password}</p>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                                 {showPayments && (

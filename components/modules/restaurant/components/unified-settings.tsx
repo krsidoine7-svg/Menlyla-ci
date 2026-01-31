@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { ImageUpload } from '@/components/modules/menu/components/image-upload'
-import { MessageCircle, Instagram, Facebook, Video, Plus, Trash2, CircleAlert } from 'lucide-react'
+import { MessageCircle, Instagram, Facebook, Video, Plus, Trash2, CircleAlert, CheckCircle2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MenuSettings } from './menu-settings'
 import { LegalSettings } from './legal-settings'
@@ -76,11 +76,15 @@ export function UnifiedSettings({ restaurant }: Props) {
         return {
             show_passport: base.show_passport ?? true,
             show_wifi: base.show_wifi ?? true,
+            wifi_name: base.wifi_name ?? '',
+            wifi_password: base.wifi_password ?? '',
+            passport_goal: base.passport_goal ?? 10,
+            passport_reward: base.passport_reward ?? '',
+            payment_methods_list: base.payment_methods_list ?? ['orange', 'wave', 'cash'],
             gsheet_webhook: base.gsheet_webhook ?? '',
             events: base.events ?? [],
             theme: base.theme ?? { primaryColor: '#FF6B3D', secondaryColor: '#FF6B3D', useGradient: false },
             currency: base.currency,
-            payment_methods_list: base.payment_methods_list,
             identity: {
                 slogan: '',
                 cuisine_type: '',
@@ -484,8 +488,100 @@ export function UnifiedSettings({ restaurant }: Props) {
                             <Card className="rounded-[2rem] border-none shadow-sm overflow-hidden">
                                 <CardHeader className="bg-slate-50/50"><CardTitle>Passeport & Fidélité</CardTitle></CardHeader>
                                 <CardContent className="space-y-6 pt-6">
-                                    <FeatureToggle label="Activer le Passeport" description="Permet aux clients de collecter des tampons." checked={settings.show_passport !== false} onChange={v => setSettings(s => ({ ...s, show_passport: v }))} />
-                                    <FeatureToggle label="Afficher le Wi-Fi" description="Partage facile du Wi-Fi." checked={settings.show_wifi !== false} onChange={v => setSettings(s => ({ ...s, show_wifi: v }))} />
+                                    <div className="space-y-4">
+                                        <FeatureToggle label="Activer le Passeport" description="Permet aux clients de collecter des tampons." checked={settings.show_passport !== false} onChange={v => setSettings(s => ({ ...s, show_passport: v }))} />
+                                        {settings.show_passport !== false && (
+                                            <div className="pl-14 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Nombre de tampons</Label>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="10"
+                                                        value={settings.passport_goal || ''}
+                                                        onChange={e => setSettings({ ...settings, passport_goal: parseInt(e.target.value) || 0 })}
+                                                        className="bg-white rounded-xl"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Récompense</Label>
+                                                    <Input
+                                                        placeholder="Un cocktail offert"
+                                                        value={settings.passport_reward || ''}
+                                                        onChange={e => setSettings({ ...settings, passport_reward: e.target.value })}
+                                                        className="bg-white rounded-xl"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <FeatureToggle label="Afficher le Wi-Fi" description="Partage facile du Wi-Fi." checked={settings.show_wifi !== false} onChange={v => setSettings(s => ({ ...s, show_wifi: v }))} />
+                                        {settings.show_wifi !== false && (
+                                            <div className="pl-14 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Nom du réseau (SSID)</Label>
+                                                    <Input
+                                                        placeholder="WiFi-Restaurant"
+                                                        value={settings.wifi_name || ''}
+                                                        onChange={e => setSettings({ ...settings, wifi_name: e.target.value })}
+                                                        className="bg-white rounded-xl"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">Mot de passe</Label>
+                                                    <Input
+                                                        placeholder="********"
+                                                        value={settings.wifi_password || ''}
+                                                        onChange={e => setSettings({ ...settings, wifi_password: e.target.value })}
+                                                        className="bg-white rounded-xl"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4 pt-4 border-t border-slate-100">
+                                        <div className="flex flex-col gap-1 px-2">
+                                            <Label className="text-sm font-bold">Modes de Paiement</Label>
+                                            <p className="text-xs text-muted-foreground">Sélectionnez les moyens de paiement que vous acceptez à table.</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-2">
+                                            {[
+                                                { id: 'orange', label: 'Orange Money' },
+                                                { id: 'wave', label: 'Wave' },
+                                                { id: 'moov', label: 'Moov Money' },
+                                                { id: 'mtn', label: 'MTN Money' },
+                                                { id: 'cash', label: 'Espèces' },
+                                                { id: 'visa', label: 'Carte Visa' },
+                                            ].map(method => (
+                                                <button
+                                                    key={method.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const current = settings.payment_methods_list || []
+                                                        const next = current.includes(method.id)
+                                                            ? current.filter((m: string) => m !== method.id)
+                                                            : [...current, method.id]
+                                                        setSettings({ ...settings, payment_methods_list: next })
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-4 py-3 rounded-2xl border-2 transition-all text-xs font-black uppercase tracking-tight",
+                                                        (settings.payment_methods_list || []).includes(method.id)
+                                                            ? "border-orange-500 bg-orange-50 text-orange-600 shadow-sm"
+                                                            : "border-slate-100 bg-white text-slate-400 hover:border-slate-200"
+                                                    )}
+                                                >
+                                                    {(settings.payment_methods_list || []).includes(method.id) ? (
+                                                        <CheckCircle2 className="h-4 w-4" />
+                                                    ) : (
+                                                        <div className="h-4 w-4 rounded-full border-2 border-slate-200" />
+                                                    )}
+                                                    {method.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}

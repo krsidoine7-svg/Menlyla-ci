@@ -160,7 +160,7 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
                                             initial={{ y: 40, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
                                             transition={{ delay: 0.5, duration: 0.6 }}
-                                            className="text-4xl font-black uppercase tracking-tight leading-[0.9] drop-shadow-2xl"
+                                            className="text-3xl font-black uppercase tracking-tight leading-[0.9] drop-shadow-2xl"
                                         >
                                             {dish.name}
                                         </motion.h2>
@@ -172,7 +172,7 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
                                     initial={{ y: 100, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: 0.6, duration: 0.8 }}
-                                    className="flex-1 overflow-y-auto no-scrollbar px-8 py-10 space-y-10"
+                                    className="flex-1 overflow-y-auto no-scrollbar px-8 py-6 space-y-6"
                                 >
                                     {/* Tags & Price Row */}
                                     <div className="flex items-center justify-between">
@@ -204,61 +204,61 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
                                         </div>
                                         <div className="text-right">
                                             {dish.old_price && (
-                                                <div className="text-sm text-slate-300 line-through font-bold mb-[-4px]">{Math.round(dish.old_price).toLocaleString()} {currency}</div>
+                                                <div className="text-xs text-slate-300 line-through font-bold mb-[-2px]">{Math.round(dish.old_price).toLocaleString()} {currency}</div>
                                             )}
-                                            <div className="text-4xl font-black text-orange-600 tabular-nums">
-                                                {Math.round(dish.price).toLocaleString()} <span className="text-sm font-black opacity-40">{currency}</span>
+                                            <div className="text-2xl font-black text-orange-600 tabular-nums">
+                                                {Math.round(dish.price).toLocaleString()} <span className="text-xs font-black opacity-40">{currency}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Description with Glass effect background wrap */}
-                                    <div className="space-y-4 relative">
+                                    <div className="space-y-3 relative">
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Expérience Culinaire</h4>
                                         <div className="relative">
                                             <div className="absolute -left-4 top-0 bottom-0 w-1 bg-orange-100 rounded-full" />
-                                            <p className="text-slate-600 font-bold leading-relaxed italic text-xl px-2">
+                                            <p className="text-slate-600 font-bold leading-relaxed italic text-lg px-2">
                                                 "{dish.description || "Une création artisanale préparée avec des ingrédients frais du jour pour une explosion de saveurs en bouche."}"
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Quantity Selector - Enhanced Style */}
-                                    <div className="flex items-center justify-between bg-slate-50/50 backdrop-blur-sm p-7 rounded-[3rem] border border-slate-100/50 shadow-sm">
+                                    <div className="flex items-center justify-between bg-slate-50/50 backdrop-blur-sm p-4 rounded-[2rem] border border-slate-100/50 shadow-sm">
                                         <div>
-                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Ajustement</h4>
-                                            <p className="text-sm font-black text-slate-900">Quantité désirée</p>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Ajustement</h4>
+                                            <p className="text-xs font-black text-slate-900">Quantité</p>
                                         </div>
-                                        <div className="flex items-center gap-8">
+                                        <div className="flex items-center gap-4">
                                             <Button
                                                 variant="outline"
                                                 size="icon"
-                                                className="h-14 w-14 rounded-3xl border-none bg-white shadow-xl active:scale-95 transition-all text-slate-400 hover:text-orange-600"
+                                                className="h-10 w-10 rounded-2xl border-none bg-white shadow-lg active:scale-95 transition-all text-slate-400 hover:text-orange-600"
                                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                                 disabled={quantity <= 1}
                                             >
-                                                <Minus className="h-6 w-6" />
+                                                <Minus className="h-4 w-4" />
                                             </Button>
-                                            <span className="text-3xl font-black tabular-nums w-10 text-center text-slate-900">{quantity}</span>
+                                            <span className="text-xl font-black tabular-nums w-6 text-center text-slate-900">{quantity}</span>
                                             <Button
                                                 variant="outline"
                                                 size="icon"
-                                                className="h-14 w-14 rounded-3xl border-none bg-orange-600 text-white shadow-[0_10px_30px_-5px_rgba(234,88,12,0.4)] active:scale-95 transition-all hover:bg-orange-700"
+                                                className="h-10 w-10 rounded-2xl border-none bg-orange-600 text-white shadow-[0_5px_15px_-5px_rgba(234,88,12,0.4)] active:scale-95 transition-all hover:bg-orange-700"
                                                 onClick={() => setQuantity(quantity + 1)}
                                             >
-                                                <Plus className="h-6 w-6" />
+                                                <Plus className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>
 
                                     {/* Upsells Section with cascade */}
                                     {upsellDishes.length > 0 && (
-                                        <div className="space-y-6">
+                                        <div className="space-y-4">
                                             <div className="flex items-center justify-between px-2">
                                                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Pour accompagner</h4>
                                                 <Badge variant="outline" className="rounded-full border-orange-100 bg-orange-50/50 text-orange-600 font-black text-[9px] px-3">CONSEILLÉ</Badge>
                                             </div>
-                                            <div className="flex gap-5 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4">
+                                            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4">
                                                 {upsellDishes.map((u, idx) => (
                                                     <motion.button
                                                         key={u.id}
@@ -267,32 +267,32 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
                                                         transition={{ delay: 0.8 + (idx * 0.1) }}
                                                         onClick={() => toggleUpsell(u.id)}
                                                         className={cn(
-                                                            "flex-shrink-0 w-40 group relative text-left transition-all",
-                                                            selectedUpsells.has(u.id) ? "scale-95" : "hover:translate-y-[-6px]"
+                                                            "flex-shrink-0 w-32 group relative text-left transition-all",
+                                                            selectedUpsells.has(u.id) ? "scale-95" : "hover:translate-y-[-4px]"
                                                         )}
                                                     >
                                                         <div className={cn(
-                                                            "aspect-[4/5] rounded-[2.5rem] overflow-hidden mb-4 border-2 transition-all relative shadow-lg group-hover:shadow-2xl",
+                                                            "aspect-[4/5] rounded-[2rem] overflow-hidden mb-2 border-2 transition-all relative shadow-lg group-hover:shadow-2xl",
                                                             selectedUpsells.has(u.id) ? "border-orange-500 shadow-orange-200" : "border-transparent bg-slate-50 group-hover:border-slate-200"
                                                         )}>
                                                             {u.image_urls?.[0] ? (
                                                                 <img src={u.image_urls[0]} alt={u.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <div className="w-full h-full flex items-center justify-center bg-orange-50 text-orange-200 uppercase font-black text-[9px] leading-tight text-center px-4">Image bientôt disponible</div>
+                                                                <div className="w-full h-full flex items-center justify-center bg-orange-50 text-orange-200 uppercase font-black text-[8px] leading-tight text-center px-4">Image bientôt disponible</div>
                                                             )}
-                                                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <p className="text-[10px] text-white font-black italic">Ajouter ?</p>
+                                                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <p className="text-[9px] text-white font-black italic">Ajouter ?</p>
                                                             </div>
                                                             {selectedUpsells.has(u.id) && (
-                                                                <div className="absolute inset-0 bg-orange-500/20 backdrop-blur-[2px] flex items-center justify-center">
-                                                                    <div className="bg-orange-600 text-white rounded-full p-2 shadow-2xl scale-125">
-                                                                        <Check className="h-6 w-6 stroke-[4]" />
+                                                                <div className="absolute inset-0 bg-orange-500/20 backdrop-blur-[1px] flex items-center justify-center">
+                                                                    <div className="bg-orange-600 text-white rounded-full p-1.5 shadow-2xl scale-110">
+                                                                        <Check className="h-4 w-4 stroke-[4]" />
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <p className="text-[12px] font-black uppercase tracking-tight line-clamp-1 mb-1 px-2 text-slate-900">{u.name}</p>
-                                                        <p className="text-sm text-orange-600 font-black px-2">+{Math.round(u.price).toLocaleString()} <span className="text-[10px] opacity-60">{currency}</span></p>
+                                                        <p className="text-[11px] font-black uppercase tracking-tight line-clamp-1 mb-0.5 px-2 text-slate-900">{u.name}</p>
+                                                        <p className="text-xs text-orange-600 font-black px-2">+{Math.round(u.price).toLocaleString()} <span className="text-[9px] opacity-60">{currency}</span></p>
                                                     </motion.button>
                                                 ))}
                                             </div>
@@ -305,16 +305,16 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
                                     initial={{ y: 50, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: 0.8 }}
-                                    className="p-8 bg-white/80 backdrop-blur-xl border-t border-slate-100 mt-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]"
+                                    className="p-5 bg-white/80 backdrop-blur-xl border-t border-slate-100 mt-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]"
                                 >
                                     <Button
                                         onClick={handleAdd}
-                                        className="w-full text-lg h-18 py-8 rounded-[2.5rem] shadow-[0_20px_50px_-10px_rgba(234,88,12,0.5)] bg-orange-600 hover:bg-orange-700 font-black uppercase tracking-[0.15em] gap-4 transition-all active:scale-95 group overflow-hidden relative"
+                                        className="w-full text-base h-14 py-6 rounded-[2rem] shadow-[0_15px_40px_-10px_rgba(234,88,12,0.4)] bg-orange-600 hover:bg-orange-700 font-black uppercase tracking-[0.1em] gap-3 transition-all active:scale-95 group overflow-hidden relative"
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
-                                        <ShoppingCart className="h-6 w-6 transition-transform group-hover:rotate-12" />
-                                        <span className="relative z-10 flex items-center gap-2">
-                                            Ajouter • {Math.round(totalPrice).toLocaleString()} <span className="text-xs opacity-80">{currency}</span>
+                                        <ShoppingCart className="h-5 w-5 transition-transform group-hover:rotate-12" />
+                                        <span className="relative z-10 flex items-center gap-2 text-sm">
+                                            Ajouter • {Math.round(totalPrice).toLocaleString()} <span className="text-[10px] opacity-80">{currency}</span>
                                         </span>
                                     </Button>
                                 </motion.div>
