@@ -203,6 +203,9 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
     }
 
     revalidatePath('/dashboard/settings')
+    if (validatedFields.data.slug) {
+        revalidatePath(`/${validatedFields.data.slug}`)
+    }
     return { message: "Restaurant mis à jour avec succès !" }
 }
 export async function getOrdersByIds(ids: string[]) {

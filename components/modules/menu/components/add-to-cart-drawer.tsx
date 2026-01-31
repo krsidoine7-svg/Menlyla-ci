@@ -89,7 +89,7 @@ export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellI
                     <Plus className="h-4 w-4" />
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className="md:max-w-[500px] md:mx-auto border-none bg-white rounded-t-[3rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.2)]">
+            <DrawerContent className="md:max-w-[500px] md:mx-auto border-none bg-white rounded-t-[3rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.2)] z-[150]">
                 <div className="mx-auto w-full max-h-[90vh] overflow-y-auto no-scrollbar relative">
                     {/* Top Accent */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-slate-200/50 rounded-full" />
@@ -205,7 +205,7 @@ export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellI
                                     </div>
                                 )}
 
-                                <div className="space-y-4 pt-4">
+                                <div className="space-y-4 pt-4 pb-6">
                                     <Button
                                         onClick={handleAdd}
                                         className="w-full text-lg h-20 rounded-[2.5rem] shadow-[0_20px_50px_-10px_rgba(234,88,12,0.4)] bg-orange-600 hover:bg-orange-700 font-black uppercase tracking-widest gap-4 active:scale-95 transition-all group overflow-hidden relative"

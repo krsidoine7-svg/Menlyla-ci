@@ -88,7 +88,7 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
                     </Button>
                 )}
             </DrawerTrigger>
-            <DrawerContent className="max-h-[94vh] border-none bg-white md:max-w-[500px] md:mx-auto rounded-t-[3.5rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.3)]">
+            <DrawerContent className="max-h-[94vh] border-none bg-white md:max-w-[500px] md:mx-auto rounded-t-[3rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.2)] z-[150]">
                 <div className="mx-auto w-full h-full flex flex-col overflow-hidden relative">
                     {/* Decorative Top Handle Background */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-200/50 rounded-full z-50" />
@@ -253,7 +253,7 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
 
                                     {/* Upsells Section with cascade */}
                                     {upsellDishes.length > 0 && (
-                                        <div className="space-y-4">
+                                        <div className="space-y-4 pt-4">
                                             <div className="flex items-center justify-between px-2">
                                                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Pour accompagner</h4>
                                                 <Badge variant="outline" className="rounded-full border-orange-100 bg-orange-50/50 text-orange-600 font-black text-[9px] px-3">CONSEILLÉ</Badge>
@@ -302,19 +302,19 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
 
                                 {/* Footer with Main Action */}
                                 <motion.div
-                                    initial={{ y: 50, opacity: 0 }}
+                                    initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.8 }}
-                                    className="p-5 bg-white/80 backdrop-blur-xl border-t border-slate-100 mt-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]"
+                                    transition={{ delay: 0.3 }}
+                                    className="p-5 pb-6 bg-white border-t border-slate-100 mt-auto shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)] z-[160]"
                                 >
                                     <Button
                                         onClick={handleAdd}
                                         className="w-full text-base h-14 py-6 rounded-[2rem] shadow-[0_15px_40px_-10px_rgba(234,88,12,0.4)] bg-orange-600 hover:bg-orange-700 font-black uppercase tracking-[0.1em] gap-3 transition-all active:scale-95 group overflow-hidden relative"
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full animate-[shimmer_2s_infinite]" />
                                         <ShoppingCart className="h-5 w-5 transition-transform group-hover:rotate-12" />
                                         <span className="relative z-10 flex items-center gap-2 text-sm">
-                                            Ajouter • {Math.round(totalPrice).toLocaleString()} <span className="text-[10px] opacity-80">{currency}</span>
+                                            Ajouter au panier • {Math.round(totalPrice).toLocaleString()} <span className="text-[10px] opacity-80">{currency}</span>
                                         </span>
                                     </Button>
                                 </motion.div>
@@ -326,4 +326,3 @@ export function DishFocusDrawer({ dish, restaurant, children }: Props) {
         </Drawer>
     )
 }
-

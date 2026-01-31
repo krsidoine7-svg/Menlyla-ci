@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus } from 'lucide-react'
+import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check } from 'lucide-react'
 import { AddToCartDrawer } from '@/components/modules/menu/components/add-to-cart-drawer'
 import { LikeButton } from '@/components/modules/menu/components/like-button'
 import { EventFocusDrawer } from '@/components/modules/menu/components/event-focus-drawer'
@@ -465,13 +465,20 @@ function ProfileView({ restaurant }: { restaurant: any }) {
                 <div className="bg-slate-950 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/20 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
                     <div className="relative z-10 space-y-6">
-                        <div className="flex justify-between items-center">
-                            <div className="space-y-1">
-                                <h3 className="text-xl font-black uppercase tracking-tight">Passeport Fidélité</h3>
-                                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Votre collection de tampons</p>
+                        <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-4">
+                                {restaurant.logo_url && (
+                                    <div className="h-14 w-14 rounded-2xl border-2 border-white/20 p-1 bg-white shadow-xl rotate-[-3deg]">
+                                        <img src={restaurant.logo_url} className="w-full h-full object-cover rounded-xl" />
+                                    </div>
+                                )}
+                                <div className="space-y-0.5">
+                                    <h3 className="text-xl font-black uppercase tracking-tight">{restaurant.name}</h3>
+                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Passeport Fidélité de l'établissement</p>
+                                </div>
                             </div>
-                            <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
-                                <Star className="h-6 w-6 text-orange-500 fill-orange-500" />
+                            <div className="h-10 w-10 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                                <Star className="h-5 w-5 text-orange-500 fill-orange-500" />
                             </div>
                         </div>
 
@@ -620,12 +627,27 @@ function ProfileView({ restaurant }: { restaurant: any }) {
                         <div className="pt-6 border-t border-slate-50 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 {showWifi && (
-                                    <div className="p-4 rounded-[2rem] bg-slate-50 border border-slate-100 group">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
-                                                <Wifi className="h-4 w-4" />
+                                    <div className="p-4 rounded-[2rem] bg-slate-50 border border-slate-100 group relative overflow-hidden">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
+                                                    <Wifi className="h-4 w-4" />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase text-slate-400">Wi-Fi Client</span>
                                             </div>
-                                            <span className="text-[10px] font-black uppercase text-slate-400">Wi-Fi Client</span>
+                                            <button
+                                                onClick={() => {
+                                                    if (!settings.wifi_password) {
+                                                        toast.error("Aucun mot de passe configuré.");
+                                                        return;
+                                                    }
+                                                    navigator.clipboard.writeText(settings.wifi_password);
+                                                    toast.success("Mot de passe Wi-Fi copié !");
+                                                }}
+                                                className="h-7 w-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-orange-600 transition-colors shadow-sm active:scale-90"
+                                            >
+                                                <Copy className="h-3.5 w-3.5" />
+                                            </button>
                                         </div>
                                         <div className="space-y-0.5 ml-1">
                                             <p className="font-bold text-xs text-slate-900 leading-tight truncate">{settings.wifi_name || "WiFi-Restaurant"}</p>
@@ -778,20 +800,22 @@ function DishCard({ dish, restaurant }: any) {
             <div className="flex flex-col gap-0 border rounded-3xl shadow-sm bg-card/80 backdrop-blur-xl overflow-hidden transition-all hover:shadow-xl hover:shadow-orange-500/10 border-white/20 cursor-pointer group/card">
                 {/* Image Section */}
                 {dish.image_urls?.[0] && (
-                    <div className="relative w-full aspect-[16/9] overflow-hidden">
-                        <img
-                            src={dish.image_urls[0]}
-                            alt={dish.name}
-                            className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-700"
-                        />
-                        <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                    <div className="relative w-full aspect-[16/9] px-4 pt-4 bg-slate-50/50 overflow-visible">
+                        <div className="w-full h-full relative group/img-3d perspective-1000">
+                            <img
+                                src={dish.image_urls[0]}
+                                alt={dish.name}
+                                className="w-full h-full object-cover rounded-2xl shadow-[0_15px_35px_-10px_rgba(0,0,0,0.2)] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/card:scale-105 group-hover/card:-translate-y-4 group-hover/card:rotate-[-1.5deg] group-hover/card:shadow-[0_40px_70px_-15px_rgba(0,0,0,0.3)]"
+                            />
+                        </div>
+                        <div className="absolute top-7 left-7 flex flex-wrap gap-2 z-20">
                             {dish.is_featured && (
-                                <Badge className="bg-orange-500 text-white border-0 py-1 px-3 shadow-lg font-black text-[10px] uppercase">
+                                <Badge className="bg-orange-500 text-white border-0 py-1 px-3 shadow-xl font-black text-[10px] uppercase">
                                     <Star className="h-3 w-3 mr-1 fill-current" /> Spécial
                                 </Badge>
                             )}
                             {dish.is_promo && (
-                                <Badge className="bg-red-500 text-white border-0 py-1 px-3 shadow-lg font-black text-[10px] uppercase">
+                                <Badge className="bg-red-500 text-white border-0 py-1 px-3 shadow-xl font-black text-[10px] uppercase">
                                     <Flame className="h-3 w-3 mr-1 fill-current" /> Promo
                                 </Badge>
                             )}

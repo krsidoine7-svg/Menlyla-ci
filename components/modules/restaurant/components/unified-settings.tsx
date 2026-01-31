@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { ImageUpload } from '@/components/modules/menu/components/image-upload'
 import { MessageCircle, Instagram, Facebook, Video, Plus, Trash2, CircleAlert, CheckCircle2, Check } from 'lucide-react'
@@ -173,15 +174,16 @@ export function UnifiedSettings({ restaurant }: Props) {
         setEmail(restaurant.email || '')
         setAddress(restaurant.address || '')
 
-        const nextLogo = restaurant.logo_url || ''
-        const nextBanner = restaurant.banner_url || ''
-        const nextSocial = restaurant.social_links || {}
-        const nextSettings = restaurant.settings || {}
-        setLogoUrl(nextLogo)
-        setBannerUrl(nextBanner)
-        setSocialLinks(nextSocial)
-        setSettings(nextSettings)
+        const finalLogo = restaurant.logo_url || ''
+        const finalBanner = restaurant.banner_url || ''
+        const finalSocial = restaurant.social_links || {}
+
+        setLogoUrl(finalLogo)
+        setBannerUrl(finalBanner)
+        setSocialLinks(finalSocial)
+        setSettings(defaultSettings)
         setLastSavedAt(restaurant.updated_at ? new Date(restaurant.updated_at) : null)
+
         initialSnapshotRef.current = JSON.stringify({
             name: restaurant.name || '',
             slug: restaurant.slug || '',
@@ -189,13 +191,12 @@ export function UnifiedSettings({ restaurant }: Props) {
             phone: restaurant.phone || '',
             email: restaurant.email || '',
             address: restaurant.address || '',
-            logoUrl: nextLogo,
-            bannerUrl: nextBanner,
-            socialLinks: nextSocial,
-            settings: nextSettings,
+            logoUrl: finalLogo,
+            bannerUrl: finalBanner,
+            socialLinks: finalSocial,
+            settings: defaultSettings,
         })
         setIsDirty(false)
-        setSettings(defaultSettings)
     }, [restaurant, defaultSettings])
 
     const handleAddSocial = () => {
@@ -488,8 +489,13 @@ export function UnifiedSettings({ restaurant }: Props) {
                             <Card className="rounded-[2rem] border-none shadow-sm overflow-hidden">
                                 <CardHeader className="bg-slate-50/50"><CardTitle>Passeport & Fidélité</CardTitle></CardHeader>
                                 <CardContent className="space-y-6 pt-6">
-                                    <div className="space-y-4">
-                                        <FeatureToggle label="Activer le Passeport" description="Permet aux clients de collecter des tampons." checked={settings.show_passport !== false} onChange={v => setSettings(s => ({ ...s, show_passport: v }))} />
+                                    <div className="space-y-4 opacity-60 grayscale-[0.5] pointer-events-none cursor-not-allowed">
+                                        <div className="flex items-center justify-between mb-2 px-2">
+                                            <Badge variant="outline" className="text-[10px] font-black uppercase text-orange-600 border-orange-200 bg-orange-50">
+                                                🛠️ En cours de déploiement
+                                            </Badge>
+                                        </div>
+                                        <FeatureToggle label="Activer le Passeport" description="Permet aux clients de collecter des tampons." checked={false} onChange={() => { }} />
                                         {settings.show_passport !== false && (
                                             <div className="pl-14 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
                                                 <div className="space-y-2">
@@ -702,21 +708,42 @@ export function UnifiedSettings({ restaurant }: Props) {
     )
 }
 
-function FeatureToggle({ label, description, checked, onChange, compact }: { label: string, description: string, checked: boolean, onChange: (val: boolean) => void, compact?: boolean }) {
+function FeatureToggle({ label, description, checked, onChange, compact, disabled }: { label: string, description: string, checked: boolean, onChange: (val: boolean) => void, compact?: boolean, disabled?: boolean }) {
     if (compact) {
         return (
-            <button type="button" onClick={() => onChange(!checked)} className={cn("relative h-5 w-9 rounded-full transition-colors", checked ? "bg-slate-900" : "bg-slate-200")}>
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={() => !disabled && onChange(!checked)}
+                className={cn(
+                    "relative h-5 w-9 rounded-full transition-colors",
+                    checked ? "bg-slate-900" : "bg-slate-200",
+                    disabled && "opacity-50 cursor-not-allowed"
+                )}
+            >
                 <span className={cn("block h-4 w-4 rounded-full bg-white shadow transform transition-transform ml-0.5 mt-0.5", checked ? "translate-x-4" : "translate-x-0")} />
             </button>
         )
     }
     return (
-        <div className="flex items-center justify-between p-4 rounded-xl border hover:border-orange-200 transition-colors bg-white">
+        <div className={cn(
+            "flex items-center justify-between p-4 rounded-xl border transition-colors bg-white",
+            disabled ? "opacity-60 border-slate-100" : "hover:border-orange-200"
+        )}>
             <div className="space-y-1">
                 <div className="font-semibold text-sm">{label}</div>
                 <div className="text-xs text-muted-foreground">{description}</div>
             </div>
-            <button type="button" onClick={() => onChange(!checked)} className={cn("relative h-6 w-11 rounded-full transition-colors", checked ? "bg-orange-600" : "bg-slate-200")}>
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={() => !disabled && onChange(!checked)}
+                className={cn(
+                    "relative h-6 w-11 rounded-full transition-colors",
+                    checked ? "bg-orange-600" : "bg-slate-200",
+                    disabled && "cursor-not-allowed"
+                )}
+            >
                 <span className={cn("block h-5 w-5 rounded-full bg-white shadow transform transition-transform ml-0.5", checked ? "translate-x-5" : "translate-x-0")} />
             </button>
         </div>

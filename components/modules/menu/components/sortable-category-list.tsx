@@ -145,22 +145,24 @@ function SortableDishGridItem({ dish, onToggle, onDelete, onEdit, currency, attr
                 <GripVertical className="h-4 w-4" />
             </div>
 
-            <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+            <div className="aspect-[4/3] relative p-4 bg-slate-50/50 overflow-visible">
                 {dish.image_urls?.[0] ? (
-                    <img
-                        src={dish.image_urls[0]}
-                        alt={dish.name}
-                        className="object-cover w-full h-full transition-transform duration-500 group-hover/dish:scale-110"
-                    />
+                    <div className="w-full h-full relative group/img-3d perspective-1000">
+                        <img
+                            src={dish.image_urls[0]}
+                            alt={dish.name}
+                            className="object-cover w-full h-full rounded-2xl shadow-[0_15px_30px_-10px_rgba(0,0,0,0.2)] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/dish:scale-105 group-hover/dish:-translate-y-4 group-hover/dish:rotate-[-1.5deg] group-hover/dish:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]"
+                        />
+                    </div>
                 ) : (
-                    <div className="flex items-center justify-center w-full h-full text-muted-foreground uppercase text-[8px] font-black tracking-widest bg-orange-50/50">
+                    <div className="flex items-center justify-center w-full h-full text-muted-foreground uppercase text-[8px] font-black tracking-widest bg-orange-50/50 rounded-2xl border-2 border-dashed border-orange-100">
                         Aucune image
                     </div>
                 )}
-                <div className="absolute top-2 right-2 flex flex-col items-end gap-1.5 z-20">
+                <div className="absolute top-6 right-6 flex flex-col items-end gap-1.5 z-20">
                     <Badge
                         className={cn(
-                            "shadow-md font-black text-[8px] py-0.5 px-2 border-none cursor-pointer hover:scale-105 transition-transform",
+                            "shadow-lg font-black text-[8px] py-0.5 px-2 border-none cursor-pointer hover:scale-105 transition-transform",
                             dish.is_available ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
                         )}
                         onClick={() => onToggle(dish.id, dish.is_available)}
@@ -168,12 +170,12 @@ function SortableDishGridItem({ dish, onToggle, onDelete, onEdit, currency, attr
                         {dish.is_available ? 'DISPO' : 'ÉPUISÉ'}
                     </Badge>
                     {dish.is_featured && (
-                        <Badge className="bg-orange-500 text-white border-0 shadow-md px-1.5 py-0.5 font-black text-[8px] uppercase">
+                        <Badge className="bg-orange-500 text-white border-0 shadow-lg px-1.5 py-0.5 font-black text-[8px] uppercase">
                             <Star className="h-2.5 w-2.5 mr-1 fill-current" /> Spécial
                         </Badge>
                     )}
                     {dish.is_promo && (
-                        <Badge className="bg-red-500 text-white border-0 shadow-md px-1.5 py-0.5 font-black text-[8px] uppercase">
+                        <Badge className="bg-red-500 text-white border-0 shadow-lg px-1.5 py-0.5 font-black text-[8px] uppercase">
                             <Flame className="h-2.5 w-2.5 mr-1 fill-current" /> Promo
                         </Badge>
                     )}
