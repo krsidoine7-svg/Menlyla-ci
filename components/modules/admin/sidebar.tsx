@@ -74,7 +74,7 @@ export function DashboardSidebar({ className, onItemClick, restaurantSlug }: { c
         <div className={cn("flex h-full flex-col border-r bg-card w-64", className)}>
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-                    <span className="text-xl font-bold text-primary">MANLY</span>
+                    <span className="text-xl font-bold text-primary">MENLYLA</span>
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary uppercase tracking-tighter">Pro</span>
                 </Link>
             </div>

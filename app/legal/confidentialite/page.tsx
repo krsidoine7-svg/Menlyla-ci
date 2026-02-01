@@ -3,8 +3,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Politique de Confidentialité – Manly",
-    description: "Politique de confidentialité du service Manly, expliquant la collecte, l'utilisation et la protection des données personnelles.",
+    title: "Politique de Confidentialité – Menlyla",
+    description: "Politique de confidentialité du service Menlyla, expliquant la collecte, l'utilisation et la protection des données personnelles.",
 };
 
 export default function Confidentialite() {
@@ -18,7 +18,7 @@ export default function Confidentialite() {
                 <p className="text-gray-700">
                     Adresse : 123 Rue Exemple, Abidjan, Côte d&#39;Ivoire
                 </p>
-                <p className="text-gray-700">Email : contact@manly.com</p>
+                <p className="text-gray-700">Email : contact@menlyla.com</p>
                 <p className="text-gray-700">Téléphone : +225 05 03 68 15 88</p>
             </div>
         </section>

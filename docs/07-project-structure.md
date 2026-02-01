@@ -1,4 +1,4 @@
-# MANLY PROJECT STRUCTURE
+# MENLYLA PROJECT STRUCTURE
 
 Pour assurer la maintenabilité à long terme, nous utilisons une architecture **"Feature-First"** (ou Modulaire) couplée aux conventions Next.js App Router.
 
@@ -7,7 +7,7 @@ Pour assurer la maintenabilité à long terme, nous utilisons une architecture *
 ## 1. ARBORESCENCE PRINCIPALE
 
 ```bash
-manly/
+menlyla/
 ├── app/                    # Next.js App Router (Routes & Layouts)
 │   ├── (auth)/             # Login, Register, Forgot Password
 │   ├── (customer)/         # Application Client (Menu, Panier)

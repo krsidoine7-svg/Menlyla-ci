@@ -1,4 +1,4 @@
-# MANLY DESIGN SYSTEM
+# MENLYLA DESIGN SYSTEM
 
 **Vision:** Une interface "Premium", fluide, et réactive. L'expérience doit être appétissante (pour le client) et efficace (pour le restaurateur).
 

@@ -1,6 +1,6 @@
-# MANLY SECURITY GUIDELINES (OWASP)
+# MENLYLA SECURITY GUIDELINES (OWASP)
 
-Ce document définit les standards de sécurité pour le développement du projet MANLY.
+Ce document définit les standards de sécurité pour le développement du projet MENLYLA.
 **Stack:** Next.js 14+ (App Router), Supabase (Auth/DB), LIGOS (Paiement).
 
 ---

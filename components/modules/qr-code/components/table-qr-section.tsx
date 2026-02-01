@@ -107,7 +107,7 @@ export function TableQrSection({
                 restaurantLogo={restaurantLogo}
             />
             <div className="w-full">
-                <DownloadQrButton elementId={`qr-${tableId}`} fileName={`Manly-Table-${tableName}`} />
+                <DownloadQrButton elementId={`qr-${tableId}`} fileName={`Menlyla-Table-${tableName}`} />
             </div>
         </div>
     )

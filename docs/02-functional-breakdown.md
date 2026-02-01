@@ -1,6 +1,6 @@
 # PHASE 2 – DÉCOMPOSITION FONCTIONNELLE
 
-**Projet:** MANLY  
+**Projet:** MENLYLA  
 **Date:** 26 décembre 2024  
 **Architecture:** Modulaire (Domain-Driven Design simplifié)
 
@@ -12,7 +12,7 @@ Nous adoptons une **architecture modulaire** alignée avec le **Next.js App Rout
 
 ### Structure des Dossiers Modulaire
 ```
-manly/
+menlyla/
 ├── components/modules/
 │   ├── [ModuleName]/
 │   │   ├── components/    (UI spécifique au module)
@@ -47,7 +47,7 @@ manly/
 ### 3.1 Module: AUTHENTICATION & USERS
 **But:** Gérer les identités et les rôles.
 - **Rôles:**
-  - `super_admin`: Gère la plateforme MANLY.
+  - `super_admin`: Gère la plateforme MENLYLA.
   - `resto_admin`: Gère son restaurant.
   - `staff` (Post-MVP): Serveurs/Cuisine.
   - `customer`: Client final (souvent anonyme ou via cookie session).

@@ -33,7 +33,7 @@
 
 ### Scénario: Client scanne le QR
 1. Le client scanne un QR physique.
-2. URL décodée: `https://manly.ci/qr/[token]`.
+2. URL décodée: `https://menlyla.ci/qr/[token]`.
 3. Middleware Next.js intercepte `/qr/[token]`.
 4. Lookup dans DB: `SELECT * FROM qr_codes WHERE token = [token]`.
 5. Si valide:

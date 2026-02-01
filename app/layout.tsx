@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "MANLY | Menu Digital & Paiement",
+  title: "MENLYLA | Menu Digital & Paiement",
   description: "La solution de commande et paiement pour restaurants en Côte d'Ivoire",
   icons: {
     icon: "/favicon.ico",

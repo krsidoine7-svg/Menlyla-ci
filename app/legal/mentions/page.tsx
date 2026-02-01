@@ -3,8 +3,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Mentions Légales – Manly",
-    description: "Mentions légales du service Manly, informations sur l'éditeur, les conditions d'utilisation et la protection des données.",
+    title: "Mentions Légales – Menlyla",
+    description: "Mentions légales du service Menlyla, informations sur l'éditeur, les conditions d'utilisation et la protection des données.",
 };
 
 export default function MentionsLegales() {
@@ -18,7 +18,7 @@ export default function MentionsLegales() {
                 <p className="text-gray-700">
                     Adresse : 123 Rue Exemple, Abidjan, Côte d&#39;Ivoire
                 </p>
-                <p className="text-gray-700">Email : contact@manly.com</p>
+                <p className="text-gray-700">Email : contact@menlyla.com</p>
                 <p className="text-gray-700">Téléphone : +225 05 03 68 15 88</p>
             </div>
         </section>

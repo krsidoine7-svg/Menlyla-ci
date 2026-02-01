@@ -1,6 +1,6 @@
-# MANLY MASTER PLAN
+# MENLYLA MASTER PLAN
 
-Ce document est la source de vérité pour le développement du projet MANLY. Il synthétise l'architecture, les règles et la roadmap d'implémentation.
+Ce document est la source de vérité pour le développement du projet MENLYLA. Il synthétise l'architecture, les règles et la roadmap d'implémentation.
 
 ---
 

@@ -3,8 +3,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "CGU & CGV – Manly",
-    description: "Conditions générales d'utilisation et de vente du service Manly.",
+    title: "CGU & CGV – Menlyla",
+    description: "Conditions générales d'utilisation et de vente du service Menlyla.",
 };
 
 export default function CGU() {
@@ -16,7 +16,7 @@ export default function CGU() {
                     Ceci est un texte de remplissage pour les Conditions Générales d'Utilisation et de Vente. Remplacez-le par le contenu réel de votre entreprise.
                 </p>
                 <p className="text-gray-700">
-                    Vous devez accepter ces conditions pour utiliser le service Manly.
+                    Vous devez accepter ces conditions pour utiliser le service Menlyla.
                 </p>
             </div>
         </section>

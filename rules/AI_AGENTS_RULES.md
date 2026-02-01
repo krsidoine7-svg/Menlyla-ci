@@ -1,6 +1,6 @@
-# MANLY - INSTRUCTIONS POUR AGENTS IA
+# MENLYLA - INSTRUCTIONS POUR AGENTS IA
 
-Tu es un agent IA travaillant sur le projet MANLY. Voici tes directives prioritaires.
+Tu es un agent IA travaillant sur le projet MENLYLA. Voici tes directives prioritaires.
 
 ---
 

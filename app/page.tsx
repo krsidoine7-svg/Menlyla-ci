@@ -19,7 +19,7 @@ export default function Home() {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="text-2xl font-black tracking-tighter text-orange-600 flex items-center gap-2">
             <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white text-lg">M</div>
-            MANLY
+            MENLYLA
           </div>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -319,7 +319,7 @@ export default function Home() {
               Prêt à passer au niveau supérieur ?
             </h2>
             <p className="mx-auto max-w-[600px] text-slate-300 md:text-xl mb-8">
-              Rejoignez les restaurants qui utilisent Manly pour simplifier leur service.
+              Rejoignez les restaurants qui utilisent Menlyla pour simplifier leur service.
             </p>
             <div className="flex flex-col items-center sm:flex-row justify-center gap-4">
               <Link href="/login" className="w-full sm:w-auto flex justify-center">
@@ -341,7 +341,7 @@ export default function Home() {
       <footer className="border-t py-12 bg-white">
         <div className="container mx-auto px-6 md:px-8 lg:px-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            <div className="text-2xl font-black text-orange-600">MANLY</div>
+            <div className="text-2xl font-black text-orange-600">MENLYLA</div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               La plateforme tout-en-un pour moderniser l'expérience client dans votre restaurant.
             </p>
@@ -373,7 +373,7 @@ export default function Home() {
           </div>
         </div>
         <div className="container mx-auto px-6 md:px-8 lg:px-12 mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400 font-medium">
-          <p>© 2026 Manly. Tous droits réservés.</p>
+          <p>© 2026 Menlyla. Tous droits réservés.</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-slate-900">Twitter</Link>
             <Link href="#" className="hover:text-slate-900">Instagram</Link>

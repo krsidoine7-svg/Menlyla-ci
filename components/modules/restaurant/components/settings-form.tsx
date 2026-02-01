@@ -126,7 +126,7 @@ export function SettingsForm({ restaurant }: Props) {
     const sectionLinks = useMemo(() => ([
         { id: 'profile', label: 'Profil', description: 'Identité publique, coordonnées et présentation.', icon: UserRound },
         { id: 'social', label: 'Réseaux', description: 'Ajoutez vos messageries et réseaux sociaux.', icon: Share2 },
-        { id: 'passport', label: 'Passeport', description: 'Activez les avantages du Passeport Manly.', icon: Stamp },
+        { id: 'passport', label: 'Passeport', description: 'Activez les avantages du Passeport Menlyla.', icon: Stamp },
         { id: 'events', label: 'Événements', description: 'Programmez vos soirées, offres et annonces.', icon: CalendarDays },
         { id: 'design', label: 'Design & Devise', description: 'Logos, images, devise et intégrations.', icon: Palette },
     ]), [])
@@ -305,7 +305,7 @@ export function SettingsForm({ restaurant }: Props) {
                 <div className="rounded-3xl border bg-white/80 p-5 shadow-sm">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Lien public</p>
                     <p className="text-2xl font-black mt-2 break-all">{restaurant.slug || 'non défini'}</p>
-                    <p className="text-xs text-muted-foreground">manly.app/{restaurant.slug || '...'}</p>
+                    <p className="text-xs text-muted-foreground">menlyla.app/{restaurant.slug || '...'}</p>
                 </div>
                 <div className="rounded-3xl border bg-white/80 p-5 shadow-sm">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Réseaux actifs</p>
@@ -397,7 +397,7 @@ export function SettingsForm({ restaurant }: Props) {
                                         </Label>
                                         <Input
                                             name="name"
-                                            placeholder="Ex: Bistro Manly"
+                                            placeholder="Ex: Bistro Menlyla"
                                             defaultValue={restaurant.name || ''}
                                             className="rounded-2xl border-muted h-12 text-base font-semibold"
                                         />
@@ -516,7 +516,7 @@ export function SettingsForm({ restaurant }: Props) {
                             >
                                 <CardHeader className="bg-muted/30 pb-8">
                                     <CardTitle className="text-xl font-black">Passeport & Expérience</CardTitle>
-                                    <CardDescription>Activez les fonctionnalités du passeport Manly.</CardDescription>
+                                    <CardDescription>Activez les fonctionnalités du passeport Menlyla.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="pt-8 space-y-8">
                                     <FeatureToggle
@@ -780,7 +780,7 @@ export function SettingsForm({ restaurant }: Props) {
                                     <div className="space-y-4">
                                         <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Paiements acceptés</Label>
                                         <div className="flex flex-wrap gap-2">
-                                            {['Cash', 'Carte bancaire', 'Mobile Money', 'Manly Pay'].map(method => {
+                                            {['Cash', 'Carte bancaire', 'Mobile Money', 'Menlyla Pay'].map(method => {
                                                 const selected = (settings.payment_methods_list || []).includes(method)
                                                 return (
                                                     <button

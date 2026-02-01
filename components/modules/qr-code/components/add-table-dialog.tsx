@@ -87,7 +87,7 @@ export function AddTableDialog({ restaurantName, restaurantLogo }: Props) {
                         <div className="w-full space-y-2">
                             <DownloadQrButton
                                 elementId={`qr-new-${createdData.table.id}`}
-                                fileName={`Manly-Table-${createdData.table.name}`}
+                                fileName={`Menlyla-Table-${createdData.table.name}`}
                             />
                             <Button
                                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 text-lg rounded-xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"

@@ -25,7 +25,7 @@ export const useFavoritesStore = create<FavoritesState>()(
             isFavorite: (dishId) => get().dishIds.includes(dishId),
         }),
         {
-            name: 'manly-favorites',
+            name: 'menlyla-favorites',
         }
     )
 )

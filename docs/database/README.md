@@ -1,4 +1,4 @@
-# MANLY Database Setup
+# MENLYLA Database Setup
 
 Ce dossier contient les scripts SQL nécessaires pour initialiser la base de données Supabase.
 

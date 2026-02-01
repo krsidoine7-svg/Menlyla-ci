@@ -11,7 +11,7 @@ const MOCK_CATEGORIES = [
 ]
 
 const MOCK_DISHES = [
-    { name: "Le Big Manly", description: "Double steak haché, cheddar fondant, sauce secrète.", price: 6500, category: '🍔 Burgers', image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80" },
+    { name: "Le Big Menlyla", description: "Double steak haché, cheddar fondant, sauce secrète.", price: 6500, category: '🍔 Burgers', image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80" },
     { name: "Chicken Run", description: "Poulet croustillant, salade, tomates, oignons rouges.", price: 5000, category: '🍔 Burgers', image: "https://images.unsplash.com/photo-1615557960916-5f4791effe9d?auto=format&fit=crop&w=800&q=80" },
     { name: "César Palace", description: "Romaine, croûtons, parmesan, poulet grillé, sauce César.", price: 4500, category: '🥗 Salades', image: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=800&q=80" },
     { name: "Coca Cola", description: "33cl, bien frais.", price: 1000, category: '🍹 Boissons', image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80" },

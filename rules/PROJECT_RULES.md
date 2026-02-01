@@ -1,6 +1,6 @@
-# MANLY PROJECT RULES
+# MENLYLA PROJECT RULES
 
-Ce document définit les standards techniques impératifs pour tout contributeur (Humain ou IA) sur le projet MANLY.
+Ce document définit les standards techniques impératifs pour tout contributeur (Humain ou IA) sur le projet MENLYLA.
 
 ---
 

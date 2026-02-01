@@ -9,7 +9,7 @@ export default function LoginPage() {
                 <div className="mx-auto grid w-[350px] gap-6">
                     <div className="grid gap-2 text-center">
                         <div className="flex justify-center mb-6">
-                            <img src="/favicon.png" alt="MANLY Logo" className="h-16 w-16 rounded-[1.5rem] shadow-xl shadow-orange-500/20" />
+                            <img src="/favicon.png" alt="MENLYLA Logo" className="h-16 w-16 rounded-[1.5rem] shadow-xl shadow-orange-500/20" />
                         </div>
                         <h1 className="text-3xl font-bold">Bienvenue</h1>
                         <p className="text-balance text-muted-foreground">
@@ -35,7 +35,7 @@ export default function LoginPage() {
                     <div className="max-w-md p-10 text-center">
                         <blockquote className="space-y-2">
                             <p className="text-lg">
-                                &ldquo;Depuis que j'utilise Manly, mon temps d'attente a diminué de 20% et mes clients adorent scanner le menu.&rdquo;
+                                &ldquo;Depuis que j'utilise Menlyla, mon temps d'attente a diminué de 20% et mes clients adorent scanner le menu.&rdquo;
                             </p>
                             <footer className="text-sm italic text-orange-100">Chef Jean, Le Petit Maquis</footer>
                         </blockquote>

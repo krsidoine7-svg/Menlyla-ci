@@ -1,5 +1,5 @@
 -- 01-schema.sql
--- Base Schema for MANLY Project
+-- Base Schema for MENLYLA Project
 -- PostgreSQL / Supabase
 
 -- Enable necessary extensions

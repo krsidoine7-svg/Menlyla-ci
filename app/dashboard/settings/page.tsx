@@ -4,7 +4,7 @@ import { getRestaurant } from '@/components/modules/restaurant/actions'
 import { UnifiedSettings } from '@/components/modules/restaurant/components/unified-settings'
 
 export const metadata = {
-    title: 'Paramètres - Manly Dashboard',
+    title: 'Paramètres - Menlyla Dashboard',
 }
 
 export default async function SettingsPage() {

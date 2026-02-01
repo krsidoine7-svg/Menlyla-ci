@@ -1,6 +1,6 @@
-# MANLY GDPR & ARTCI COMPLIANCE
+# MENLYLA GDPR & ARTCI COMPLIANCE
 
-Ce document décrit comment MANLY se conforme au RGPD (Europe) et à la loi sur la protection des données de Côte d'Ivoire (ARTCI).
+Ce document décrit comment MENLYLA se conforme au RGPD (Europe) et à la loi sur la protection des données de Côte d'Ivoire (ARTCI).
 
 ---
 
@@ -34,7 +34,7 @@ Ce document décrit comment MANLY se conforme au RGPD (Europe) et à la loi sur 
 
 ### Cookies Essentiels (Pas de consentement requis)
 - `sb-access-token`: Auth Supabase.
-- `manly-session`: Panier invité.
+- `menlyla-session`: Panier invité.
 
 ### Cookies Analytics (Consentement requis)
 - Si nous utilisons Google Analytics ou PostHog, nous devons afficher une bannière "Accepter les cookies".

@@ -1,9 +1,9 @@
 {
-  "name": "manly",
+  "name": "menlyla",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001 -H localhost",
+    "dev": "next dev -p 8080 -H 127.0.0.1",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint"

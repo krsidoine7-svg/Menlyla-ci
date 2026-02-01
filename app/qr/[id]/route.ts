@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // 3. Construction dynamique de l'URL finale
     // On récupère le protocole (http/https) et l'hôte (domaine) directement depuis la requête
-    const host = request.headers.get('host') || 'manly-chi.vercel.app'
+    const host = request.headers.get('host') || 'menlyla-chi.vercel.app'
     const protocol = request.headers.get('x-forwarded-proto') || 'https'
 
     const slug = restaurant.slug || `res-${restaurant.id}`

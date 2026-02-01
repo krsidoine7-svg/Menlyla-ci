@@ -30,7 +30,7 @@ export function MobileHeader({ restaurantSlug }: { restaurantSlug?: string | nul
                     />
                 </SheetContent>
             </Sheet>
-            <span className="font-bold">MANLY</span>
+            <span className="font-bold">MENLYLA</span>
         </header>
     )
 }

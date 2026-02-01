@@ -230,7 +230,7 @@ export function OnboardingForm() {
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Bienvenue sur Manly</CardTitle>
+                                <CardTitle>Bienvenue sur Menlyla</CardTitle>
                                 <CardDescription>Créez votre menu digital, partagez le QR code et recevez des commandes en moins de 5 minutes.</CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
@@ -260,7 +260,7 @@ export function OnboardingForm() {
                                 <Input value={draft.slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="ivoire-saveurs" className="flex-1" />
                                 <Button type="button" variant="ghost" onClick={resetSlug}>Recalculer</Button>
                             </div>
-                            <p className="text-xs text-muted-foreground">Lien public : manly.app/{draft.slug || 'votre-slug'}</p>
+                            <p className="text-xs text-muted-foreground">Lien public : menlyla.app/{draft.slug || 'votre-slug'}</p>
                             {state?.errors?.slug && <p className="text-sm text-destructive">{state.errors.slug}</p>}
                         </div>
                         <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
@@ -450,7 +450,7 @@ export function OnboardingForm() {
                                 <div>
                                     <p className="font-semibold">Identité</p>
                                     <p>{draft.name || 'Nom manquant'}</p>
-                                    <p>manly.app/{draft.slug || 'votre-slug'}</p>
+                                    <p>menlyla.app/{draft.slug || 'votre-slug'}</p>
                                 </div>
                                 <div>
                                     <p className="font-semibold">Contact</p>
@@ -478,7 +478,7 @@ export function OnboardingForm() {
     return (
         <Card className="w-full max-w-5xl mx-auto mt-10">
             <CardHeader className="pb-4">
-                <CardTitle>Onboarding Manly</CardTitle>
+                <CardTitle>Onboarding Menlyla</CardTitle>
                 <CardDescription>Complétez chaque étape (max 4 champs obligatoires) et publiez.</CardDescription>
             </CardHeader>
             <CardContent>

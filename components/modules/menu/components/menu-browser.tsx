@@ -738,7 +738,7 @@ function ProfileView({ restaurant }: { restaurant: any }) {
             <div className="pt-8 pb-4 text-center space-y-2">
                 <div className="h-[2px] w-12 bg-orange-100 mx-auto" />
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-                    Développé par MANLY pour {restaurant.name}
+                    Développé par MENLYLA pour {restaurant.name}
                 </p>
             </div>
         </div>
