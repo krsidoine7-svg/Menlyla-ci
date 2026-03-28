@@ -5,7 +5,7 @@ import { getRestaurantOrders, updateOrderStatus } from '../actions'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, ChefHat, Clock, Truck } from 'lucide-react'
+import { CheckCircle, ChefHat, Clock, Truck, CreditCard, Wallet, Banknote, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -129,7 +129,25 @@ function OrderCard({ order, onAction }: { order: any, onAction: (id: string, s: 
         <Card className="border-l-4 border-l-primary">
             <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                    <CardTitle>Table {order.tables?.name || '?'}</CardTitle>
+                    <div className="flex flex-col gap-1">
+                        <CardTitle>Table {order.tables?.name || '?'}</CardTitle>
+                        {order.payments && order.payments.some((p: any) => p.status === 'success') ? (
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 w-fit">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Payé ({order.payments.find((p: any) => p.status === 'success').provider})
+                            </Badge>
+                        ) : order.payments && order.payments.length > 0 ? (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-200 w-fit">
+                                <Wallet className="w-3 h-3 mr-1" />
+                                {order.payments[0].status === 'pending' ? 'Paiement en cours' : 'Paiement échoué'}
+                            </Badge>
+                        ) : (
+                            <Badge variant="outline" className="text-muted-foreground w-fit">
+                                <Banknote className="w-3 h-3 mr-1" />
+                                Sur place
+                            </Badge>
+                        )}
+                    </div>
                     <Badge variant="outline">{new Date(order.created_at).toLocaleTimeString().slice(0, 5)}</Badge>
                 </div>
                 <CardDescription>

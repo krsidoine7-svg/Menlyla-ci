@@ -312,11 +312,27 @@ export async function likeDish(dishId: string) {
 
 export async function getPossibleUpsells(restaurantId: string, excludeId?: string) {
     const supabase = await createClient()
+
+    // 1. Get Drink Categories IDs
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('restaurant_id', restaurantId)
+        .ilike('name', '%Boisson%')
+
+    const drinkCategoryIds = categories?.map(c => c.id) || []
+
+    // If no drink category found, return empty
+    if (drinkCategoryIds.length === 0) {
+        return []
+    }
+
     let query = supabase
         .from('dishes')
         .select('id, name, price, image_urls')
         .eq('restaurant_id', restaurantId)
         .eq('is_available', true)
+        .in('category_id', drinkCategoryIds)
 
     if (excludeId) {
         query = query.neq('id', excludeId)

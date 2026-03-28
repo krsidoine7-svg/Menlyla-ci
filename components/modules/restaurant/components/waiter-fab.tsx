@@ -46,7 +46,7 @@ export function WaiterFAB({ restaurantId }: { restaurantId: string }) {
     // Usually, better to show so they know the feature exists.
 
     return (
-        <div className="fixed bottom-48 left-0 right-0 z-40 md:max-w-[500px] md:mx-auto pointer-events-none h-0">
+        <div className="fixed bottom-48 left-0 right-0 z-40 md:max-w-[430px] md:mx-auto pointer-events-none h-0">
             <div className="absolute right-4 bottom-0 pointer-events-auto">
                 <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                     <DropdownMenuTrigger asChild>

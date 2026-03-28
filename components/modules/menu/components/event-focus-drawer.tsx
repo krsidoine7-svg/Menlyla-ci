@@ -36,7 +36,7 @@ export function EventFocusDrawer({ event, children }: Props) {
             <DrawerTrigger asChild>
                 {children}
             </DrawerTrigger>
-            <DrawerContent className="max-h-[90vh] border-none bg-white md:max-w-[500px] md:mx-auto rounded-t-[3.5rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.3)]">
+            <DrawerContent className="max-h-[85vh] border-none bg-white md:max-w-[430px] md:mx-auto rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] z-[150] inset-x-4 bottom-6 md:bottom-0 md:inset-x-0 outline-none">
                 <div className="mx-auto w-full h-full flex flex-col overflow-hidden relative">
                     {/* Decorative Top Handle */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-200/50 rounded-full z-50" />

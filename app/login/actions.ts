@@ -31,8 +31,11 @@ export async function login(formData: FormData) {
         return { error: error.message }
     }
 
+    const plan = formData.get('plan') as string
+    const redirectTo = (formData.get('redirectTo') as string) || '/dashboard'
+
     revalidatePath('/', 'layout')
-    redirect('/dashboard')
+    redirect(plan ? `${redirectTo}?plan=${plan}` : redirectTo)
 }
 
 export async function signup(formData: FormData) {
@@ -55,6 +58,31 @@ export async function signup(formData: FormData) {
         return { error: error.message }
     }
 
+    const plan = formData.get('plan') as string
+    const redirectTo = (formData.get('redirectTo') as string) || '/login'
+    
+    // Construct current redirect URL based on context
+    let redirectUrl = `${redirectTo}?message=Check email to continue sign in process`
+    if (plan) redirectUrl += `&plan=${plan}`
+
     revalidatePath('/', 'layout')
-    redirect('/login?message=Check email to continue sign in process')
+    redirect(redirectUrl)
+}
+
+export async function signInWithGoogle() {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        },
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    if (data.url) {
+        redirect(data.url)
+    }
 }

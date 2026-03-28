@@ -8,6 +8,7 @@ import { Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import Image from 'next/image'
 
+
 type Props = {
     defaultImage?: string
     onImageUploaded: (url: string) => void

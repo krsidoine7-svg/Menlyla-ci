@@ -28,9 +28,10 @@ type Props = {
     restaurantId: string
     currency?: string
     upsellIds?: string[]
+    children?: React.ReactNode
 }
 
-export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellIds = [] }: Props) {
+export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellIds = [], children }: Props) {
     const [open, setOpen] = React.useState(false)
     const [quantity, setQuantity] = React.useState(1)
     const [upsellDishes, setUpsellDishes] = useState<any[]>([])
@@ -85,11 +86,13 @@ export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellI
     return (
         <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground>
             <DrawerTrigger asChild>
-                <Button size="icon" className="h-8 w-8 rounded-full shadow-lg bg-orange-600 hover:bg-orange-700 hover:scale-110 transition-all border-none">
-                    <Plus className="h-4 w-4" />
-                </Button>
+                {children || (
+                    <Button size="icon" className="h-8 w-8 rounded-full shadow-lg bg-orange-600 hover:bg-orange-700 hover:scale-110 transition-all border-none">
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                )}
             </DrawerTrigger>
-            <DrawerContent className="md:max-w-[500px] md:mx-auto border-none bg-white rounded-t-[3rem] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.2)] z-[150]">
+            <DrawerContent className="max-h-[85vh] border-none bg-white md:max-w-[430px] md:mx-auto rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] z-[150] inset-x-4 bottom-6 md:bottom-0 md:inset-x-0 outline-none">
                 <div className="mx-auto w-full max-h-[90vh] overflow-y-auto no-scrollbar relative">
                     {/* Top Accent */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-slate-200/50 rounded-full" />

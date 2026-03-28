@@ -125,8 +125,9 @@ export function SettingsForm({ restaurant }: Props) {
 
     const sectionLinks = useMemo(() => ([
         { id: 'profile', label: 'Profil', description: 'Identité publique, coordonnées et présentation.', icon: UserRound },
+        { id: 'hours', label: 'Horaires', description: 'Gérez vos jours d\'ouverture et fermeture.', icon: Clock3 },
         { id: 'social', label: 'Réseaux', description: 'Ajoutez vos messageries et réseaux sociaux.', icon: Share2 },
-        { id: 'passport', label: 'Passeport', description: 'Activez les avantages du Passeport Menlyla.', icon: Stamp },
+        { id: 'passport', label: 'Fidélité', description: 'Configuration du système de points.', icon: Stamp },
         { id: 'events', label: 'Événements', description: 'Programmez vos soirées, offres et annonces.', icon: CalendarDays },
         { id: 'design', label: 'Design & Devise', description: 'Logos, images, devise et intégrations.', icon: Palette },
     ]), [])
@@ -157,7 +158,7 @@ export function SettingsForm({ restaurant }: Props) {
         return [
             { id: 'profile', label: 'Profil', complete: profileComplete, hint: "Complétez nom, description et contact." },
             { id: 'social', label: 'Réseaux', complete: socialComplete, hint: "Ajoutez au moins un réseau ou numéro WhatsApp." },
-            { id: 'passport', label: 'Passeport', complete: passportComplete, hint: "Activez Passeport + Wi-Fi pour l'expérience complète." },
+            { id: 'passport', label: 'Fidélité', complete: passportComplete, hint: "Activez le système de fidélité pour vos clients." },
             { id: 'events', label: 'Événements', complete: eventsComplete, hint: "Publiez un événement ou une offre à venir." },
             { id: 'design', label: 'Design', complete: designComplete, hint: "Ajoutez un logo et une bannière cohérents." },
         ]
@@ -446,6 +447,137 @@ export function SettingsForm({ restaurant }: Props) {
                             </Card>
 
                             <Card
+                                id="hours"
+                                className={cn(
+                                    "scroll-mt-32 rounded-[2.5rem] border-none shadow-sm overflow-hidden",
+                                    activeSection !== 'hours' && "hidden"
+                                )}
+                            >
+                                <CardHeader className="bg-muted/30 pb-8">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-xl font-black">Horaires d&apos;ouverture</CardTitle>
+                                            <CardDescription>Configurez vos plages d&apos;ouverture habituelles.</CardDescription>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100">
+                                            <Clock3 className="h-3.5 w-3.5 text-orange-600" />
+                                            <span className="text-xs font-bold text-orange-700">Fuseau : GMT</span>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="pt-8 space-y-8">
+                                    <div className="p-4 rounded-3xl border bg-muted/20 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-base font-bold">Fermeture temporaire</Label>
+                                                <p className="text-xs text-muted-foreground">Activez cette option si vous partez en congés ou faites des travaux.</p>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="is_on_break"
+                                                    className="h-5 w-5 rounded border-gray-300 text-orange-600 focus:ring-orange-600"
+                                                    checked={settings.hours?.is_on_break || false}
+                                                    onChange={(e) => setSettings(s => ({
+                                                        ...s,
+                                                        hours: { ...s.hours, is_on_break: e.target.checked }
+                                                    }))}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {!settings.hours?.is_on_break && (
+                                        <div className="space-y-4">
+                                            {DAYS.map(day => {
+                                                const daySchedule = settings.hours?.schedule?.[day] || { open: '09:00', close: '22:00', closed: false }
+                                                return (
+                                                    <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl bg-white border border-slate-100 shadow-sm transition-all hover:border-orange-100/50 hover:shadow-md">
+                                                        <div className="flex items-center gap-3 w-32">
+                                                            <div className={cn("h-2 w-2 rounded-full", daySchedule.closed ? "bg-slate-200" : "bg-green-400")} />
+                                                            <span className="font-bold capitalize text-slate-700">{DAY_LABELS[day]}</span>
+                                                        </div>
+
+                                                        <div className="flex-1 flex items-center justify-end gap-3">
+                                                            {daySchedule.closed ? (
+                                                                <span className="text-sm font-medium text-slate-400 italic px-4">Fermé toute la journée</span>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border">
+                                                                    <Input
+                                                                        type="time"
+                                                                        value={daySchedule.open}
+                                                                        onChange={(e) => {
+                                                                            setSettings(s => ({
+                                                                                ...s,
+                                                                                hours: {
+                                                                                    ...s.hours,
+                                                                                    schedule: {
+                                                                                        ...s.hours.schedule,
+                                                                                        [day]: { ...daySchedule, open: e.target.value }
+                                                                                    }
+                                                                                }
+                                                                            }))
+                                                                        }}
+                                                                        className="h-9 w-24 border-none bg-transparent text-center font-semibold focus-visible:ring-0 px-0"
+                                                                    />
+                                                                    <span className="text-slate-300 font-light">|</span>
+                                                                    <Input
+                                                                        type="time"
+                                                                        value={daySchedule.close}
+                                                                        onChange={(e) => {
+                                                                            setSettings(s => ({
+                                                                                ...s,
+                                                                                hours: {
+                                                                                    ...s.hours,
+                                                                                    schedule: {
+                                                                                        ...s.hours.schedule,
+                                                                                        [day]: { ...daySchedule, close: e.target.value }
+                                                                                    }
+                                                                                }
+                                                                            }))
+                                                                        }}
+                                                                        className="h-9 w-24 border-none bg-transparent text-center font-semibold focus-visible:ring-0 px-0"
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            <div className="h-6 w-px bg-slate-100 mx-1" />
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const closed = !daySchedule.closed
+                                                                    setSettings(s => ({
+                                                                        ...s,
+                                                                        hours: {
+                                                                            ...s.hours,
+                                                                            schedule: {
+                                                                                ...s.hours.schedule,
+                                                                                [day]: { ...daySchedule, closed }
+                                                                            }
+                                                                        }
+                                                                    }))
+                                                                }}
+                                                                className={cn(
+                                                                    "h-9 w-9 flex items-center justify-center rounded-xl transition-colors",
+                                                                    daySchedule.closed
+                                                                        ? "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                                                                        : "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                                                                )}
+                                                                title={daySchedule.closed ? "Ouvrir ce jour" : "Fermer ce jour"}
+                                                            >
+                                                                {daySchedule.closed ? <Plus className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            <Card
                                 id="social"
                                 className={cn(
                                     "scroll-mt-32 rounded-[2.5rem] border-none shadow-sm overflow-hidden",
@@ -515,13 +647,13 @@ export function SettingsForm({ restaurant }: Props) {
                                 )}
                             >
                                 <CardHeader className="bg-muted/30 pb-8">
-                                    <CardTitle className="text-xl font-black">Passeport & Expérience</CardTitle>
-                                    <CardDescription>Activez les fonctionnalités du passeport Menlyla.</CardDescription>
+                                    <CardTitle className="text-xl font-black">Fidélité (Bientôt)</CardTitle>
+                                    <CardDescription>Configuration du système de points et du scan client.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="pt-8 space-y-8">
                                     <FeatureToggle
-                                        label="Afficher le passeport"
-                                        description="Permet aux clients de timbrer leurs visites et débloquer des récompenses."
+                                        label="Activer le système de points"
+                                        description="Permet aux clients de cumuler des points à chaque scan ou commande."
                                         checked={settings.show_passport !== false}
                                         onChange={(val) => setSettings(s => ({ ...s, show_passport: val }))}
                                     />
@@ -748,9 +880,7 @@ export function SettingsForm({ restaurant }: Props) {
                                             className="flex h-12 w-full rounded-2xl border border-muted bg-muted/20 px-4 py-2 text-sm font-bold ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         >
                                             <option value="FCFA">FCFA (CFA)</option>
-                                            <option value="EUR">Euro (€)</option>
                                             <option value="USD">Dollar ($)</option>
-                                            <option value="GNF">Franc Guinéen (FG)</option>
                                         </select>
                                     </div>
 
@@ -768,6 +898,55 @@ export function SettingsForm({ restaurant }: Props) {
                                                 />
                                                 <p className="text-[9px] font-bold text-blue-900/50 leading-tight px-1">
                                                     Collez ici l'URL de votre webhook pour synchroniser vos rapports Analytics.
+                                                </p>
+                                            </div>
+
+                                            <div className="p-4 rounded-3xl bg-indigo-50/50 border border-indigo-100 space-y-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="h-6 w-6 rounded bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">G</div>
+                                                    <Label className="text-[10px] font-black uppercase text-indigo-600">GeniusPay Integration</Label>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="geniuspay_key" className="text-[10px] font-bold uppercase text-indigo-400">API Key (Public)</Label>
+                                                    <Input
+                                                        id="geniuspay_key"
+                                                        placeholder="pk_live_..."
+                                                        value={settings.geniuspay_api_key || ''}
+                                                        onChange={(e) => setSettings(s => ({ ...s, geniuspay_api_key: e.target.value }))}
+                                                        className="rounded-xl border-indigo-200 bg-white h-9 text-xs font-mono"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="geniuspay_secret" className="text-[10px] font-bold uppercase text-indigo-400">API Secret</Label>
+                                                    <Input
+                                                        id="geniuspay_secret"
+                                                        type="password"
+                                                        placeholder="sk_live_..."
+                                                        value={settings.geniuspay_api_secret || ''}
+                                                        onChange={(e) => setSettings(s => ({ ...s, geniuspay_api_secret: e.target.value }))}
+                                                        className="rounded-xl border-indigo-200 bg-white h-9 text-xs font-mono"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="geniuspay_webhook" className="text-[10px] font-bold uppercase text-indigo-400">Webhook Secret</Label>
+                                                    <Input
+                                                        id="geniuspay_webhook"
+                                                        type="password"
+                                                        placeholder="whsec_..."
+                                                        value={settings.geniuspay_webhook_secret || ''}
+                                                        onChange={(e) => setSettings(s => ({ ...s, geniuspay_webhook_secret: e.target.value }))}
+                                                        className="rounded-xl border-indigo-200 bg-white h-9 text-xs font-mono"
+                                                    />
+                                                </div>
+
+                                                <p className="text-[9px] font-bold text-indigo-900/50 leading-tight px-1">
+                                                    Ces clés sont nécessaires pour accepter les paiements en ligne.
+                                                    <a href="https://pay.genius.ci/dashboard/settings?tab=api" target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-indigo-700">
+                                                        Trouver mes clés
+                                                    </a>
                                                 </p>
                                             </div>
                                         </div>
@@ -879,7 +1058,7 @@ function BrandPreview({ logoUrl, bannerUrl, primaryColor }: BrandPreviewProps) {
             </div>
             <div className="p-6 space-y-4">
                 <div>
-                    <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground font-black">Passeport</p>
+                    <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground font-black">Fidélité</p>
                     <h4 className="text-xl font-black">Le Bissap Club</h4>
                     <p className="text-sm text-muted-foreground">Découvrez nos soirées Afrobeats et plats signature.</p>
                 </div>

@@ -24,12 +24,12 @@ export default async function OrdersPage() {
 
             <KitchenBoard initialOrders={orders} restaurantId={restaurant.id} />
 
-            <section className="space-y-4">
+            {/* <section className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-black uppercase tracking-[0.3em] text-slate-500">Historique & Archive</h2>
                 </div>
                 <OrderList />
-            </section>
+            </section> */}
         </div>
     )
 }

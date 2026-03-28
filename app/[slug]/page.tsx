@@ -10,7 +10,7 @@ import { ReviewDialog } from '@/components/modules/restaurant/components/review-
 import { ReviewsList } from '@/components/modules/restaurant/components/reviews-list'
 import { getRestaurantReviews } from '@/components/modules/restaurant/review-actions'
 import { MobileNavbar } from '@/components/modules/restaurant/components/mobile-navbar'
-import { ThemeInjector } from '@/components/modules/restaurant/components/theme-injector'
+
 import { WaiterFAB } from '@/components/modules/restaurant/components/waiter-fab'
 
 export default async function RestaurantPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -45,14 +45,25 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
 
     const reviews = await getRestaurantReviews(restaurantData.id)
 
+    // Fetch owner passport if restaurant has owner_id
+    let ownerPassport = null
+    if (restaurantData.owner_id) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, full_name, bio, phone, email, profile_image, social_links, custom_links')
+            .eq('id', restaurantData.owner_id)
+            .single()
+
+        ownerPassport = profile
+    }
+
     return (
-        <div className="relative pb-24 bg-muted/5">
-            <ThemeInjector theme={restaurantData.settings?.theme} />
+        <div className="relative pb-10 bg-white min-h-full">
             <Suspense>
                 <TableSync />
             </Suspense>
             {/* Hero / Header */}
-            <header className="sticky top-0 z-[80] bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm overflow-hidden">
+            <header className="sticky top-0 z-[40] bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm overflow-hidden">
                 {restaurantData.banner_url && (
                     <div className="absolute inset-0 -z-10 opacity-20">
                         <img src={restaurantData.banner_url} alt="Banner" className="w-full h-full object-cover" />
@@ -78,8 +89,6 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
                         const label = hasEmoji ? cat.name.substring(emoji!.length).trim() : cat.name
 
                         // Alternating rotation direction (Left/Right)
-                        // Even: Rotate Right (+90deg) | Odd: Rotate Left (-90deg)
-                        // Applied on Hover (Desktop) and Active (Click/Touch)
                         const hoverEffects = i % 2 === 0
                             ? "group-hover:rotate-90 group-active:rotate-90"
                             : "group-hover:-rotate-90 group-active:-rotate-90"
@@ -107,7 +116,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
             </header>
 
             <div className="p-4">
-                <MenuBrowser categories={categories || []} restaurant={restaurantData} />
+                <MenuBrowser categories={categories || []} restaurant={restaurantData} ownerPassport={ownerPassport} />
             </div>
 
             <div className="p-1 pt-0">
@@ -118,6 +127,6 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
             </div>
 
             <SocialLinks socialLinks={restaurantData.social_links} restaurantName={restaurantData.name} />
-        </div>
+        </div >
     )
 }

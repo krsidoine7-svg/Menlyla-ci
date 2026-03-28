@@ -37,7 +37,7 @@ export function SocialLinks({ socialLinks, restaurantName }: Props) {
     if (!socialLinks || Object.keys(socialLinks).length === 0) return null
 
     return (
-        <div className="fixed bottom-32 left-0 right-0 z-[40] md:max-w-[500px] md:mx-auto pointer-events-none h-0">
+        <div className="fixed bottom-32 left-0 right-0 z-[40] md:max-w-[430px] md:mx-auto pointer-events-none h-0">
             <div className="absolute right-4 bottom-0 pointer-events-auto animate-in slide-in-from-right-10 fade-in duration-500">
                 <DropdownMenu onOpenChange={setIsOpen}>
                     <DropdownMenuTrigger asChild>

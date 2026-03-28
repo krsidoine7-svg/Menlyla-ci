@@ -286,11 +286,23 @@
     transform: translate(-15px, 30px) scale(0.95);
   }
 }
+
 @keyframes mesh-gradient {
-  0% { transform: translate(0% , 0%) rotate(0deg); }
-  33% { transform: translate(10% , 15%) rotate(120deg); }
-  66% { transform: translate(-15% , 5%) rotate(240deg); }
-  100% { transform: translate(0% , 0%) rotate(360deg); }
+  0% {
+    transform: translate(0%, 0%) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(10%, 15%) rotate(120deg);
+  }
+
+  66% {
+    transform: translate(-15%, 5%) rotate(240deg);
+  }
+
+  100% {
+    transform: translate(0%, 0%) rotate(360deg);
+  }
 }
 
 .animate-mesh {

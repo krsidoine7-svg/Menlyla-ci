@@ -131,16 +131,24 @@ export async function getOnboardingStatus() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, full_name, profile_image')
+        .eq('id', user.id)
+        .single()
+
     const { data: restaurant } = await supabase
         .from('restaurants')
-        .select('id')
+        .select('id, phone, address, cuisine_type, logo_url, settings')
         .eq('owner_id', user.id)
         .single()
 
     const status = {
-        restaurant: !!restaurant,
+        restaurant: !!restaurant?.phone && !!restaurant?.address,
         menu: false,
         tables: false,
+        persona: !!profile?.username && !!profile?.full_name,
+        branding: !!restaurant?.logo_url && !!(restaurant?.settings as any)?.hours
     }
 
     if (restaurant) {

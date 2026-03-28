@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { SalesChart } from '@/components/modules/analytics/components/sales-chart'
 import { RecentActivity } from '@/components/modules/admin/recent-activity'
 import { OnboardingChecklist } from '@/components/modules/admin/onboarding-checklist'
+import { DashboardAlerts } from '@/components/modules/admin/dashboard-alerts'
+import { OnboardingNotifications } from '@/components/modules/admin/onboarding-notifications'
 import { DollarSign, ShoppingBag, Activity } from 'lucide-react'
 
 export default async function DashboardPage() {
@@ -27,7 +29,13 @@ export default async function DashboardPage() {
         <div className="space-y-6">
             <h1 className="text-3xl font-bold tracking-tight">Vue d'ensemble</h1>
 
-            {onboardingStatus && <OnboardingChecklist status={onboardingStatus} />}
+            {onboardingStatus && (
+                <div className="space-y-4">
+                    <OnboardingNotifications status={onboardingStatus} />
+                    <DashboardAlerts status={onboardingStatus} />
+                    <OnboardingChecklist status={onboardingStatus} />
+                </div>
+            )}
 
             {stats ? (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -28,7 +28,8 @@ export async function getRestaurantOrders() {
             unit_price,
             dishes(name)
         ),
-        profiles(full_name)
+        profiles(full_name),
+        payments(status, amount, provider, created_at)
     `)
         .eq('restaurant_id', restaurant.id)
         .order('created_at', { ascending: false }) // Newest first

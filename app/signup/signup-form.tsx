@@ -1,14 +1,17 @@
 'use client'
 
-import { useTransition } from 'react'
+import { Suspense, useTransition } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { signup } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export function SignupForm() {
+function SignupFormContent() {
     const [isPending, startTransition] = useTransition()
+    const searchParams = useSearchParams()
+    const plan = searchParams.get('plan')
 
     const handleCreate = async (formData: FormData) => {
         startTransition(async () => {
@@ -23,6 +26,7 @@ export function SignupForm() {
 
     return (
         <form className="space-y-4">
+            <input type="hidden" name="plan" value={plan || ''} />
             <div className="space-y-2">
                 <Label htmlFor="email">Email Professionnel</Label>
                 <Input id="email" name="email" type="email" required placeholder="contact@restaurant.com" disabled={isPending} />
@@ -37,5 +41,13 @@ export function SignupForm() {
                 </Button>
             </div>
         </form>
+    )
+}
+
+export function SignupForm() {
+    return (
+        <Suspense fallback={<div>Chargement...</div>}>
+            <SignupFormContent />
+        </Suspense>
     )
 }

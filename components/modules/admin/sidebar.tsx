@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
@@ -12,7 +12,6 @@ const navItems = [
     { name: 'Menu & Carte', href: '/dashboard/menu', icon: UtensilsCrossed },
     { name: 'QR Codes & Tables', href: '/dashboard/tables', icon: QrCode },
     { name: 'Commandes', href: '/dashboard/orders', icon: Receipt },
-    { name: 'Avis Clients', href: '/dashboard/reviews', icon: MessageSquare },
     { name: 'Statistiques', href: '/dashboard/analytics', icon: BarChart3 },
     {
         name: 'Paramètres',
@@ -23,16 +22,17 @@ const navItems = [
             {
                 label: 'Établissement',
                 items: [
-                    { name: 'Profil & Identité', slug: 'profile', icon: User },
+                    { name: 'Profil & Carte de Visite', slug: 'profile', icon: User },
                     { name: 'Apparence & Marque', slug: 'design', icon: Palette },
-                    { name: 'Réseaux Sociaux', slug: 'social', icon: Share2 },
                 ]
             },
             {
                 label: 'Expérience Client',
                 items: [
                     { name: 'Menu & Produits', slug: 'menu', icon: UtensilsCrossed },
-                    { name: 'Passeport & Fidélité', slug: 'passport', icon: Stamp },
+                    { name: 'Horaires', slug: 'hours', icon: Clock3 },
+                    { name: 'Fidélité', slug: 'passport', icon: Stamp },
+                    { name: 'Avis & Retours', slug: 'reviews', icon: MessageSquare },
                     { name: 'Événements & Offres', slug: 'events', icon: CalendarDays },
                 ]
             },
@@ -40,6 +40,7 @@ const navItems = [
                 label: 'Opérations',
                 items: [
                     { name: 'Analytiques', slug: 'analytics', icon: LayoutGrid },
+                    { name: 'Paiements', slug: 'payments', icon: CreditCard },
                     { name: 'Notifications', slug: 'notifications', icon: BellRing },
                     { name: 'Mode Démo', slug: 'demo', icon: Database },
                     { name: 'Juridique', slug: 'legal', icon: Scale },

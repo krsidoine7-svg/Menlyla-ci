@@ -23,7 +23,7 @@ export function ReviewsList({ reviews, restaurantId }: Props) {
                 <ReviewDialog restaurantId={restaurantId} />
             </div>
 
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 px-1">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 px-4 -mx-4">
                 {reviews.map((review) => {
                     // Generate a simple color based on name for the avatar
                     const colors = ['bg-orange-100 text-orange-600', 'bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-purple-100 text-purple-600'];

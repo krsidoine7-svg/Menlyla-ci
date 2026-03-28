@@ -29,12 +29,15 @@ const formatDate = (dateStr: string) => {
     }
 }
 
+import { OwnerPassportSection } from '@/components/modules/passport/owner-passport-section'
+
 type Props = {
     categories: any[]
     restaurant: any
+    ownerPassport?: any | null
 }
 
-export function MenuBrowser({ categories, restaurant }: Props) {
+export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
     const [searchQuery, setSearchQuery] = useState('')
     const { activeTab: activeFilter, setActiveTab: setActiveFilter } = useUIStore()
     const { dishIds: favoriteIds } = useFavoritesStore()
@@ -101,16 +104,18 @@ export function MenuBrowser({ categories, restaurant }: Props) {
             {/* Contextual Header: Only show search/filters if NOT in a special view */}
             {!['orders', 'profile', 'favorites'].includes(activeFilter || '') && (
                 <div className="sticky top-16 z-20 bg-background/60 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/10 shadow-sm support-[backdrop-filter]:bg-background/60">
-                    <div className="relative mb-4">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            id="menu-search-input"
-                            placeholder="Rechercher un plat..."
-                            className="pl-10 rounded-full bg-slate-100 border-none h-11 placeholder:text-slate-500 placeholder:font-bold"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
+                    {activeFilter === 'search' && (
+                        <div className="relative mb-4">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="menu-search-input"
+                                placeholder="Rechercher un plat..."
+                                className="pl-10 rounded-full bg-slate-100 border-none h-11 placeholder:text-slate-500 placeholder:font-bold"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    )}
 
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                         <FilterBadge
@@ -189,7 +194,7 @@ export function MenuBrowser({ categories, restaurant }: Props) {
                 {activeFilter === 'orders' ? (
                     <OrdersView activeOrderIds={activeOrderIds} currency={restaurant.currency} />
                 ) : activeFilter === 'profile' ? (
-                    <ProfileView restaurant={restaurant} />
+                    <ProfileView restaurant={restaurant} ownerPassport={ownerPassport} />
                 ) : (
                     <>
                         {/* Popular Section (only show if no search/filter) */}
@@ -206,7 +211,7 @@ export function MenuBrowser({ categories, restaurant }: Props) {
                                             className="flex-shrink-0 w-[70%] group relative"
                                             initial={{ opacity: 0, x: 50 }}
                                             whileInView={{ opacity: 1, x: 0 }}
-                                            viewport={{ once: true }}
+                                            viewport={{ once: false }}
                                             transition={{ duration: 0.6, delay: idx * 0.15, type: "spring" }}
                                         >
                                             <div className="absolute top-3 left-3 z-10">
@@ -237,7 +242,7 @@ export function MenuBrowser({ categories, restaurant }: Props) {
                                             className="min-w-[calc(50%-0.5rem)] snap-center"
                                             initial={{ opacity: 0, scale: 0.8, y: 20 }}
                                             whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                                            viewport={{ once: true }}
+                                            viewport={{ once: false }}
                                             transition={{
                                                 duration: 0.5,
                                                 delay: idx * 0.1,
@@ -413,7 +418,8 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
     )
 }
 
-function ProfileView({ restaurant }: { restaurant: any }) {
+
+function ProfileView({ restaurant, ownerPassport }: { restaurant: any, ownerPassport?: any | null }) {
     const socialLinks = restaurant.social_links || {}
     const settings = restaurant.settings || {}
 
@@ -426,319 +432,251 @@ function ProfileView({ restaurant }: { restaurant: any }) {
     const showRating = settings.show_rating !== false
 
     const SOCIAL_CONFIG: Record<string, { icon: any, color: string, prefix: string }> = {
-        whatsapp: { icon: MessageCircle, color: 'text-green-600 bg-green-50', prefix: 'https://wa.me/' },
-        instagram: { icon: Instagram, color: 'text-pink-600 bg-pink-50', prefix: 'https://instagram.com/' },
-        facebook: { icon: Facebook, color: 'text-blue-600 bg-blue-50', prefix: 'https://facebook.com/' },
-        tiktok: { icon: Video, color: 'text-black bg-slate-50', prefix: 'https://tiktok.com/@' },
+        whatsapp: { icon: MessageCircle, color: 'text-green-600 bg-green-50/50', prefix: 'https://wa.me/' },
+        instagram: { icon: Instagram, color: 'text-pink-600 bg-pink-50/50', prefix: 'https://instagram.com/' },
+        facebook: { icon: Facebook, color: 'text-blue-600 bg-blue-50/50', prefix: 'https://facebook.com/' },
+        tiktok: { icon: Video, color: 'text-black bg-slate-50/50', prefix: 'https://tiktok.com/@' },
     }
 
     return (
-        <div className="space-y-8 pb-20 animate-in fade-in zoom-in duration-500">
-            {/* Restaurant IDENTITY CARD */}
-            <div className="relative h-56 w-full rounded-[3rem] overflow-hidden shadow-2xl group">
+        <div className="space-y-8 pb-32 animate-in fade-in zoom-in duration-500">
+            {/* --- HERO RESTAURANT IDENTITY --- */}
+            <div className="relative h-64 w-full rounded-[3rem] overflow-hidden shadow-2xl group transition-all duration-700 hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.3)]">
+                <div className="absolute inset-0 bg-slate-900 animate-pulse bg-opacity-10" />
                 <img
                     src={restaurant.banner_url || "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=800"}
                     alt="Banner"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                {/* Floating Content */}
+                <div className="absolute top-6 right-6">
+                    {showRating && (
+                        <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30 shadow-lg">
+                            <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
+                            <span className="text-xs font-black text-white">4.8</span>
+                        </div>
+                    )}
+                </div>
 
                 <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
                     <div className="flex gap-4 items-center">
-                        <div className="h-20 w-20 rounded-3xl border-4 border-white bg-white shadow-2xl overflow-hidden p-1.5 rotate-[-3deg]">
-                            <img
-                                src={restaurant.logo_url || "https://images.unsplash.com/photo-1595113340153-23a3341d6d13?q=80&w=100"}
-                                alt="Logo"
-                                className="w-full h-full object-cover rounded-2xl"
-                            />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-white/30 blur-lg rounded-full animate-pulse" />
+                            <div className="h-20 w-20 relative rounded-[1.5rem] border-2 border-white/50 bg-white/20 backdrop-blur-md shadow-2xl overflow-hidden p-1 rotate-[-6deg] transition-all duration-500 group-hover:rotate-0">
+                                <img
+                                    src={restaurant.logo_url || "https://images.unsplash.com/photo-1595113340153-23a3341d6d13?q=80&w=100"}
+                                    alt="Logo"
+                                    className="w-full h-full object-cover rounded-xl"
+                                />
+                            </div>
                         </div>
-                        <div className="text-white">
-                            <h2 className="text-2xl font-black uppercase tracking-tight leading-none mb-1">{restaurant.name}</h2>
-                            <p className="text-white/60 text-xs font-bold uppercase tracking-[0.2em]">{restaurant.slug}</p>
+                        <div className="text-white space-y-1">
+                            <h2 className="text-3xl font-black uppercase tracking-tighter leading-none decoration-orange-500/50">{restaurant.name}</h2>
+                            <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.3em] pl-1"> Official Space</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Passport Fidelity Section */}
-            {settings.show_passport !== false && (
-                <div className="bg-slate-950 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/20 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                    <div className="relative z-10 space-y-6">
-                        <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-4">
-                                {restaurant.logo_url && (
-                                    <div className="h-14 w-14 rounded-2xl border-2 border-white/20 p-1 bg-white shadow-xl rotate-[-3deg]">
-                                        <img src={restaurant.logo_url} className="w-full h-full object-cover rounded-xl" />
+            {/* --- LOYALTY CARD (Holographic Effect) --- */}
+            {settings.show_passport === true && (
+                <div className="perspective-1000 group/card relative z-10 -mt-12 mx-4">
+                    <div className="relative w-full aspect-[1.586] rounded-[2.5rem] transition-all duration-700 transform-style-3d shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] hover:rotate-x-6 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)] animate-in slide-in-from-bottom-8">
+                        {/* Card Background with Mesh Gradient */}
+                        <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden bg-slate-950 border border-white/10">
+                            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-gradient-to-br from-orange-500/30 via-purple-600/20 to-blue-600/30 blur-[80px] animate-mesh opacity-60" />
+                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                        </div>
+
+                        {/* Card Content */}
+                        <div className="absolute inset-0 p-8 flex flex-col justify-between text-white">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_#4ade80]" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Membre Premium</p>
                                     </div>
-                                )}
-                                <div className="space-y-0.5">
-                                    <h3 className="text-xl font-black uppercase tracking-tight">{restaurant.name}</h3>
-                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Passeport Fidélité de l'établissement</p>
+                                    <h3 className="text-xl font-black italic tracking-tighter">Passeport Fidélité</h3>
                                 </div>
+                                <Trophy className="h-8 w-8 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                             </div>
-                            <div className="h-10 w-10 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
-                                <Star className="h-5 w-5 text-orange-500 fill-orange-500" />
-                            </div>
-                        </div>
 
-                        {/* Stamps Grid */}
-                        <div className="grid grid-cols-5 gap-3">
-                            {Array.from({ length: settings.passport_goal || 10 }).map((_, i) => (
-                                <div key={i} className={cn(
-                                    "aspect-square rounded-2xl border-2 flex items-center justify-center transition-all duration-500",
-                                    i < 3 // Demo: 3 stamps collected
-                                        ? "bg-orange-600 border-orange-500 shadow-[0_0_15px_rgba(234,88,12,0.4)]"
-                                        : "bg-white/5 border-white/10"
-                                )}>
-                                    {i < 3 ? (
-                                        <div className="font-black text-xs">OK</div>
-                                    ) : (
-                                        <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
-                                    )}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between text-xs font-bold text-white/60 mb-2">
+                                    <span>Progression</span>
+                                    <span>3 / {settings.passport_goal || 10}</span>
                                 </div>
-                            ))}
-                        </div>
 
-                        <div className="pt-2">
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                                <p className="text-[10px] font-black uppercase text-white/40 mb-1">Objectif Récompense</p>
-                                <p className="text-sm font-bold text-orange-400 italic">
-                                    "{settings.passport_reward || "Une surprise vous attend !"}"
-                                </p>
+                                {/* Stamps Flex */}
+                                <div className="flex justify-between gap-1">
+                                    {Array.from({ length: settings.passport_goal || 10 }).map((_, i) => (
+                                        <div key={i} className={cn(
+                                            "h-2 flex-1 rounded-full transition-all duration-500",
+                                            i < 3 ? "bg-orange-500 shadow-[0_0_10px_#f97316]" : "bg-white/10"
+                                        )} />
+                                    ))}
+                                </div>
+
+                                <div className="p-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center shadow-lg">
+                                        <Trophy className="h-4 w-4 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/50">Prochaine Récompense</p>
+                                        <p className="text-xs font-bold text-white">"{settings.passport_reward || "Une surprise du chef !"}"</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Passport Details Section */}
-            <div className="bg-white border-2 border-orange-100 rounded-[3rem] pt-8 pb-10 px-8 shadow-[0_30px_60px_-15px_rgba(234,88,12,0.15)]">
-                <div className="space-y-8">
-                    {/* Header with Badges */}
-                    <div className="flex justify-between items-start gap-4">
-                        <div className="space-y-3 flex-1">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                {showHours && (
+            {/* --- OWNER PASSPORT --- */}
+            {ownerPassport && (
+                <OwnerPassportSection passport={ownerPassport} />
+            )}
+
+            {/* --- INFO GRID --- */}
+            <div className="grid gap-3">
+                {/* HOURS & STATUS CARD */}
+                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="h-12 w-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                                <Clock className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Statut Actuel</h4>
+                                {showHours ? (
                                     <div className="flex items-center gap-2">
-                                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-950">Ouvert</h3>
+                                        <span className="relative flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                        </span>
+                                        <span className="font-black text-slate-900">Ouvert Aujourd'hui</span>
                                     </div>
-                                )}
-                                <div className="flex items-center gap-2">
-                                    <div className="px-3 py-1 bg-orange-50 rounded-full border border-orange-100 italic font-black text-orange-600 text-[10px] shadow-sm">
-                                        {restaurant.currency || 'FCFA'}
-                                    </div>
-                                    {showRating && (
-                                        <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full border border-yellow-100">
-                                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                                            <span className="text-[10px] font-black text-yellow-700">4.8</span>
-                                        </div>
-                                    )}
-                                </div>
+                                ) : <span className="font-bold text-slate-900">Horaires non disponibles</span>}
                             </div>
-                            {restaurant.description && (
-                                <p className="text-slate-500 font-medium leading-relaxed italic text-sm">
-                                    "{restaurant.description}"
+                        </div>
+                        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 bg-slate-50"><ChevronRight className="h-4 w-4 text-slate-400" /></Button>
+                    </div>
+
+                    {showHours && (
+                        <div className="pl-16 space-y-1.5 opacity-60">
+                            {(settings.opening_slots || [{ start: '09:00', end: '22:00' }]).map((slot: any, i: number) => (
+                                <p key={i} className="text-xs font-bold text-slate-900 tabular-nums">
+                                    {slot.start} — {slot.end}
                                 </p>
-                            )}
-                        </div>
-
-                        {showGps && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="rounded-2xl border-orange-100 text-orange-600 font-black text-[10px] uppercase h-10 px-4 gap-2 shadow-sm"
-                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address || restaurant.name)}`, '_blank')}
-                            >
-                                <Navigation className="h-3 w-3" />
-                                Itinéraire
-                            </Button>
-                        )}
-                    </div>
-
-                    {/* Contact & Hours Grid */}
-                    <div className="grid gap-6">
-                        {showHours && (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-orange-600" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Horaires d'aujourd'hui</span>
-                                </div>
-                                <div className="pl-8 space-y-1">
-                                    {(settings.opening_slots || [{ start: '09:00', end: '22:00' }]).map((slot: any, i: number) => (
-                                        <p key={i} className="text-sm font-bold text-slate-900 leading-none">
-                                            {slot.start} — {slot.end}
-                                        </p>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        <ProfileItem
-                            icon={MapPin}
-                            label="Localisation"
-                            value={restaurant.address || 'Abidjan, Côte d\'Ivoire'}
-                        />
-                        <ProfileItem
-                            icon={Phone}
-                            label="Ligne Directe"
-                            value={restaurant.phone || '+225 00 00 00 00'}
-                        />
-                        {restaurant.email && (
-                            <ProfileItem
-                                icon={Mail}
-                                label="Courriel"
-                                value={restaurant.email}
-                            />
-                        )}
-                    </div>
-
-                    {/* Presence Sociale */}
-                    <div className="space-y-4 pt-4">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-bold">Présence Sociale</h4>
-                        <div className="flex flex-wrap gap-3">
-                            {Object.entries(socialLinks).map(([platform, username]) => {
-                                const config = SOCIAL_CONFIG[platform] || { icon: Share2, color: 'bg-slate-50 text-slate-600', prefix: '' }
-                                const Icon = config.icon
-                                return (
-                                    <a
-                                        key={platform}
-                                        href={`${config.prefix}${username}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={cn(
-                                            "flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95 font-bold text-xs shadow-sm",
-                                            config.color
-                                        )}
-                                    >
-                                        <Icon className="h-4 w-4" />
-                                        {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                                    </a>
-                                )
-                            })}
-                            {Object.keys(socialLinks).length === 0 && (
-                                <p className="text-xs text-slate-400 italic">Aucun réseau social configuré.</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Services & Labels */}
-                    {(showWifi || showPayments || showLabels) && (
-                        <div className="pt-6 border-t border-slate-50 space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                {showWifi && (
-                                    <div className="p-4 rounded-[2rem] bg-slate-50 border border-slate-100 group relative overflow-hidden">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
-                                                    <Wifi className="h-4 w-4" />
-                                                </div>
-                                                <span className="text-[10px] font-black uppercase text-slate-400">Wi-Fi Client</span>
-                                            </div>
-                                            <button
-                                                onClick={() => {
-                                                    if (!settings.wifi_password) {
-                                                        toast.error("Aucun mot de passe configuré.");
-                                                        return;
-                                                    }
-                                                    navigator.clipboard.writeText(settings.wifi_password);
-                                                    toast.success("Mot de passe Wi-Fi copié !");
-                                                }}
-                                                className="h-7 w-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-orange-600 transition-colors shadow-sm active:scale-90"
-                                            >
-                                                <Copy className="h-3.5 w-3.5" />
-                                            </button>
-                                        </div>
-                                        <div className="space-y-0.5 ml-1">
-                                            <p className="font-bold text-xs text-slate-900 leading-tight truncate">{settings.wifi_name || "WiFi-Restaurant"}</p>
-                                            {settings.wifi_password && (
-                                                <p className="text-[10px] font-medium text-slate-400 font-mono tracking-tighter">{settings.wifi_password}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                                {showPayments && (
-                                    <div className="p-4 rounded-[2rem] bg-slate-50 border border-slate-100 group">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
-                                                <CreditCard className="h-4 w-4" />
-                                            </div>
-                                            <span className="text-[10px] font-black uppercase text-slate-400">Paiements acceptés</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5 ml-1">
-                                            {(settings.payment_methods_list || ['orange', 'wave', 'cash']).map((method: string) => {
-                                                const labels: Record<string, string> = {
-                                                    orange: 'Orange Money',
-                                                    moov: 'Moov Money',
-                                                    mtn: 'MTN Money',
-                                                    wave: 'Wave',
-                                                    cash: 'Espèces',
-                                                    visa: 'Carte Visa (Beta)'
-                                                }
-                                                return (
-                                                    <span key={method} className="text-[9px] font-black px-2 py-0.5 bg-white rounded-full border border-slate-100 uppercase text-slate-600">
-                                                        {labels[method] || method}
-                                                    </span>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {showLabels && (
-                                <div className="flex flex-wrap gap-2">
-                                    {(settings.labels_text || "Certifié Halal, Produits Locaux").split(',').map((label: string, i: number) => (
-                                        <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 rounded-full border border-orange-100">
-                                            <ShieldCheck className="h-3 w-3" />
-                                            <span className="text-[9px] font-black uppercase tracking-tighter">{label.trim()}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            ))}
                         </div>
                     )}
                 </div>
-            </div>
 
-            {/* Events Section */}
-            <EventsSection settings={settings} />
-
-            {/* Section Réservation & Table */}
-            <div className="space-y-5">
-                <div className="flex items-center gap-2 px-2">
-                    <Calendar className="h-4 w-4 text-orange-600" />
-                    <h3 className="font-black uppercase text-xs tracking-[0.2em] text-orange-950">Planifier votre visite</h3>
-                </div>
-
-                <button
-                    onClick={() => toast.success("Le module de réservation avec calendrier arrive bientôt !", {
-                        description: "Vous pourrez choisir votre table et votre créneau directement ici.",
-                        icon: <Calendar className="h-5 w-5 text-orange-600" />
-                    })}
-                    className="w-full group bg-slate-950 rounded-[2.5rem] p-6 flex items-center justify-between hover:bg-orange-600 transition-all duration-500 shadow-2xl shadow-slate-900/40 relative overflow-hidden"
-                >
-                    {/* Visual pattern background */}
-                    <div className="absolute right-0 top-0 h-full w-32 bg-white/5 skew-x-[-20deg] translate-x-10" />
-
-                    <div className="flex items-center gap-6 relative z-10">
-                        <div className="h-16 w-16 bg-white/10 rounded-3xl flex items-center justify-center text-white rotate-3 group-hover:rotate-0 transition-all duration-500">
-                            <Calendar className="h-9 w-9" />
-                        </div>
-                        <div className="text-left">
-                            <p className="text-white font-black text-xl uppercase tracking-tighter">Réserver une table</p>
-                            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">Calendrier & Disponibilités</p>
+                {/* LOCATION CARD */}
+                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-2 pr-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer" onClick={() => showGps && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address || restaurant.name)}`, '_blank')}>
+                    <div className="h-20 w-24 bg-slate-100 rounded-[2rem] overflow-hidden relative border border-white shadow-inner">
+                        {/* Mini Map Placeholder Art */}
+                        <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Abidjan&zoom=13&size=200x200&sensor=false')] bg-cover opacity-50 grayscale group-hover:grayscale-0 transition-all" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="h-8 w-8 bg-white rounded-full shadow-lg flex items-center justify-center text-orange-600 animate-bounce">
+                                <MapPin className="h-4 w-4 fill-current" />
+                            </div>
                         </div>
                     </div>
-                    <ChevronRight className="h-7 w-7 text-white/20 group-hover:text-white group-hover:translate-x-2 transition-all opacity-0 group-hover:opacity-100" />
-                </button>
+                    <div className="flex-1 min-w-0 py-2">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Nous Trouver</h4>
+                        <p className="font-bold text-slate-900 text-sm leading-tight line-clamp-2">{restaurant.address || "Abidjan, Côte d'Ivoire"}</p>
+                        {showGps && <span className="text-[10px] font-bold text-orange-600 mt-2 inline-flex items-center gap-1 group-hover:gap-2 transition-all">Lancer l'itinéraire <Navigation className="h-3 w-3" /></span>}
+                    </div>
+                </div>
+
+                {/* CONTACT GRID */}
+                <div className="grid grid-cols-2 gap-3">
+                    <a href={`tel:${restaurant.phone || ''}`} className="bg-slate-900 text-white p-5 rounded-[2.5rem] flex flex-col justify-between h-36 relative overflow-hidden group shadow-lg shadow-slate-900/20">
+                        <div className="absolute right-[-20%] bottom-[-20%] w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                        <Phone className="h-6 w-6 text-white" />
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Appel Direct</p>
+                            <p className="font-bold text-sm tracking-tight">{restaurant.phone || "---"}</p>
+                        </div>
+                    </a>
+
+                    <div className="space-y-3">
+                        {Object.entries(socialLinks).slice(0, 2).map(([platform, username]) => {
+                            const config = SOCIAL_CONFIG[platform] || { icon: Share2, color: 'text-slate-600 bg-slate-50', prefix: '' }
+                            const Icon = config.icon
+                            return (
+                                <a key={platform} href={`${config.prefix}${username}`} target="_blank" className={cn("flex items-center gap-3 p-3.5 rounded-[1.5rem] transition-all hover:scale-105 active:scale-95 border-none", config.color.replace('bg-', 'bg-opacity-20 '))} style={{ backgroundColor: '' }}>
+                                    <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm", config.color.split(' ')[0])}>
+                                        <Icon className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-wider opacity-70">{platform}</span>
+                                </a>
+                            )
+                        })}
+                    </div>
+                </div>
             </div>
 
+            {/* Services & Labels */}
+            {(showWifi || showPayments || showLabels) && (
+                <div className="bg-slate-50/50 rounded-[2.5rem] p-6 border border-slate-100/50 space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                        {showWifi && (
+                            <div onClick={() => {
+                                if (settings.wifi_password) {
+                                    navigator.clipboard.writeText(settings.wifi_password);
+                                    toast.success("Mot de passe copié !");
+                                }
+                            }} className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group cursor-pointer active:scale-95 transition-all">
+                                <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Copy className="h-3 w-3 text-orange-500" />
+                                </div>
+                                <Wifi className="h-6 w-6 text-slate-900 mb-3" />
+                                <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5">Wi-Fi Gratuit</p>
+                                <p className="font-bold text-xs truncate">{settings.wifi_name || "WiFi-Guest"}</p>
+                            </div>
+                        )}
+
+                        {showPayments && (
+                            <div className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-center gap-2">
+                                <p className="text-[9px] font-black uppercase text-slate-400">Paiements</p>
+                                <div className="flex flex-wrap gap-1">
+                                    {(settings.payment_methods_list || ['orange', 'wave', 'cash']).slice(0, 3).map((m: any) => (
+                                        <div key={m} className="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-500 border border-slate-200" title={m}>
+                                            {m[0].toUpperCase()}
+                                        </div>
+                                    ))}
+                                    {(settings.payment_methods_list?.length > 3) && <span className="text-[9px] font-bold text-slate-400">+{settings.payment_methods_list.length - 3}</span>}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {showLabels && (settings.labels_text) && (
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {settings.labels_text.split(',').map((label: string, i: number) => (
+                                <span key={i} className="px-3 py-1 bg-white border border-slate-100 rounded-full text-[9px] font-black uppercase text-slate-500 tracking-wider shadow-sm">
+                                    {label.trim()}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Footer Professionnel */}
-            <div className="pt-8 pb-4 text-center space-y-2">
-                <div className="h-[2px] w-12 bg-orange-100 mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-                    Développé par MENLYLA pour {restaurant.name}
+            <div className="pt-8 pb-4 text-center space-y-4 opacity-50 hover:opacity-100 transition-opacity">
+                <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-400">
+                    <ShieldCheck className="h-3 w-3" />
+                    <span>Données sécurisées & confidentialité</span>
+                </div>
+                <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-slate-200 to-transparent mx-auto" />
+                <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-300">
+                    Powered by MENLYLA
                 </p>
             </div>
         </div>
@@ -797,92 +735,60 @@ function DishCard({ dish, restaurant }: any) {
 
     return (
         <DishFocusDrawer dish={dish} restaurant={restaurant}>
-            <div className="flex flex-col gap-0 border rounded-3xl shadow-sm bg-card/80 backdrop-blur-xl overflow-hidden transition-all hover:shadow-xl hover:shadow-orange-500/10 border-white/20 cursor-pointer group/card">
-                {/* Image Section */}
-                {dish.image_urls?.[0] && (
-                    <div className="relative w-full aspect-[16/9] px-4 pt-4 bg-slate-50/50 overflow-visible">
-                        <div className="w-full h-full relative group/img-3d perspective-1000">
-                            <img
-                                src={dish.image_urls[0]}
-                                alt={dish.name}
-                                className="w-full h-full object-cover rounded-2xl shadow-[0_15px_35px_-10px_rgba(0,0,0,0.2)] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/card:scale-105 group-hover/card:-translate-y-4 group-hover/card:rotate-[-1.5deg] group-hover/card:shadow-[0_40px_70px_-15px_rgba(0,0,0,0.3)]"
-                            />
-                        </div>
-                        <div className="absolute top-7 left-7 flex flex-wrap gap-2 z-20">
-                            {dish.is_featured && (
-                                <Badge className="bg-orange-500 text-white border-0 py-1 px-3 shadow-xl font-black text-[10px] uppercase">
-                                    <Star className="h-3 w-3 mr-1 fill-current" /> Spécial
+            <div className="relative flex flex-col items-center bg-white rounded-[2.5rem] p-4 pb-6 shadow-sm border border-slate-100 cursor-pointer group transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+
+                {/* Top Circular Image - Floating effect */}
+                <div className="relative w-40 h-40 -mt-8 mb-2">
+                    <div className="absolute inset-0 rounded-full shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-blend-multiply bg-white">
+                        <img
+                            src={dish.image_urls?.[0] || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000"}
+                            alt={dish.name}
+                            className="w-full h-full object-cover rounded-full mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3"
+                        />
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col items-center text-center space-y-2 w-full px-2 mb-4">
+                    <h3 className="font-black text-2xl text-black leading-tight tracking-tight">
+                        {dish.name}
+                    </h3>
+
+                    <p className="text-sm font-medium text-slate-500 leading-relaxed line-clamp-2 max-w-[90%]">
+                        {dish.description || "Une délicieuse préparation."}
+                    </p>
+
+                    {/* Specialty Tags */}
+                    {dish.tags && dish.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 justify-center pt-1">
+                            {dish.tags.map((tag: string) => (
+                                <Badge key={tag} variant="secondary" className="px-2 py-0 h-4 bg-orange-100/50 text-orange-700 border-none font-black text-[8px] uppercase tracking-tighter rounded-full">
+                                    {tag}
                                 </Badge>
-                            )}
-                            {dish.is_promo && (
-                                <Badge className="bg-red-500 text-white border-0 py-1 px-3 shadow-xl font-black text-[10px] uppercase">
-                                    <Flame className="h-3 w-3 mr-1 fill-current" /> Promo
-                                </Badge>
-                            )}
+                            ))}
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
-                <div className="p-4 space-y-3">
-                    <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1 space-y-1">
-                            <div className="flex flex-wrap gap-1.5 mb-1.5">
-                                {dish.is_vegetarian && <Leaf className="h-4 w-4 text-green-600" />}
-                                {dish.is_spicy && <FlameKindling className="h-4 w-4 text-red-600" />}
-                                {dish.is_gluten_free && <Wheat className="h-4 w-4 text-blue-600" />}
+                {/* Price Pill Button */}
+                <div onClick={(e) => e.stopPropagation()} className="mt-auto">
+                    <AddToCartDrawer
+                        dish={dish}
+                        restaurantId={restaurant.id}
+                        currency={restaurant.currency}
+                        upsellIds={dish.upsell_ids}
+                    >
+                        <button className="h-12 px-8 rounded-full bg-[#A06C48] text-white flex items-center justify-center gap-1 shadow-lg shadow-[#A06C48]/30 transition-transform active:scale-95 hover:bg-[#8B5E3F]">
+                            <span className="text-lg font-bold opacity-80">$</span>
+                            <span className="text-xl font-black">{Math.round(dish.price).toLocaleString()}</span>
+                            <span className="text-[10px] font-bold opacity-60 ml-0.5 mt-1">.000</span>
+                        </button>
+                    </AddToCartDrawer>
+                </div>
 
-                                {!dish.image_urls?.[0] && (
-                                    <>
-                                        {dish.is_featured && (
-                                            <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50/50 font-black text-[9px] uppercase">
-                                                Spécial
-                                            </Badge>
-                                        )}
-                                        {dish.is_promo && (
-                                            <Badge variant="outline" className="text-red-600 border-red-100 bg-red-50/50 font-black text-[9px] uppercase">
-                                                Promo
-                                            </Badge>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                            <h3 className="font-bold text-lg leading-tight group-hover/card:text-orange-600 transition-colors uppercase tracking-tight">{dish.name}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">"{dish.description || "Une explosion de saveurs artisanales..."}"</p>
-                        </div>
-                        <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                            <FavoriteButton dishId={dish.id} />
-                            <LikeButton dishId={dish.id} initialLikes={dish.likes_count || 0} />
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9 rounded-full bg-muted/30 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                                onClick={handleShare}
-                            >
-                                <Share2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2">
-                        <div className="flex flex-col">
-                            {dish.is_promo && dish.old_price && (
-                                <span className="text-xs text-muted-foreground line-through opacity-60">
-                                    {Math.round(dish.old_price).toLocaleString()} {restaurant.currency}
-                                </span>
-                            )}
-                            <span className="text-xl font-black text-orange-600 tabular-nums">
-                                {Math.round(dish.price).toLocaleString()} <span className="text-xs font-bold opacity-70">{restaurant.currency}</span>
-                            </span>
-                        </div>
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <AddToCartDrawer
-                                dish={dish}
-                                restaurantId={restaurant.id}
-                                currency={restaurant.currency}
-                                upsellIds={dish.upsell_ids}
-                            />
-                        </div>
-                    </div>
+                {/* Action Buttons (Like/Fav) - ABSOLUTE positioned to not break layout flow */}
+                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10" onClick={(e) => e.stopPropagation()}>
+                    <LikeButton dishId={dish.id} initialLikes={dish.likes_count || 0} />
                 </div>
             </div>
         </DishFocusDrawer>
@@ -908,7 +814,7 @@ function EventsSection({ settings }: { settings: any }) {
                             className="flex-shrink-0 w-[calc(100%-2rem)] bg-white/80 backdrop-blur-xl rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] border border-white/20 flex flex-row min-h-[160px] group cursor-pointer"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
+                            viewport={{ once: false }}
                             transition={{ duration: 0.8, delay: idx * 0.2 }}
                         >
                             {/* Left Content */}
