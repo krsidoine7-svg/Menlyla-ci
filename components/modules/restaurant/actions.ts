@@ -14,33 +14,21 @@ const restaurantSchema = z.object({
         .regex(/^[a-z0-9-]+$/, "Le slug ne doit contenir que des lettres minuscules, chiffres et tirets"),
     description: z.string().optional(),
     phone: z.string().optional(),
-    whatsapp: z.string().optional().or(z.literal('')),
-    address: z.string().optional(),
-    city: z.string().optional(),
-    maps_link: z.string().url("Lien Google Maps invalide").optional().or(z.literal('')),
-    email: z.string().email("Email invalide").optional().or(z.literal('')),
+    whatsapp: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    maps_link: z.string().optional().nullable(),
+    email: z.string().email("Email invalide").optional().or(z.literal('')).nullable(),
     currency: z.string().default('FCFA'),
-    logo_url: z.string().optional(),
-    banner_url: z.string().optional(),
-    social_links: z.any().optional(),
+    logo_url: z.any().optional(),
+    banner_url: z.any().optional(),
     settings: z.any().optional(),
+    social_links: z.any().optional(),
     plan: z.enum(['solo', 'pro']).default('solo'),
 })
 
 export type RestaurantState = {
-    errors?: {
-        name?: string[]
-        slug?: string[]
-        description?: string[]
-        phone?: string[]
-        whatsapp?: string[]
-        address?: string[]
-        city?: string[]
-        maps_link?: string[]
-        email?: string[]
-        currency?: string[]
-        _form?: string[]
-    }
+    errors?: { [key: string]: string[] }
     message?: string | null
     success?: boolean
 }
@@ -68,7 +56,6 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
         currency: formData.get('currency') || undefined,
         logo_url: formData.get('logo_url') || undefined,
         banner_url: formData.get('banner_url') || undefined,
-        social_links: formData.get('social_links') ? JSON.parse(formData.get('social_links') as string) : {},
         settings: formData.get('settings') ? JSON.parse(formData.get('settings') as string) : {},
         plan: formData.get('plan') || 'solo',
     }
@@ -76,6 +63,7 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
     const validatedFields = restaurantSchema.safeParse(rawData)
 
     if (!validatedFields.success) {
+        console.error("Zod Validation Fail:", validatedFields.error.flatten().fieldErrors)
         return {
             errors: validatedFields.error.flatten().fieldErrors,
             message: "Erreur de validation. Vérifiez les champs."
@@ -89,17 +77,30 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
         .eq('owner_id', user.id)
         .maybeSingle()
 
+    // Clean data for the 'restaurants' table which has strict schema
+    const dbData = {
+        name: validatedFields.data.name,
+        slug: validatedFields.data.slug,
+        description: validatedFields.data.description,
+        phone: validatedFields.data.phone,
+        whatsapp: validatedFields.data.whatsapp,
+        address: validatedFields.data.address,
+        currency: validatedFields.data.currency,
+        plan: validatedFields.data.plan,
+        owner_id: user.id,
+        subscription_status: validatedFields.data.plan === 'solo' ? 'active' : (existingRestaurant ? 'active' : 'pending'),
+        updated_at: new Date().toISOString()
+    }
+
     const { data: restaurant, error } = await supabase
         .from('restaurants')
         .upsert({
-            id: existingRestaurant?.id, // Use existing ID if found
-            ...validatedFields.data,
-            owner_id: user.id,
-            subscription_status: validatedFields.data.plan === 'solo' ? 'active' : (existingRestaurant ? undefined : 'pending')
-            // Don't overwrite status for existing Pro
+            id: existingRestaurant?.id,
+            ...dbData
         })
         .select('id')
         .single()
+
 
     if (error) {
         if (error.code === '23505') { // Unique violation
@@ -422,21 +423,20 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
     }
 
     // Update main restaurant table
-    // Note: We also update top-level columns for backwards compatibility and easy access
+    const dbUpdate = {
+        name: validatedFields.data.name,
+        slug: validatedFields.data.slug,
+        description: validatedFields.data.description,
+        phone: validatedFields.data.phone,
+        whatsapp: validatedFields.data.whatsapp,
+        address: validatedFields.data.address,
+        currency: validatedFields.data.currency,
+        updated_at: new Date().toISOString()
+    }
+
     const { error } = await supabase
         .from('restaurants')
-        .update({
-            name: validatedFields.data.name,
-            slug: validatedFields.data.slug,
-            description: validatedFields.data.description,
-            phone: validatedFields.data.phone,
-            whatsapp: validatedFields.data.whatsapp,
-            address: validatedFields.data.address,
-            email: validatedFields.data.email,
-            logo_url: validatedFields.data.logo_url,
-            banner_url: validatedFields.data.banner_url,
-            settings: validatedFields.data.settings
-        })
+        .update(dbUpdate)
         .eq('id', restaurantId)
 
     if (error) {

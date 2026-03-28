@@ -1,5 +1,8 @@
 # Configuration de l'application
 # Remplacez cette URL par votre domaine personnalisé (obligatoire pour les QR codes)
+GENIUSPAY_API_KEY=
+GENIUSPAY_API_SECRET=
+GENIUSPAY_WEBHOOK_SECRET=
 NEXT_PUBLIC_APP_URL=https://votredomaine.com
 
 # Autres variables d'environnement peuvent être ajoutées ici si nécessaire

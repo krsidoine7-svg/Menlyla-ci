@@ -35,7 +35,7 @@ CREATE TYPE payment_status AS ENUM (
 );
 
 CREATE TYPE payment_provider AS ENUM (
-    'LIGOS',
+    'GENIUSPAY',
     'CASH',
     'OTHER'
 );
@@ -196,7 +196,7 @@ CREATE TABLE payments (
     amount DECIMAL(10,2) NOT NULL,
     currency TEXT DEFAULT 'XOF',
     
-    provider payment_provider DEFAULT 'LIGOS',
+    provider payment_provider DEFAULT 'GENIUSPAY',
     provider_tx_id TEXT, -- External ID
     status payment_status DEFAULT 'pending',
     payment_method_detail TEXT, -- "OM", "MOMO", "CARD"

@@ -82,7 +82,7 @@ const data = schema.parse(formData);
 
 - **Env Vars:**
   - `NEXT_PUBLIC_*`: Uniquement pour clés publiques (Supabase Anon Key).
-  - Autres vars (Service Role, Ligos Secret, Stripe Key) : NE JAMAIS préfixer par `NEXT_PUBLIC_`.
+  - Autres vars (Service Role, Ligos Secret) : NE JAMAIS préfixer par `NEXT_PUBLIC_`.
 - **Git:** Vérifier `.gitignore` pour `.env`, `.env.local`.
 
 ---

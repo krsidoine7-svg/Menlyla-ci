@@ -190,7 +190,12 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
     const progress = (step / (currentSteps.length - 1)) * 100
 
     const identityComplete = useMemo(() => Boolean(draft.name.trim() && draft.slug.trim()), [draft.name, draft.slug])
-    const contactComplete = useMemo(() => Boolean(draft.phone.trim() && draft.whatsapp.trim()), [draft.phone, draft.whatsapp])
+    const contactComplete = useMemo(() => {
+        const basics = Boolean(draft.phone.trim() && draft.whatsapp.trim())
+        const validMaps = !draft.mapsLink || /^(https?:\/\/)/.test(draft.mapsLink)
+        return basics && validMaps
+    }, [draft.phone, draft.whatsapp, draft.mapsLink])
+
     const hoursComplete = useMemo(() => {
         if (draft.isTemporarilyClosed) return true
         if (draft.hoursMode === 'simple') {
@@ -326,36 +331,9 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                 </div>
                             </CardContent>
                         </Card>
-                        {draft.plan === 'solo' && (
-                            <Card className="border-2 border-orange-100 bg-orange-50/50 overflow-hidden">
-                                <CardContent className="p-6">
-                                    <div className="flex flex-col md:flex-row items-center gap-6">
-                                        <div className="flex-1 space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <Badge className="bg-orange-500">RECOMMANDÉ</Badge>
-                                                <h4 className="font-black text-orange-950">Passez à l'offre PRO</h4>
-                                            </div>
-                                            <p className="text-sm text-orange-800/80 leading-relaxed">
-                                                Débloquez les QR codes par table et la gestion des commandes pour <span className="font-bold">9.900 FCFA/mois</span>.
-                                            </p>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            disabled={isRedirecting}
-                                            onClick={() => {
-                                                setIsRedirecting(true)
-                                                router.push('/onboarding/pay?plan=pro')
-                                            }}
-                                            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 rounded-xl h-12 shadow-lg shadow-orange-600/20 whitespace-nowrap"
-                                        >
-                                            {isRedirecting ? "Chargement..." : "Devenir PRO"}
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                     </div>
                 )
+
             case 'identity':
                 return (
                     <div className="space-y-6">
@@ -440,9 +418,30 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                             <Textarea value={draft.address} onChange={(e) => setDraft(prev => ({ ...prev, address: e.target.value }))} placeholder="Rue, repère, précision" rows={3} />
                         </div>
                         <div className="space-y-2">
-                            <Label>Lien Google Maps (optionnel)</Label>
-                            <Input value={draft.mapsLink} onChange={(e) => setDraft(prev => ({ ...prev, mapsLink: e.target.value }))} placeholder="https://maps.app.goo.gl/..." />
+                            <Label className="flex items-center gap-2">
+                                Lien Google Maps (optionnel)
+                                {draft.mapsLink && (
+                                    /^(https?:\/\/)/.test(draft.mapsLink) 
+                                        ? <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100 italic">✓ Lien Valide</span>
+                                        : <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-100 italic animate-pulse">⚠ Format URL attendu (http/https)</span>
+                                )}
+                            </Label>
+                            <Input 
+                                value={draft.mapsLink} 
+                                onChange={(e) => setDraft(prev => ({ ...prev, mapsLink: e.target.value }))} 
+                                placeholder="https://maps.app.goo.gl/..." 
+                                className={cn(
+                                    "rounded-xl",
+                                    draft.mapsLink && !/^(https?:\/\/)/.test(draft.mapsLink) && "border-rose-500 bg-rose-50/30 ring-4 ring-rose-500/10 focus-visible:ring-rose-500/20"
+                                )}
+                            />
+                            {draft.mapsLink && !/^(https?:\/\/)/.test(draft.mapsLink) && (
+                                <p className="text-[10px] font-bold text-rose-500 italic mt-1 bg-white inline-block px-2 py-0.5 rounded-lg border border-rose-100 shadow-sm animate-in slide-in-from-left-2 transition-all">
+                                    Veuillez inclure le "https://" au début du lien (ex: copiez-collez depuis Maps).
+                                </p>
+                            )}
                         </div>
+
                     </div>
                 )
             case 'persona':
@@ -955,11 +954,20 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                         <div className="space-y-6">
                             {renderStep()}
 
-                            {state?.message && (
-                                <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-                                    {state.message}
+                            {(state?.errors || state?.message) && (
+                                <div className="p-4 bg-destructive/5 border border-destructive/20 text-destructive rounded-2xl text-sm space-y-2">
+                                    {state?.message && <p className="font-black italic uppercase tracking-tight">{state.message}</p>}
+                                    {state?.errors && Object.entries(state.errors).map(([field, messages]) => (
+                                        <div key={field} className="flex gap-2 items-start">
+                                            <span className="font-black uppercase text-[10px] bg-destructive text-white px-1.5 py-0.5 rounded-md mt-0.5">{field}</span>
+                                            <ul className="list-disc pl-4 font-bold">
+                                                {messages?.map((msg, i) => <li key={i}>{msg}</li>)}
+                                            </ul>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
+
 
                             {/* Hide navigation if in payment overlay but allow welcome step */}
                             {(!(currentSteps[step].id !== 'welcome' && needsPaymentNow)) && (

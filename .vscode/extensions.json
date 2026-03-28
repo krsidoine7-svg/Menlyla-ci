@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "diemasmichiels.emulate",
+        "bradlc.vscode-tailwindcss",
+        "csstools.postcss"
+    ]
+}
