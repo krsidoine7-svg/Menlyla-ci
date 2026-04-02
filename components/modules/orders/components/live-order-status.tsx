@@ -71,35 +71,36 @@ export function LiveOrderStatus() {
                     schema: 'public',
                 },
                 (payload: any) => {
+                    // Use the latest state-like check
                     if (activeOrderIds.includes(payload.new.id)) {
-                        const oldStatus = orders[payload.new.id]
                         const newStatus = payload.new.status
+                        
+                        // We don't check prev status here to keep code simple and reactive
+                        setOrders(prev => {
+                            if (prev[payload.new.id] === newStatus) return prev
+                            return { ...prev, [payload.new.id]: newStatus }
+                        })
+                        
+                        showNotification(payload.new.id)
 
-                        if (oldStatus !== newStatus) {
-                            setOrders(prev => ({ ...prev, [payload.new.id]: newStatus }))
-                            showNotification(payload.new.id) // Show for 5 seconds
-
-                            const config = STATUS_MAP[newStatus]
-                            if (config) {
-                                const Icon = config.icon
-                                toast.success(
-                                    <div className="flex items-center gap-4">
-                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${config.color}`}>
-                                            <Icon className="h-6 w-6" />
-                                        </div>
-                                        <div>
-                                            <div className="font-black text-sm">Commande #{payload.new.id.slice(-4).toUpperCase()}</div>
-                                            <div className="text-xs font-semibold opacity-90">{config.voice}</div>
-                                        </div>
-                                    </div>,
-                                    {
-                                        duration: 5000,
-                                        className: 'bg-white border-2 border-orange-100 shadow-2xl',
-                                        descriptionClassName: 'hidden'
-                                    }
-                                )
-                                announce(config.voice)
-                            }
+                        const config = STATUS_MAP[newStatus]
+                        if (config) {
+                            toast.success(
+                                <div className="flex items-center gap-4">
+                                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${config.color}`}>
+                                        <config.icon className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <div className="font-black text-sm">Commande #{payload.new.id.slice(-4).toUpperCase()}</div>
+                                        <div className="text-xs font-semibold opacity-90">{config.voice}</div>
+                                    </div>
+                                </div>,
+                                {
+                                    duration: 5000,
+                                    className: 'bg-white border-2 border-orange-100 shadow-2xl',
+                                }
+                            )
+                            announce(config.voice)
                         }
                     }
                 }
@@ -109,7 +110,7 @@ export function LiveOrderStatus() {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [activeOrderIds, supabase, orders])
+    }, [activeOrderIds, supabase]) // Removed 'orders' from dependency to avoid re-subscribing on every status update
 
     // Effect to trigger notification when a NEW order ID is added (initial validation)
     const prevIdsRef = useMemo(() => ({ current: [] as string[] }), [])

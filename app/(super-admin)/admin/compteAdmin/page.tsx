@@ -99,7 +99,7 @@ export default async function CompteAdminPage() {
                                         ? "bg-orange-500/20 border-orange-500/30 text-orange-400" 
                                         : "bg-slate-50 border-slate-100 text-slate-400"
                                 )}>
-                                    {admin.profile?.full_name?.charAt(0) || admin.email.charAt(0).toUpperCase()}
+                                    {admin.profile?.full_name?.charAt(0) || admin.email?.charAt(0).toUpperCase() || '?'}
                                 </div>
                                 
                                 <div className="flex items-center gap-1">

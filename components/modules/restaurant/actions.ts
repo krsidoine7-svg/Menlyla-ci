@@ -88,6 +88,9 @@ export async function createRestaurant(prevState: RestaurantState, formData: For
         currency: validatedFields.data.currency,
         plan: validatedFields.data.plan,
         owner_id: user.id,
+        maps_link: validatedFields.data.maps_link,
+        email: validatedFields.data.email,
+        settings: validatedFields.data.settings,
         subscription_status: validatedFields.data.plan === 'solo' ? 'active' : (existingRestaurant ? 'active' : 'pending'),
         updated_at: new Date().toISOString()
     }
@@ -381,13 +384,41 @@ export async function getRestaurant() {
         delete data.restaurant_settings
     }
 
-    // Unpack theme_settings into top-level settings for backward compatibility
-    if (data?.settings?.theme_settings) {
-        data.settings = {
-            ...data.settings,
-            ...data.settings.theme_settings
+        // Normalize Hours structure
+        if (data.settings.hours) {
+            const h = data.settings.hours
+            
+            // 1. If simple mode, expand to schedule if schedule is missing
+            if (h.mode === 'simple' && h.simple && (!h.schedule || Object.keys(h.schedule).length === 0)) {
+                h.schedule = {}
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                days.forEach(day => {
+                    h.schedule[day] = { 
+                        open: h.simple.open || '09:00', 
+                        close: h.simple.close || '22:00', 
+                        closed: false 
+                    }
+                })
+            }
+
+            // 2. Map 'advanced' (old key from onboarding) to 'schedule' (standard dashboard key)
+            if (h.advanced && (!h.schedule || Object.keys(h.schedule).length === 0)) {
+                h.schedule = h.advanced
+            }
+
+            // 3. Map 'is_closed' (onboarding) to 'is_on_break' (dashboard/frontend)
+            if (h.is_closed !== undefined && h.is_on_break === undefined) {
+                h.is_on_break = h.is_closed
+            }
         }
-    }
+
+        // Unpack theme_settings into top-level settings for backward compatibility
+        if (data?.settings?.theme_settings) {
+            data.settings = {
+                ...data.settings,
+                ...data.settings.theme_settings
+            }
+        }
 
     return data
 }
@@ -422,7 +453,28 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
         }
     }
 
-    // Update main restaurant table
+    // 1. Data Cleanup (Remove redundant keys from settings JSON before update)
+    const cleanSettings = validatedFields.data.settings || {}
+    if (cleanSettings.hours) {
+        // If schedule exists, delete obsolete 'advanced' key (onboarding legacy)
+        if (cleanSettings.hours.schedule && Object.keys(cleanSettings.hours.schedule).length > 0) {
+            delete cleanSettings.hours.advanced
+        }
+        // Sync is_closed to is_on_break and delete legacy key
+        if (cleanSettings.hours.is_closed !== undefined && cleanSettings.hours.is_on_break === undefined) {
+            cleanSettings.hours.is_on_break = cleanSettings.hours.is_closed
+        }
+        if (cleanSettings.hours.is_on_break !== undefined) {
+            delete cleanSettings.hours.is_closed
+        }
+    }
+
+    // Remove top-level garbage from the settings object itself (merged from separate table earlier)
+    delete cleanSettings.restaurant_id
+    delete cleanSettings.updated_at
+    delete cleanSettings.created_at
+
+    // 2. Update main restaurant table
     const dbUpdate = {
         name: validatedFields.data.name,
         slug: validatedFields.data.slug,
@@ -431,6 +483,12 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
         whatsapp: validatedFields.data.whatsapp,
         address: validatedFields.data.address,
         currency: validatedFields.data.currency,
+        maps_link: validatedFields.data.maps_link,
+        email: validatedFields.data.email,
+        logo_url: validatedFields.data.logo_url,
+        banner_url: validatedFields.data.banner_url,
+        social_links: validatedFields.data.social_links,
+        settings: cleanSettings,
         updated_at: new Date().toISOString()
     }
 

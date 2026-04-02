@@ -74,7 +74,8 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
     const [description, setDescription] = useState(restaurant.description)
     const [phone, setPhone] = useState(restaurant.phone)
     const [whatsapp, setWhatsapp] = useState(restaurant.whatsapp || '')
-    const [email, setEmail] = useState(restaurant.email)
+    const [email, setEmail] = useState(restaurant.email || initialProfile?.email || '')
+
     const [address, setAddress] = useState(restaurant.address)
     const [logoUrl, setLogoUrl] = useState(restaurant.settings?.logo_url || restaurant.logo_url)
     const [bannerUrl, setBannerUrl] = useState(restaurant.settings?.banner_url || restaurant.settings?.cover_image_url || restaurant.banner_url)
@@ -95,7 +96,7 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
             slug !== restaurant.slug ||
             description !== restaurant.description ||
             phone !== restaurant.phone ||
-            email !== (restaurant.email || '') ||
+            email !== (restaurant.email || initialProfile?.email || '') ||
             address !== restaurant.address ||
             whatsapp !== (restaurant.whatsapp || '') ||
             logoUrl !== restaurant.settings?.logo_url ||
@@ -139,7 +140,7 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
         setDescription(restaurant.description)
         setPhone(restaurant.phone)
         setWhatsapp(restaurant.whatsapp || '')
-        setEmail(restaurant.email || '')
+        setEmail(restaurant.email || initialProfile?.email || '')
         setAddress(restaurant.address)
         setLogoUrl(restaurant.settings?.logo_url)
         setBannerUrl(restaurant.settings?.cover_image_url)

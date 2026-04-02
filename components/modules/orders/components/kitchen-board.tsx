@@ -75,43 +75,32 @@ export function KitchenBoard({ initialOrders, restaurantId }: { initialOrders: a
                     event: '*',
                     table: 'orders',
                     schema: 'public',
-                    filter: `restaurant_id=eq.${restaurantId}`
                 },
                 async (payload: any) => {
-                    if (payload.eventType === 'INSERT') {
-                        // Wait slightly for order_items and joins to be populated
-                        setTimeout(async () => {
-                            const { data: newOrder, error } = await supabase
-                                .from('orders')
-                                .select(`
-                                    *,
-                                    tables(name),
-                                    order_items(
-                                        quantity,
-                                        unit_price,
-                                        dishes(name)
-                                    ),
-                                    profiles(full_name)
-                                `)
-                                .eq('id', payload.new.id)
-                                .single()
-
-                            if (!error && newOrder) {
-                                playNotificationSound(newOrder)
-                                setOrders((current) => {
-                                    if (current.find(o => o.id === newOrder.id)) return current
-                                    return [newOrder, ...current]
-                                })
-                            }
-                        }, 1500)
-                    } else if (payload.eventType === 'UPDATE') {
-                        router.refresh()
+                    // Manual filter in JS to be more robust than Supabase filters
+                    if (payload.new && payload.new.restaurant_id === restaurantId) {
+                        if (payload.eventType === 'INSERT') {
+                            setOrders((current) => {
+                                if (current.find(o => o.id === payload.new.id)) return current
+                                return [payload.new, ...current]
+                            })
+                            
+                            // Also refresh to get full data (items, tables) from server
+                            router.refresh()
+                            
+                            // Still play sound
+                            playNotificationSound(payload.new)
+                        } else if (payload.eventType === 'UPDATE') {
+                            router.refresh()
+                        }
                     }
                 }
             )
             .subscribe((status: string) => {
-                if (status !== 'SUBSCRIBED') {
-                    console.warn("Realtime subscription status:", status)
+                if (status === 'SUBSCRIBED') {
+                    console.log("🔥 Kitchen realtime active")
+                } else {
+                    console.warn("Kitchen Realtime status:", status)
                 }
             })
 

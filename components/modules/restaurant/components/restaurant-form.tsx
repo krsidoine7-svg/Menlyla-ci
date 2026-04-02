@@ -60,6 +60,18 @@ const THEME_STYLES: { id: 'minimal' | 'moderne' | 'premium', label: string, desc
 
 type DaySchedule = { open: string, close: string, closed: boolean }
 
+const COUNTRY_CODES = [
+    { code: '225', label: '🇨🇮 +225', country: 'Côte d\'Ivoire' },
+    { code: '221', label: '🇸🇳 +221', country: 'Sénégal' },
+    { code: '223', label: '🇲🇱 +223', country: 'Mali' },
+    { code: '226', label: '🇧🇫 +226', country: 'Burkina Faso' },
+    { code: '229', label: '🇧🇯 +229', country: 'Bénin' },
+    { code: '228', label: '🇹🇬 +228', country: 'Togo' },
+    { code: '224', label: '🇬🇳 +224', country: 'Guinée' },
+    { code: '237', label: '🇨🇲 +237', country: 'Cameroun' },
+    { code: '33', label: '🇫🇷 +33', country: 'France' },
+]
+
 type Draft = {
     name: string
     slug: string
@@ -69,6 +81,8 @@ type Draft = {
     bannerUrl: string
     phone: string
     whatsapp: string
+    whatsappCountryCode: string
+    whatsappNumber: string
     city: string
     address: string
     mapsLink: string
@@ -109,6 +123,8 @@ const initialDraft: Draft = {
     bannerUrl: '',
     phone: '',
     whatsapp: '',
+    whatsappCountryCode: '225',
+    whatsappNumber: '',
     city: '',
     address: '',
     mapsLink: '',
@@ -135,6 +151,7 @@ const initialDraft: Draft = {
     plan: 'solo',
 }
 
+
 interface OnboardingFormProps {
     initialRestaurant?: any
 }
@@ -149,13 +166,21 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
     const [step, setStep] = useState(0)
     const [draft, setDraft] = useState<Draft>(() => {
         if (initialRestaurant) {
+            const rawWhatsapp = initialRestaurant.whatsapp || ''
+            // Try to extract country code from the start of the string
+            const foundCode = COUNTRY_CODES.find(c => rawWhatsapp.startsWith(c.code))
+            const countryCode = foundCode?.code || '225'
+            const numberOnly = rawWhatsapp.startsWith(countryCode) ? rawWhatsapp.substring(countryCode.length) : rawWhatsapp
+
             return {
                 ...initialDraft,
                 name: initialRestaurant.name === 'Mon Restaurant' ? '' : initialRestaurant.name,
                 slug: initialRestaurant.slug.startsWith('temp-') ? '' : initialRestaurant.slug,
                 description: initialRestaurant.description || '',
                 phone: initialRestaurant.phone || '',
-                whatsapp: initialRestaurant.whatsapp || '',
+                whatsapp: rawWhatsapp,
+                whatsappCountryCode: countryCode,
+                whatsappNumber: numberOnly,
                 address: initialRestaurant.address || '',
                 city: initialRestaurant.city || '',
                 plan: initialRestaurant.plan || (urlPlan || 'solo'),
@@ -163,6 +188,7 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
         }
         return { ...initialDraft, plan: urlPlan || 'solo' }
     })
+
     const [slugEdited, setSlugEdited] = useState(false)
 
     useEffect(() => {
@@ -191,10 +217,10 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
 
     const identityComplete = useMemo(() => Boolean(draft.name.trim() && draft.slug.trim()), [draft.name, draft.slug])
     const contactComplete = useMemo(() => {
-        const basics = Boolean(draft.phone.trim() && draft.whatsapp.trim())
+        const basics = Boolean(draft.phone.trim() && draft.whatsappNumber.trim())
         const validMaps = !draft.mapsLink || /^(https?:\/\/)/.test(draft.mapsLink)
         return basics && validMaps
-    }, [draft.phone, draft.whatsapp, draft.mapsLink])
+    }, [draft.phone, draft.whatsappNumber, draft.mapsLink])
 
     const hoursComplete = useMemo(() => {
         if (draft.isTemporarilyClosed) return true
@@ -220,15 +246,7 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
         payment: identityComplete && contactComplete && menuComplete,
     }
 
-    const reminders = useMemo(() => {
-        const items: string[] = []
-        if (!identityComplete) items.push('Complétez nom + slug. Vous pourrez changer plus tard.')
-        if (!contactComplete) items.push('Ajoutez téléphone et WhatsApp pour rassurer vos clients.')
-        if (!hoursComplete) items.push('Choisissez des horaires simples ou marquez le resto comme fermé.')
-        if (!menuComplete) items.push('Un plat suffit pour publier votre menu.')
-        if (items.length === 0) items.push('Tout est prêt ! Personnalisez votre menu puis publiez-le.')
-        return items
-    }, [identityComplete, contactComplete, hoursComplete, menuComplete])
+
 
     const handleNameChange = (value: string) => {
         setDraft(prev => ({ ...prev, name: value }))
@@ -247,7 +265,31 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
         setDraft(prev => ({ ...prev, slug: formatSlug(prev.name) }))
     }
 
-    const copyPhoneToWhatsApp = () => setDraft(prev => ({ ...prev, whatsapp: prev.phone }))
+    const handleWhatsappNumberChange = (num: string) => {
+        const clean = num.replace(/\D/g, '')
+        setDraft(prev => ({ 
+            ...prev, 
+            whatsappNumber: clean,
+            whatsapp: prev.whatsappCountryCode + clean
+        }))
+    }
+
+    const handleWhatsappCountryChange = (code: string) => {
+        setDraft(prev => ({ 
+            ...prev, 
+            whatsappCountryCode: code,
+            whatsapp: code + prev.whatsappNumber
+        }))
+    }
+
+    const copyPhoneToWhatsApp = () => {
+        // Try to clean potential country code if present at the start of phone
+        let phoneNum = draft.phone.replace(/\D/g, '')
+        if (phoneNum.startsWith(draft.whatsappCountryCode)) {
+            phoneNum = phoneNum.substring(draft.whatsappCountryCode.length)
+        }
+        handleWhatsappNumberChange(phoneNum)
+    }
 
     const handlePersonaNameChange = (name: string) => {
         setDraft(prev => ({
@@ -395,13 +437,37 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                 <Input value={draft.phone} onChange={(e) => setDraft(prev => ({ ...prev, phone: e.target.value }))} placeholder="Ex : +225 0700000000" />
                             </div>
                             <div className="space-y-2">
-                                <Label>WhatsApp</Label>
+                                <Label>Compte WhatsApp Business</Label>
                                 <div className="flex gap-2">
-                                    <Input value={draft.whatsapp} onChange={(e) => setDraft(prev => ({ ...prev, whatsapp: e.target.value }))} placeholder="wa.me/2250700000000" className="flex-1" />
-                                    <Button type="button" variant="outline" onClick={copyPhoneToWhatsApp}>Copier</Button>
+                                    <div className="relative w-32 shrink-0">
+                                        <select
+                                            value={draft.whatsappCountryCode}
+                                            onChange={(e) => handleWhatsappCountryChange(e.target.value)}
+                                            className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-2 text-sm font-bold focus:ring-2 focus:ring-orange-500 appearance-none"
+                                        >
+                                            {COUNTRY_CODES.map(c => (
+                                                <option key={c.code} value={c.code}>{c.label}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-[10px]">▼</div>
+                                    </div>
+                                    <div className="flex-1 flex gap-2">
+                                        <Input
+                                            value={draft.whatsappNumber}
+                                            onChange={(e) => handleWhatsappNumberChange(e.target.value)}
+                                            placeholder="Ex: 0708091011"
+                                            className="flex-1 rounded-xl font-bold"
+                                        />
+                                        <Button type="button" variant="outline" onClick={copyPhoneToWhatsApp} className="rounded-xl border-slate-200 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                            Copier
+                                        </Button>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Utilisé pour le bouton WhatsApp du menu.</p>
+                                <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                                    💡 Le lien WhatsApp sera : <span className="text-orange-600 font-bold tracking-tight">wa.me/{draft.whatsapp || '...'}</span>
+                                </p>
                             </div>
+
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
@@ -903,7 +969,8 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                     <Progress value={progress} className="h-2" />
 
                     <div className="space-y-6">
-                        <div className="overflow-x-auto pb-4">
+                        <div className="overflow-x-auto no-scrollbar pb-4">
+
                             <div
                                 className="grid gap-4 min-w-[max-content]"
                                 style={{ gridTemplateColumns: `repeat(${currentSteps.length}, 180px)` }}
@@ -940,18 +1007,9 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                             </div>
                         </div>
 
-                        {!(currentSteps[step].id !== 'welcome' && needsPaymentNow) && (
-                            <div className="rounded-2xl border bg-muted/20 p-4 space-y-2">
-                                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Rappels</p>
-                                <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1">
-                                    {reminders.map((item) => (
-                                        <li key={item}>{item}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
 
                         <div className="space-y-6">
+
                             {renderStep()}
 
                             {(state?.errors || state?.message) && (

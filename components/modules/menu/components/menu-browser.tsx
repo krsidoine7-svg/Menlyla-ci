@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check } from 'lucide-react'
+import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check, MessageSquare } from 'lucide-react'
 import { AddToCartDrawer } from '@/components/modules/menu/components/add-to-cart-drawer'
 import { LikeButton } from '@/components/modules/menu/components/like-button'
 import { EventFocusDrawer } from '@/components/modules/menu/components/event-focus-drawer'
@@ -17,6 +17,7 @@ import { useCartStore } from '@/lib/store/cart'
 import { useUIStore } from '@/lib/store/ui-store'
 import { cn, formatOrderId } from '@/lib/utils'
 import { getOrdersByIds } from '../actions'
+import { createClient } from '@/lib/supabase/client'
 
 const formatDate = (dateStr: string) => {
     if (!dateStr) return 'À ne pas manquer'
@@ -302,6 +303,37 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
             setLoading(false)
         }
         fetchOrders()
+
+        if (activeOrderIds.length === 0) return
+        
+        const supabase = createClient()
+        const channel = supabase
+            .channel('customer-orders-view')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    table: 'orders',
+                    schema: 'public',
+                },
+                (payload: any) => {
+                    if (activeOrderIds.includes(payload.new.id)) {
+                        setOrders(current => {
+                            // Check if status changed
+                            const existing = current.find(o => o.id === payload.new.id)
+                            if (existing && existing.status !== payload.new.status) {
+                                return current.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
+                            }
+                            return current
+                        })
+                    }
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [activeOrderIds])
 
     if (loading) {
@@ -438,9 +470,42 @@ function ProfileView({ restaurant, ownerPassport }: { restaurant: any, ownerPass
         tiktok: { icon: Video, color: 'text-black bg-slate-50/50', prefix: 'https://tiktok.com/@' },
     }
 
+    // --- OPENING HOURS LOGIC ---
+    const now = new Date()
+    const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now).toLowerCase()
+    
+    const hours = settings.hours || {}
+    const isBreak = hours.is_on_break || hours.is_closed
+    const schedule = hours.schedule || hours.advanced || {}
+    const todaySchedule = schedule[today] || { open: '09:00', close: '22:00', closed: false }
+
+    const isOpen = useMemo(() => {
+        if (isBreak || todaySchedule.closed) return false
+        
+        try {
+            const currentTime = now.getHours() * 60 + now.getMinutes()
+            const [openH, openM] = (todaySchedule.open || '00:00').split(':').map(Number)
+            const [closeH, closeM] = (todaySchedule.close || '23:59').split(':').map(Number)
+            
+            const openTime = openH * 60 + (openM || 0)
+            const closeTime = closeH * 60 + (closeM || 0)
+            
+            return currentTime >= openTime && currentTime <= closeTime
+        } catch (e) {
+            return true // Fallback if time format is invalid
+        }
+    }, [isBreak, todaySchedule, now])
+
+    const [showAllHours, setShowAllHours] = useState(false)
+    const DAYS_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    const DAY_LABELS: Record<string, string> = {
+        monday: 'Lundi', tuesday: 'Mardi', wednesday: 'Mercredi', thursday: 'Jeudi',
+        friday: 'Vendredi', saturday: 'Samedi', sunday: 'Dimanche'
+    }
+
     return (
         <div className="space-y-8 pb-32 animate-in fade-in zoom-in duration-500">
-            {/* --- HERO RESTAURANT IDENTITY --- */}
+            {/* ... hero ... */}
             <div className="relative h-64 w-full rounded-[3rem] overflow-hidden shadow-2xl group transition-all duration-700 hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.3)]">
                 <div className="absolute inset-0 bg-slate-900 animate-pulse bg-opacity-10" />
                 <img
@@ -542,7 +607,10 @@ function ProfileView({ restaurant, ownerPassport }: { restaurant: any, ownerPass
             {/* --- INFO GRID --- */}
             <div className="grid gap-3">
                 {/* HOURS & STATUS CARD */}
-                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm flex flex-col gap-4">
+                <div 
+                    className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all"
+                    onClick={() => showHours && !isBreak && setShowAllHours(!showAllHours)}
+                >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-12 w-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
@@ -553,30 +621,55 @@ function ProfileView({ restaurant, ownerPassport }: { restaurant: any, ownerPass
                                 {showHours ? (
                                     <div className="flex items-center gap-2">
                                         <span className="relative flex h-2.5 w-2.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                            <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping", isOpen ? "bg-green-400" : "bg-red-400")} />
+                                            <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5", isOpen ? "bg-green-500" : "bg-red-500")} />
                                         </span>
-                                        <span className="font-black text-slate-900">Ouvert Aujourd'hui</span>
+                                        <span className="font-black text-slate-900">
+                                            {isBreak ? 'En Congés' : (todaySchedule.closed ? 'Fermé aujourd\'hui' : (isOpen ? 'Ouvert' : 'Fermé actuellement'))}
+                                        </span>
                                     </div>
                                 ) : <span className="font-bold text-slate-900">Horaires non disponibles</span>}
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 bg-slate-50"><ChevronRight className="h-4 w-4 text-slate-400" /></Button>
+                        {showHours && !isBreak && (
+                            <Button variant="ghost" size="icon" className={cn("rounded-full h-10 w-10 bg-slate-50 transition-transform", showAllHours && "rotate-90")}>
+                                <ChevronRight className="h-4 w-4 text-slate-400" />
+                            </Button>
+                        )}
                     </div>
 
-                    {showHours && (
-                        <div className="pl-16 space-y-1.5 opacity-60">
-                            {(settings.opening_slots || [{ start: '09:00', end: '22:00' }]).map((slot: any, i: number) => (
-                                <p key={i} className="text-xs font-bold text-slate-900 tabular-nums">
-                                    {slot.start} — {slot.end}
-                                </p>
-                            ))}
+                    {showHours && !isBreak && !showAllHours && !todaySchedule.closed && (
+                        <div className="pl-16 space-y-1.5 opacity-60 text-xs font-bold text-slate-900 tabular-nums">
+                            {todaySchedule.open} — {todaySchedule.close}
+                        </div>
+                    )}
+
+                    {showAllHours && (
+                        <div className="pl-16 space-y-3 pt-2 border-t border-dashed border-slate-100 mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                            {DAYS_ORDER.map(day => {
+                                const daySched = schedule[day] || { open: '09:00', close: '22:00', closed: true }
+                                return (
+                                    <div key={day} className={cn("flex justify-between items-center text-xs font-bold", day === today ? "text-orange-600" : "text-slate-500")}>
+                                        <span className="capitalize">{DAY_LABELS[day]}</span>
+                                        <span className="tabular-nums">
+                                            {daySched.closed ? 'Fermé' : `${daySched.open} — ${daySched.close}`}
+                                        </span>
+                                    </div>
+                                )
+                            })}
                         </div>
                     )}
                 </div>
 
                 {/* LOCATION CARD */}
-                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-2 pr-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer" onClick={() => showGps && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address || restaurant.name)}`, '_blank')}>
+                <div 
+                    className="bg-white border border-slate-100 rounded-[2.5rem] p-2 pr-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer" 
+                    onClick={() => {
+                        if (!showGps) return;
+                        const mapsUrl = restaurant.maps_link || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address || restaurant.name)}`;
+                        window.open(mapsUrl, '_blank');
+                    }}
+                >
                     <div className="h-20 w-24 bg-slate-100 rounded-[2rem] overflow-hidden relative border border-white shadow-inner">
                         {/* Mini Map Placeholder Art */}
                         <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Abidjan&zoom=13&size=200x200&sensor=false')] bg-cover opacity-50 grayscale group-hover:grayscale-0 transition-all" />
@@ -604,20 +697,35 @@ function ProfileView({ restaurant, ownerPassport }: { restaurant: any, ownerPass
                         </div>
                     </a>
 
-                    <div className="space-y-3">
-                        {Object.entries(socialLinks).slice(0, 2).map(([platform, username]) => {
-                            const config = SOCIAL_CONFIG[platform] || { icon: Share2, color: 'text-slate-600 bg-slate-50', prefix: '' }
-                            const Icon = config.icon
-                            return (
-                                <a key={platform} href={`${config.prefix}${username}`} target="_blank" className={cn("flex items-center gap-3 p-3.5 rounded-[1.5rem] transition-all hover:scale-105 active:scale-95 border-none", config.color.replace('bg-', 'bg-opacity-20 '))} style={{ backgroundColor: '' }}>
-                                    <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm", config.color.split(' ')[0])}>
-                                        <Icon className="h-4 w-4" />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-wider opacity-70">{platform}</span>
-                                </a>
-                            )
-                        })}
-                    </div>
+                    {restaurant.whatsapp ? (
+                        <a 
+                            href={`https://wa.me/${restaurant.whatsapp.replace(/\+/g, '').replace(/\s/g, '')}`} 
+                            target="_blank"
+                            className="bg-[#25D366] text-white p-5 rounded-[2.5rem] flex flex-col justify-between h-36 relative overflow-hidden group shadow-lg shadow-green-500/20"
+                        >
+                            <div className="absolute right-[-20%] bottom-[-20%] w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+                            <MessageSquare className="h-6 w-6 text-white" />
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">WhatsApp</p>
+                                <p className="font-bold text-sm tracking-tight">Chat Direct</p>
+                            </div>
+                        </a>
+                    ) : (
+                        <div className="space-y-3">
+                            {Object.entries(socialLinks).slice(0, 2).map(([platform, username]) => {
+                                const config = SOCIAL_CONFIG[platform] || { icon: Share2, color: 'text-slate-600 bg-slate-50', prefix: '' }
+                                const Icon = config.icon
+                                return (
+                                    <a key={platform} href={`${config.prefix}${username}`} target="_blank" className={cn("flex items-center gap-3 p-3.5 rounded-[1.5rem] transition-all hover:scale-105 active:scale-95 border-none", config.color.replace('bg-', 'bg-opacity-20 '))} style={{ backgroundColor: '' }}>
+                                        <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-white shadow-sm", config.color.split(' ')[0])}>
+                                            <Icon className="h-4 w-4" />
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-wider opacity-70">{platform}</span>
+                                    </a>
+                                )
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
 
