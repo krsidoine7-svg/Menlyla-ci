@@ -242,6 +242,41 @@ export default function LeadMagnet() {
           background: rgba(255,255,255,0.1);
           border-color: rgba(255,255,255,0.2);
         }
+
+        .secondary-cta-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 28px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 100px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(10px);
+        }
+
+        .secondary-cta-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .secondary-cta-btn .icon {
+          width: 20px;
+          height: 20px;
+          background: #f97316;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          flex-shrink: 0;
+        }
       `}</style>
 
       {sent ? (
@@ -275,6 +310,16 @@ export default function LeadMagnet() {
               <p className="hero-desc">
                 Arrêtez de perdre des clients avec un menu papier. Obtenez un <strong>menu QR code professionnel</strong> gratuitement, sans carte bancaire.
               </p>
+
+              <a 
+                href={`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Bonjour Menlyla ! J'ai une idée de projet personnalisée et je voudrais en discuter avec vous.")}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="secondary-cta-btn"
+              >
+                <span className="icon">✨</span>
+                Dites ce que vous voulez et nous le créons
+              </a>
             </div>
 
             {/* ── DROITE : FORMULAIRE ── */}
