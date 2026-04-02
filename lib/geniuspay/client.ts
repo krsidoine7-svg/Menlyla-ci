@@ -77,10 +77,6 @@ export class GeniusPayClient {
         this.apiKey = apiKey || process.env.GENIUSPAY_API_KEY || ''
         this.apiSecret = apiSecret || process.env.GENIUSPAY_API_SECRET || ''
         this.baseUrl = GENIUSPAY_BASE_URL
-
-        if (!this.apiKey || !this.apiSecret) {
-            throw new Error('GeniusPay API credentials are required. Set GENIUSPAY_API_KEY and GENIUSPAY_API_SECRET environment variables.')
-        }
     }
 
     /**
@@ -90,6 +86,10 @@ export class GeniusPayClient {
         endpoint: string,
         options: RequestInit = {}
     ): Promise<T> {
+        if (!this.apiKey || !this.apiSecret) {
+            throw new Error('GeniusPay API credentials are required. Set GENIUSPAY_API_KEY and GENIUSPAY_API_SECRET environment variables.')
+        }
+
         const url = `${this.baseUrl}${endpoint}`
 
         const headers = {
