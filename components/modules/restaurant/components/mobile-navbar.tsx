@@ -41,7 +41,6 @@ export function MobileNavbar({ restaurantSlug }: Props) {
         { name: 'Home', icon: Home, href: `/${restaurantSlug}`, hash: '' },
         { name: 'Recherche', icon: Search, href: `/${restaurantSlug}#search`, hash: '#search' },
         { name: 'Favoris', icon: Heart, href: `/${restaurantSlug}#favorites`, hash: '#favorites' },
-        { name: 'Panier', icon: ShoppingBag, href: `/${restaurantSlug}/cart`, hash: null },
         { name: 'Suivi', icon: Receipt, href: `/${restaurantSlug}#orders`, hash: '#orders', badge: activeOrderIds.length },
         { name: 'Moi', icon: User, href: `/${restaurantSlug}#profile`, hash: '#profile' },
     ]
@@ -50,7 +49,7 @@ export function MobileNavbar({ restaurantSlug }: Props) {
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-[100] px-3 pb-6 pointer-events-none md:max-w-[430px] md:mx-auto">
-            <div className="relative flex items-center justify-between h-18 bg-white/70 backdrop-blur-xl border border-white/20 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] px-1.5 pointer-events-auto">
+            <div className="relative flex items-center justify-between h-18 bg-[#080808]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.5)] px-1.5 pointer-events-auto">
 
                 {navItems.map((item) => {
                     const isMainPath = pathname === `/${restaurantSlug}`

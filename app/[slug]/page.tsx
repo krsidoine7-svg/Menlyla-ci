@@ -5,11 +5,15 @@ import { CartSummary } from '@/components/modules/cart/cart-summary'
 import { TableSync } from '@/components/modules/qr-code/components/table-sync'
 import { Suspense } from 'react'
 import { MenuBrowser } from '@/components/modules/menu/components/menu-browser'
+import { CategoryNav } from '@/components/modules/menu/components/category-nav'
+import { RestaurantInfoDrawer } from '@/components/modules/menu/components/restaurant-info-drawer'
+import { MapPin, ChevronDown, ShoppingBag } from 'lucide-react'
 import { SocialLinks } from '@/components/modules/restaurant/components/social-links'
 import { ReviewDialog } from '@/components/modules/restaurant/components/review-dialog'
 import { ReviewsList } from '@/components/modules/restaurant/components/reviews-list'
 import { getRestaurantReviews } from '@/components/modules/restaurant/review-actions'
 import { MobileNavbar } from '@/components/modules/restaurant/components/mobile-navbar'
+import { cn } from '@/lib/utils'
 
 import { WaiterFAB } from '@/components/modules/restaurant/components/waiter-fab'
 
@@ -58,61 +62,31 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
     }
 
     return (
-        <div className="relative pb-10 bg-white min-h-full">
+        <div className="relative pb-10 bg-[#080808] min-h-full overflow-x-hidden">
             <Suspense>
                 <TableSync />
             </Suspense>
             {/* Hero / Header */}
-            <header className="sticky top-0 z-[40] bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm overflow-hidden">
+            <header className="sticky top-0 z-[40] bg-[#080808]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl overflow-hidden">
                 {restaurantData.banner_url && (
                     <div className="absolute inset-0 -z-10 opacity-20">
                         <img src={restaurantData.banner_url} alt="Banner" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] to-transparent" />
                     </div>
                 )}
 
-                <div className="p-4 flex items-center gap-4">
-                    {restaurantData.logo_url && (
-                        <img src={restaurantData.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-cover shadow-sm border border-background" />
-                    )}
-                    <div className="flex-1">
-                        <h1 className="text-xl font-black tracking-tight">{restaurantData.name}</h1>
-                        <p className="text-xs text-muted-foreground line-clamp-1 font-medium">{restaurantData.description}</p>
+                <div className="p-6 pb-2 flex flex-col relative">
+                    <div className="flex items-center justify-between mb-8">
+                        <RestaurantInfoDrawer restaurant={restaurantData} />
                     </div>
+
+                    {/* Categories Navigation */}
+                    <div className="mb-4 flex items-center justify-between">
+                        <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Catégories</h3>
+                    </div>
+                    <CategoryNav categories={categories || []} />
                 </div>
 
-                <div className="flex overflow-x-auto pb-6 px-4 gap-4 no-scrollbar pt-2">
-                    {categories?.map((cat, i) => {
-                        // Simple logic to extract emoji if present at start
-                        const hasEmoji = cat.name.match(/^([\p{Emoji}\p{Extended_Pictographic}])/u)
-                        const emoji = hasEmoji ? hasEmoji[0] : null
-                        const label = hasEmoji ? cat.name.substring(emoji!.length).trim() : cat.name
-
-                        // Alternating rotation direction (Left/Right)
-                        const hoverEffects = i % 2 === 0
-                            ? "group-hover:rotate-90 group-active:rotate-90"
-                            : "group-hover:-rotate-90 group-active:-rotate-90"
-
-                        return (
-                            <a key={cat.id} href={`#cat-${cat.id}`} className="flex flex-col items-center gap-2 group min-w-[72px] cursor-pointer">
-                                <div className={`w-[72px] h-[72px] rounded-[1.5rem] bg-white border border-slate-100 shadow-sm flex items-center justify-center text-3xl group-hover:scale-110 group-active:scale-95 transition-all duration-300 group-hover:shadow-[0_8px_30px_-10px_rgba(234,88,12,0.2)] group-hover:border-orange-200 overflow-hidden relative ${hoverEffects}`}>
-                                    {cat.image_url ? (
-                                        <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
-                                    ) : emoji ? (
-                                        <span className="filter grayscale group-hover:grayscale-0 transition-all">{emoji}</span>
-                                    ) : (
-                                        <span className="text-2xl font-black text-slate-300 group-hover:text-orange-500 transition-colors uppercase">
-                                            {cat.name.charAt(0)}
-                                        </span>
-                                    )}
-                                </div>
-                                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide text-center leading-none group-hover:text-orange-600 transition-colors max-w-[80px] truncate">
-                                    {label}
-                                </span>
-                            </a>
-                        )
-                    })}
-                </div>
             </header>
 
             <div className="p-4">

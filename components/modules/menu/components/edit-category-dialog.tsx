@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { updateCategory } from '../actions'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import { ImageUpload } from './image-upload'
 
 type Props = {
     category: any
@@ -22,10 +23,24 @@ type Props = {
 }
 
 export function EditCategoryDialog({ category, open, onOpenChange }: Props) {
+    const [iconUrl, setIconUrl] = useState<string | undefined>(category?.icon_url)
+
+    useEffect(() => {
+        if (open && category) {
+            setIconUrl(category.icon_url)
+        }
+    }, [open, category])
+
     const handleSubmit = async (formData: FormData) => {
+        if (iconUrl) {
+            formData.append('icon_url', iconUrl)
+        } else {
+            formData.append('icon_url', '') // Explicitly empty it if removed
+        }
+
         const result = await updateCategory(category.id, null, formData)
         if (result?.message) {
-            if (result.message.includes('mise à jour')) {
+            if (result.message.includes('mise à jour') || result.message.includes('succès')) {
                 toast.success(result.message)
                 onOpenChange(false)
             } else {
@@ -44,7 +59,7 @@ export function EditCategoryDialog({ category, open, onOpenChange }: Props) {
                     </DialogDescription>
                 </DialogHeader>
                 <form action={handleSubmit}>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-6 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="name" className="text-right">
                                 Nom
@@ -67,6 +82,14 @@ export function EditCategoryDialog({ category, open, onOpenChange }: Props) {
                                 type="number"
                                 defaultValue={category.rank}
                                 className="col-span-3"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <Label>Icône / Image (Optionnel)</Label>
+                            <ImageUpload
+                                defaultImage={iconUrl}
+                                onImageUploaded={setIconUrl}
+                                onImageRemoved={() => setIconUrl(undefined)}
                             />
                         </div>
                     </div>

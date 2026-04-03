@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import Link from 'next/link'
-import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check, MessageSquare } from 'lucide-react'
+import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check, MessageSquare, ChevronDown, ShoppingBag, Truck } from 'lucide-react'
 import { AddToCartDrawer } from '@/components/modules/menu/components/add-to-cart-drawer'
 import { LikeButton } from '@/components/modules/menu/components/like-button'
 import { EventFocusDrawer } from '@/components/modules/menu/components/event-focus-drawer'
@@ -104,14 +105,14 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
         <div className="flex flex-col gap-6">
             {/* Contextual Header: Only show search/filters if NOT in a special view */}
             {!['orders', 'profile', 'favorites'].includes(activeFilter || '') && (
-                <div className="sticky top-16 z-20 bg-background/60 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/10 shadow-sm support-[backdrop-filter]:bg-background/60">
+                <div className="sticky top-16 z-20 bg-[#080808]/80 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/5">
                     {activeFilter === 'search' && (
                         <div className="relative mb-4">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 id="menu-search-input"
                                 placeholder="Rechercher un plat..."
-                                className="pl-10 rounded-full bg-slate-100 border-none h-11 placeholder:text-slate-500 placeholder:font-bold"
+                                className="pl-10 rounded-full bg-white/5 border border-white/10 h-11 placeholder:text-slate-500 text-white"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -119,48 +120,50 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                     )}
 
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <FilterBadge
-                            active={activeFilter === 'promo'}
-                            onClick={() => toggleFilter('promo')}
-                            icon={<Flame className="h-3 w-3" />}
-                            label="Promos"
-                            color="bg-red-500"
-                        />
-                        <FilterBadge
-                            active={activeFilter === 'featured'}
-                            onClick={() => toggleFilter('featured')}
-                            icon={<Star className="h-3 w-3" />}
-                            label="Spéciaux"
-                            color="bg-slate-900"
-                        />
-                        <FilterBadge
-                            active={activeFilter === 'vegetarian'}
-                            onClick={() => toggleFilter('vegetarian')}
-                            icon={<Leaf className="h-3 w-3" />}
-                            label="Végé"
-                            color="bg-green-600"
-                        />
-                        <FilterBadge
-                            active={activeFilter === 'spicy'}
-                            onClick={() => toggleFilter('spicy')}
-                            icon={<FlameKindling className="h-3 w-3" />}
-                            label="Pimenté"
-                            color="bg-red-700"
-                        />
-                        <FilterBadge
-                            active={activeFilter === 'gluten_free'}
-                            onClick={() => toggleFilter('gluten_free')}
-                            icon={<Wheat className="h-3 w-3" />}
-                            label="Sans Gluten"
-                            color="bg-blue-600"
-                        />
+                        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 pt-1">
+                            <FilterBadge
+                                active={activeFilter === 'promo'}
+                                onClick={() => toggleFilter('promo')}
+                                icon={<Flame className="h-3.5 w-3.5" />}
+                                label="Promos"
+                                color="bg-orange-500 shadow-orange-500/20"
+                            />
+                            <FilterBadge
+                                active={activeFilter === 'featured'}
+                                onClick={() => toggleFilter('featured')}
+                                icon={<Star className="h-3.5 w-3.5" />}
+                                label="Spéciaux"
+                                color="bg-slate-900 shadow-slate-900/20"
+                            />
+                            <FilterBadge
+                                active={activeFilter === 'vegetarian'}
+                                onClick={() => toggleFilter('vegetarian')}
+                                icon={<Leaf className="h-3.5 w-3.5" />}
+                                label="Végé"
+                                color="bg-emerald-600 shadow-emerald-600/20"
+                            />
+                            <FilterBadge
+                                active={activeFilter === 'spicy'}
+                                onClick={() => toggleFilter('spicy')}
+                                icon={<FlameKindling className="h-3.5 w-3.5" />}
+                                label="Pimenté"
+                                color="bg-rose-700 shadow-rose-700/20"
+                            />
+                            <FilterBadge
+                                active={activeFilter === 'gluten_free'}
+                                onClick={() => toggleFilter('gluten_free')}
+                                icon={<Wheat className="h-3.5 w-3.5" />}
+                                label="Sans Gluten"
+                                color="bg-sky-600 shadow-sky-600/20"
+                            />
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* View Indicator for special sections */}
             {activeFilter && ['orders', 'profile', 'favorites'].includes(activeFilter) && (
-                <div className="flex items-center justify-between py-2 border-b border-orange-100 mb-4 animate-in fade-in duration-500">
+                <div className="flex items-center justify-between py-2 border-b border-white/5 mb-4 animate-in fade-in duration-500">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-600/20">
                             {activeFilter === 'orders' ? <Receipt className="h-5 w-5" /> :
@@ -183,7 +186,7 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-full font-bold text-xs text-orange-600 hover:bg-orange-50"
+                        className="rounded-full font-bold text-xs text-orange-600 hover:bg-orange-500/10"
                         onClick={() => { window.location.hash = ''; setActiveFilter(null); }}
                     >
                         Fermer
@@ -203,7 +206,7 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                             <section className="space-y-4">
                                 <div className="flex items-center gap-2 px-1">
                                     <Trophy className="h-5 w-5 text-yellow-500 fill-yellow-500/20" />
-                                    <h2 className="text-xl font-black uppercase tracking-wider">Les Incontournables</h2>
+                                    <h2 className="text-xl font-black uppercase tracking-wider text-white">Les Incontournables</h2>
                                 </div>
                                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 px-4 -mx-4">
                                     {popularDishes.map((dish, idx) => (
@@ -216,8 +219,8 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                                             transition={{ duration: 0.6, delay: idx * 0.15, type: "spring" }}
                                         >
                                             <div className="absolute top-3 left-3 z-10">
-                                                <Badge className="bg-white/90 backdrop-blur-md text-orange-600 border-none shadow-sm font-black text-[10px] uppercase">
-                                                    <Heart className="h-3 w-3 mr-1 fill-orange-600" /> Top {dish.likes_count}
+                                                <Badge className="bg-black/50 backdrop-blur-md text-orange-500 border border-white/10 shadow-sm font-black text-[10px] uppercase">
+                                                    <Heart className="h-3 w-3 mr-1 fill-orange-500" /> Top {dish.likes_count}
                                                 </Badge>
                                             </div>
                                             <DishCard dish={dish} restaurant={restaurant} />
@@ -231,16 +234,17 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                         <EventsSection settings={restaurant.settings} />
 
                         {filteredCategories.map((cat) => (
-                            <section key={cat.id} id={`cat-${cat.id}`} className="scroll-mt-48">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="h-1 w-8 bg-orange-500 rounded-full" />
-                                    <h2 className="text-xl font-black uppercase tracking-wider">{cat.name}</h2>
+                            <section key={cat.id} id={`cat-${cat.id}`} className="scroll-mt-48 px-2">
+                                <div className="flex items-center justify-between mb-8 mt-4">
+                                    <h2 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-4">
+                                        <div className="h-8 sm:h-10 w-1.5 sm:w-2 bg-orange-500 rounded-full shadow-[0_0_15px_#f97316]" />
+                                        {cat.name}
+                                    </h2>
                                 </div>
-                                <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory no-scrollbar px-4 -mx-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     {cat.dishes.map((dish: any, idx: number) => (
                                         <motion.div
                                             key={dish.id}
-                                            className="min-w-[calc(50%-0.5rem)] snap-center"
                                             initial={{ opacity: 0, scale: 0.8, y: 20 }}
                                             whileInView={{ opacity: 1, scale: 1, y: 0 }}
                                             viewport={{ once: false }}
@@ -250,7 +254,6 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                                                 type: "spring",
                                                 stiffness: 100
                                             }}
-                                            whileHover={{ y: -5 }}
                                         >
                                             <DishCard dish={dish} restaurant={restaurant} />
                                         </motion.div>
@@ -268,7 +271,7 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                                         <UtensilsCrossed className="h-16 w-16 mx-auto" />
                                     )}
                                 </div>
-                                <h3 className="text-xl font-black uppercase mb-2">
+                                <h3 className="text-xl font-black uppercase mb-2 text-white">
                                     {activeFilter === 'favorites' ? "Aucun favori" : "Aucun résultat"}
                                 </h3>
                                 <p className="text-muted-foreground mb-6">
@@ -278,7 +281,7 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                                 </p>
                                 <button
                                     onClick={() => { setSearchQuery(''); setActiveFilter(null); window.location.hash = '' }}
-                                    className="px-6 py-3 bg-orange-100 text-orange-600 rounded-full font-black uppercase text-xs tracking-widest hover:bg-orange-200 transition-colors"
+                                    className="px-6 py-3 bg-orange-500/10 text-orange-600 rounded-full font-black uppercase text-xs tracking-widest hover:bg-orange-500/20 transition-colors"
                                 >
                                     Explorer le menu
                                 </button>
@@ -344,7 +347,7 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
                     <Receipt className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-orange-600" />
                 </div>
                 <div className="text-center space-y-2">
-                    <p className="text-lg font-black uppercase tracking-widest text-orange-950">Vérification...</p>
+                    <p className="text-lg font-black uppercase tracking-widest text-white">Vérification...</p>
                     <p className="text-xs text-muted-foreground font-bold">Nous récupérons vos dernières commandes</p>
                 </div>
             </div>
@@ -358,7 +361,7 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
                     <History className="h-10 w-10 text-orange-200" />
                 </div>
                 <div className="space-y-2">
-                    <h3 className="text-2xl font-black uppercase text-orange-950">Aucune commande</h3>
+                    <h3 className="text-2xl font-black uppercase text-white">Aucune commande</h3>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed">
                         C'est ici que vous pourrez suivre vos commandes en temps réel dès qu'elles seront envoyées en cuisine.
                     </p>
@@ -377,7 +380,7 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
             <div className="relative px-1">
                 <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-orange-600 rounded-r-full" />
-                <h2 className="text-2xl font-black uppercase tracking-tight text-orange-950">Suivi Cuisine</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tight text-white">Suivi Cuisine</h2>
                 <p className="text-xs font-bold text-orange-600/60 uppercase tracking-widest leading-none mt-1">Vos plats en préparation</p>
             </div>
 
@@ -391,7 +394,7 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
                     }[order.status as string] || { label: order.status, icon: Clock, color: 'bg-slate-100 text-slate-600' }
 
                     return (
-                        <div key={order.id} className="group relative bg-white border border-orange-100 rounded-[2.5rem] p-6 shadow-[0_15px_40px_-15px_rgba(234,88,12,0.1)] hover:shadow-[0_20px_50px_-15px_rgba(234,88,12,0.15)] transition-all duration-300">
+                        <div key={order.id} className="group relative bg-[#121212] border border-white/5 rounded-[2.5rem] p-6 shadow-2xl transition-all duration-300">
                             <div className="flex justify-between items-start mb-6">
                                 <div className="space-y-1.5">
                                     <Badge variant="outline" className="rounded-full border-orange-100 bg-orange-50/50 text-orange-600 font-black text-[10px] px-3">
@@ -810,7 +813,7 @@ function FilterBadge({ active, onClick, icon, label, color, inactiveColor }: any
         <Badge
             variant={active ? 'default' : 'secondary'}
             className={cn(
-                "px-4 py-1.5 rounded-full cursor-pointer transition-all whitespace-nowrap flex items-center gap-1.5 border-none font-bold text-xs shadow-sm",
+                "px-4 py-1.5 rounded-full cursor-pointer transition-all whitespace-nowrap flex items-center gap-1.5 border-none font-semibold text-xs shadow-sm",
                 active ? cn(color, "text-white shadow-md scale-105") : (inactiveColor || "bg-white/40 backdrop-blur-md border border-white/20 text-slate-700 hover:bg-white/60")
             )}
             onClick={onClick}
@@ -821,85 +824,59 @@ function FilterBadge({ active, onClick, icon, label, color, inactiveColor }: any
     )
 }
 
-import { DishFocusDrawer } from '@/components/modules/menu/components/dish-focus-drawer'
-
 function DishCard({ dish, restaurant }: any) {
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurant.slug}#cat-${dish.category_id}` : ''
-        const text = `Découvrez ce plat : ${dish.name} chez ${restaurant.name} !`
-
-        if (navigator.share) {
-            navigator.share({
-                title: dish.name,
-                text: text,
-                url: url,
-            }).catch(() => { })
-        } else {
-            navigator.clipboard.writeText(`${text} ${url}`)
-            toast.success("Lien copié dans le presse-papier !")
-        }
-    }
-
     return (
-        <DishFocusDrawer dish={dish} restaurant={restaurant}>
-            <div className="relative flex flex-col items-center bg-white rounded-[2.5rem] p-4 pb-6 shadow-sm border border-slate-100 cursor-pointer group transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-
-                {/* Top Circular Image - Floating effect */}
-                <div className="relative w-40 h-40 -mt-8 mb-2">
-                    <div className="absolute inset-0 rounded-full shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-blend-multiply bg-white">
+        <AddToCartDrawer
+            dish={dish}
+            restaurantId={restaurant.id}
+            currency={restaurant.currency}
+            upsellIds={dish.upsell_ids}
+        >
+            <Card className="h-full bg-[#121212] border-none rounded-[2rem] overflow-hidden shadow-2xl transition-all hover:translate-y-[-4px] group/card cursor-pointer">
+                <div className="p-3">
+                    {/* Image Section */}
+                    <div className="aspect-square relative rounded-[1.8rem] overflow-hidden mb-3">
                         <img
-                            src={dish.image_urls?.[0] || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000"}
+                            src={dish.image_urls?.[0] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'}
                             alt={dish.name}
-                            className="w-full h-full object-cover rounded-full mix-blend-multiply transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
                         />
+                        <button onClick={(e) => { e.stopPropagation(); /* Add Favorite Logic here */ }} className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white border border-white/10 hover:bg-orange-500 transition-colors z-10">
+                            <Heart className="h-4 w-4" />
+                        </button>
+                        {/* Floating Price */}
+                        <div className="absolute bottom-3 right-3 bg-orange-600 text-white px-3 py-1.5 rounded-full font-black text-xs shadow-lg">
+                            {Math.round(dish.price).toLocaleString()} {restaurant.currency}
+                        </div>
+                        {/* Likes Badge */}
+                        {(dish.likes_count || 0) > 0 && (
+                            <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2 py-1 flex items-center gap-1">
+                                <Heart className="h-3 w-3 text-orange-500 fill-orange-500" />
+                                <span className="text-[10px] font-black text-white">{dish.likes_count}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="px-1 mb-3">
+                        <h3 className="font-bold text-base text-white leading-tight mb-1 truncate">
+                            {dish.name}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2 text-[8px] font-black uppercase tracking-widest mt-1.5">
+                            {dish.is_featured && <span className="text-orange-500">Spécialité</span>}
+                            {dish.is_promo && <span className="text-yellow-500">Promo</span>}
+                            {dish.is_vegetarian && <span className="text-emerald-500">Végé</span>}
+                            {dish.is_spicy && <span className="text-rose-500">Pimenté</span>}
+                            {dish.is_gluten_free && <span className="text-sky-500">Sans Gluten</span>}
+                        </div>
+                    </div>
+
+                    <div className="w-full h-11 rounded-2xl bg-white/5 border border-white/5 group-hover/card:bg-white/10 transition-all flex items-center justify-center text-white group-hover/card:border-orange-500/30">
+                        <Plus className="h-5 w-5" />
                     </div>
                 </div>
-
-                {/* Content */}
-                <div className="flex flex-col items-center text-center space-y-2 w-full px-2 mb-4">
-                    <h3 className="font-black text-2xl text-black leading-tight tracking-tight">
-                        {dish.name}
-                    </h3>
-
-                    <p className="text-sm font-medium text-slate-500 leading-relaxed line-clamp-2 max-w-[90%]">
-                        {dish.description || "Une délicieuse préparation."}
-                    </p>
-
-                    {/* Specialty Tags */}
-                    {dish.tags && dish.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 justify-center pt-1">
-                            {dish.tags.map((tag: string) => (
-                                <Badge key={tag} variant="secondary" className="px-2 py-0 h-4 bg-orange-100/50 text-orange-700 border-none font-black text-[8px] uppercase tracking-tighter rounded-full">
-                                    {tag}
-                                </Badge>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Price Pill Button */}
-                <div onClick={(e) => e.stopPropagation()} className="mt-auto">
-                    <AddToCartDrawer
-                        dish={dish}
-                        restaurantId={restaurant.id}
-                        currency={restaurant.currency}
-                        upsellIds={dish.upsell_ids}
-                    >
-                        <button className="h-12 px-8 rounded-full bg-[#A06C48] text-white flex items-center justify-center gap-1 shadow-lg shadow-[#A06C48]/30 transition-transform active:scale-95 hover:bg-[#8B5E3F]">
-                            <span className="text-lg font-bold opacity-80">$</span>
-                            <span className="text-xl font-black">{Math.round(dish.price).toLocaleString()}</span>
-                            <span className="text-[10px] font-bold opacity-60 ml-0.5 mt-1">.000</span>
-                        </button>
-                    </AddToCartDrawer>
-                </div>
-
-                {/* Action Buttons (Like/Fav) - ABSOLUTE positioned to not break layout flow */}
-                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10" onClick={(e) => e.stopPropagation()}>
-                    <LikeButton dishId={dish.id} initialLikes={dish.likes_count || 0} />
-                </div>
-            </div>
-        </DishFocusDrawer>
+            </Card>
+        </AddToCartDrawer>
     )
 }
 

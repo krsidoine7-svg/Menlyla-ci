@@ -9,6 +9,7 @@ import { z } from 'zod'
 const categorySchema = z.object({
     name: z.string().min(1, "Le nom est requis"),
     rank: z.number().default(0),
+    icon_url: z.string().optional(),
 })
 
 export async function createCategory(prevState: any, formData: FormData) {
@@ -27,7 +28,8 @@ export async function createCategory(prevState: any, formData: FormData) {
 
     const validated = categorySchema.safeParse({
         name: formData.get('name'),
-        rank: Number(formData.get('rank') || 0)
+        rank: Number(formData.get('rank') || 0),
+        icon_url: formData.get('icon_url') || undefined
     })
 
     if (!validated.success) {
@@ -54,7 +56,8 @@ export async function updateCategory(id: string, prevState: any, formData: FormD
 
     const validated = categorySchema.safeParse({
         name: formData.get('name'),
-        rank: Number(formData.get('rank') || 0)
+        rank: Number(formData.get('rank') || 0),
+        icon_url: formData.get('icon_url') || undefined
     })
 
     if (!validated.success) {
@@ -180,6 +183,7 @@ export async function createDish(prevState: any, formData: FormData) {
         description: formData.get('description'),
         price: Number(formData.get('price')),
         category_id: formData.get('category_id'),
+        image_url: formData.get('image_url'),
         is_featured: formData.get('is_featured') === 'on',
         is_promo: formData.get('is_promo') === 'on',
         old_price: formData.get('old_price') ? Number(formData.get('old_price')) : null,

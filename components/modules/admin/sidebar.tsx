@@ -42,7 +42,6 @@ const navItems = [
                     { name: 'Analytiques', slug: 'analytics', icon: LayoutGrid },
                     { name: 'Paiements', slug: 'payments', icon: CreditCard },
                     { name: 'Notifications', slug: 'notifications', icon: BellRing },
-                    { name: 'Mode Démo', slug: 'demo', icon: Database },
                     { name: 'Juridique', slug: 'legal', icon: Scale },
                 ]
             }

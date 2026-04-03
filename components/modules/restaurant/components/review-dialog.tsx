@@ -98,21 +98,21 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs font-black uppercase tracking-widest text-orange-600 border-orange-100 hover:bg-orange-50 rounded-full h-9 px-4 shadow-sm active:scale-95 transition-all">
-                    <MessageSquarePlus className="h-4 w-4 mr-2" /> Laisser un avis
+                <Button variant="default" size="sm" className="text-[10px] font-black uppercase tracking-widest text-black bg-orange-500 hover:bg-orange-400 rounded-[1rem] h-9 px-4 shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
+                    <MessageSquarePlus className="h-3.5 w-3.5 mr-2" /> Laisser un avis
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-none shadow-2xl">
+            <DialogContent className="sm:max-w-[425px] rounded-[2rem] border border-white/10 shadow-2xl bg-[#0F0F0F] text-white">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-black">Votre avis compte !</DialogTitle>
-                    <DialogDescription className="font-medium">
+                    <DialogTitle className="text-2xl font-black tracking-tight">Votre avis compte <span className="text-orange-500">!</span></DialogTitle>
+                    <DialogDescription className="font-medium text-slate-400">
                         {dishName ? `Que pensez-vous du plat "${dishName}" ?` : "Dites-nous ce que vous avez pensé de votre expérience."}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-6 pt-4">
                     <div className="flex flex-col items-center gap-2">
-                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Note</Label>
-                        <div className="flex gap-1">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Note Globale</Label>
+                        <div className="flex gap-1 bg-[#1A1A1A] p-2 rounded-2xl border border-white/5">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button
                                     key={star}
@@ -120,12 +120,12 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
                                     onClick={() => setRating(star)}
                                     onMouseEnter={() => setHover(star)}
                                     onMouseLeave={() => setHover(0)}
-                                    className="focus:outline-none transition-transform hover:scale-125 duration-200"
+                                    className="focus:outline-none transition-transform hover:scale-110 duration-200 p-1"
                                 >
                                     <Star
                                         className={cn(
-                                            "h-8 w-8 transition-colors",
-                                            (hover || rating) >= star ? "text-yellow-400 fill-yellow-400" : "text-muted/30"
+                                            "h-7 w-7 transition-colors drop-shadow-md",
+                                            (hover || rating) >= star ? "text-orange-500 fill-orange-500" : "text-white/10 fill-white/10"
                                         )}
                                     />
                                 </button>
@@ -134,36 +134,36 @@ export function ReviewDialog({ restaurantId, dishId, dishName }: Props) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Votre Nom (Optionnel)</Label>
+                        <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Votre Nom (Optionnel)</Label>
                         <Input
                             id="name"
                             placeholder="Ex: Jean D."
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="rounded-2xl border-muted bg-muted/20 focus:bg-background h-12"
+                            className="rounded-2xl border border-white/10 bg-white/5 focus:bg-white/10 h-12 text-white placeholder:text-slate-600 focus-visible:ring-orange-500/50"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="comment" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Commentaire</Label>
+                        <Label htmlFor="comment" className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Commentaire</Label>
                         <Textarea
                             id="comment"
                             placeholder="C'était délicieux..."
                             required
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            className="rounded-2xl border-muted bg-muted/20 focus:bg-background min-h-[100px]"
+                            className="rounded-2xl border border-white/10 bg-white/5 focus:bg-white/10 min-h-[100px] text-white placeholder:text-slate-600 focus-visible:ring-orange-500/50"
                         />
                     </div>
 
-                    <div className="space-y-4">
-                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Photos de votre expérience</Label>
+                    <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Photos (Optionnel)</Label>
 
                         <div className="grid grid-cols-4 gap-3">
                             {/* Bouton Upload / Appareil Photo */}
                             <label className={cn(
-                                "aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-2xl cursor-pointer transition-all active:scale-95",
-                                "border-orange-100 bg-orange-50/30 text-orange-600 hover:border-orange-300 hover:bg-orange-50",
+                                "aspect-square flex flex-col items-center justify-center border border-dashed rounded-2xl cursor-pointer transition-all active:scale-95",
+                                "border-white/20 bg-white/5 hover:border-orange-500/50 hover:bg-orange-500/10 text-slate-400 hover:text-orange-400",
                                 isUploading && "opacity-50 pointer-events-none"
                             )}>
                                 <input

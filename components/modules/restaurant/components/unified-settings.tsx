@@ -36,7 +36,6 @@ import { MenuSettings } from './menu-settings'
 import { LegalSettings } from './legal-settings'
 import { AnalyticsSettings } from './analytics-settings'
 import { NotificationsSettings } from './notifications-settings'
-import { DemoDataSection } from '../../settings/components/demo-data-section'
 import { PassportCard } from '@/components/modules/passport/passport-card'
 import { ReviewModeration } from './review-moderation'
 import { ReviewStats } from './review-stats'
@@ -152,7 +151,7 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
         setProfileCustomLinks(initialProfile?.custom_links || [])
     }
 
-    const isExternalView = ['menu', 'legal', 'analytics', 'notifications', 'demo', 'reviews'].includes(activeSection)
+    const isExternalView = ['menu', 'legal', 'analytics', 'notifications', 'reviews'].includes(activeSection)
 
     return (
         <div className="flex flex-col min-h-[80vh]">
@@ -161,7 +160,6 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
                 {activeSection === 'legal' && <LegalSettings restaurant={restaurant} />}
                 {activeSection === 'analytics' && <AnalyticsSettings restaurant={restaurant} />}
                 {activeSection === 'notifications' && <NotificationsSettings restaurant={restaurant} settings={settings} setSettings={setSettings} />}
-                {activeSection === 'demo' && <DemoDataSection />}
                 {activeSection === 'reviews' && initialReviews && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <ReviewStats reviews={initialReviews} />

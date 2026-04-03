@@ -339,14 +339,15 @@ export function SortableCategoryList({
 
         // --- REORDER CATEGORIES ---
         if (titleType === 'Category') {
-            setCategories((items: any[]) => {
-                const oldIndex = items.findIndex((i) => i.id === active.id)
-                const newIndex = items.findIndex((i) => i.id === over.id)
-                const newOrder = arrayMove(items, oldIndex, newIndex)
-                const updates = newOrder.map((item, index) => ({ id: item.id, rank: index }))
-                reorderCategories(updates).catch(() => toast.error("Erreur de tri"))
-                return newOrder
-            })
+            const oldIndex = categories.findIndex((i: any) => i.id === active.id)
+            const newIndex = categories.findIndex((i: any) => i.id === over.id)
+            if (oldIndex === -1 || newIndex === -1) return
+
+            const newOrder = arrayMove(categories, oldIndex, newIndex)
+            setCategories(newOrder)
+
+            const updates = newOrder.map((item: any, index) => ({ id: item.id, rank: index }))
+            reorderCategories(updates).catch(() => toast.error("Erreur de tri"))
             return
         }
 

@@ -24,6 +24,12 @@ type Props = {
         name: string
         description?: string
         price: number
+        image_urls?: string[]
+        is_featured?: boolean
+        is_promo?: boolean
+        is_vegetarian?: boolean
+        is_spicy?: boolean
+        is_gluten_free?: boolean
     }
     restaurantId: string
     currency?: string
@@ -83,6 +89,16 @@ export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellI
 
     const totalPrice = (dish.price * quantity) + totalUpsellsPrice
 
+    // Determine subtitle from real data
+    const tags = []
+    if (dish.is_featured) tags.push("Spécialité")
+    if (dish.is_promo) tags.push("Promo")
+    if (dish.is_vegetarian) tags.push("Végétarien")
+    if (dish.is_spicy) tags.push("Pimenté")
+    if (dish.is_gluten_free) tags.push("Sans Gluten")
+    
+    const subtitle = tags.length > 0 ? tags.join(' • ') : "Sur le menu"
+
     return (
         <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground>
             <DrawerTrigger asChild>
@@ -92,143 +108,146 @@ export function AddToCartDrawer({ dish, restaurantId, currency = 'FCFA', upsellI
                     </Button>
                 )}
             </DrawerTrigger>
-            <DrawerContent className="max-h-[85vh] border-none bg-white md:max-w-[430px] md:mx-auto rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] z-[150] inset-x-4 bottom-6 md:bottom-0 md:inset-x-0 outline-none">
-                <div className="mx-auto w-full max-h-[90vh] overflow-y-auto no-scrollbar relative">
-                    {/* Top Accent */}
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-slate-200/50 rounded-full" />
-
-                    <AnimatePresence>
-                        {open && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                                className="p-6 md:p-8 space-y-8"
-                            >
-                                <div className="space-y-2 mt-4">
-                                    <motion.div
-                                        initial={{ x: -20, opacity: 0 }}
-                                        animate={{ x: 0, opacity: 1 }}
-                                        transition={{ delay: 0.2 }}
-                                    >
-                                        <h3 className="text-3xl font-black uppercase tracking-tight leading-none text-slate-900">{dish.name}</h3>
-                                        <p className="text-slate-500 font-medium mt-3 leading-relaxed italic line-clamp-2">
-                                            {dish.description || "Une spécialité maison préparée pour vous."}
-                                        </p>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ scale: 0.8, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        transition={{ delay: 0.3, type: "spring" }}
-                                        className="text-4xl font-black text-orange-600 tabular-nums mt-4"
-                                    >
-                                        {Math.round(dish.price).toLocaleString()} <span className="text-sm font-black opacity-40 uppercase tracking-tighter">{currency}</span>
-                                    </motion.div>
-                                </div>
-
-                                {/* Quantity Selector - Enhanced */}
+            <DrawerContent className="border-none bg-[#121212] md:max-w-[430px] md:mx-auto rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.5)] z-[150] inset-x-0 bottom-0 outline-none flex flex-col max-h-[92vh]">
+                <AnimatePresence>
+                    {open && (
+                        <>
+                            <div className="flex-1 overflow-y-auto no-scrollbar relative px-6 md:px-8 pb-32">
                                 <motion.div
-                                    initial={{ y: 30, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="flex items-center justify-between bg-slate-50/50 backdrop-blur-sm p-6 rounded-[2.5rem] border border-slate-100/50 shadow-inner"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="space-y-8 pt-6"
                                 >
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-14 w-14 rounded-full border-none bg-white shadow-xl active:scale-90 transition-all text-slate-400"
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        disabled={quantity <= 1}
-                                    >
-                                        <Minus className="h-6 w-6" />
-                                    </Button>
-                                    <div className="text-center">
-                                        <div className="text-5xl font-black tracking-tighter tabular-nums text-slate-900 group">
-                                            {quantity}
-                                        </div>
-                                        <div className="text-[0.6rem] uppercase text-slate-400 font-black tracking-widest mt-1">
-                                            UNITÉS
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-14 w-14 rounded-full border-none bg-orange-600 text-white shadow-[0_10px_25px_-5px_rgba(234,88,12,0.4)] active:scale-90 transition-all"
-                                        onClick={() => setQuantity(quantity + 1)}
-                                    >
-                                        <Plus className="h-6 w-6" />
-                                    </Button>
-                                </motion.div>
+                                    {/* Image floating */}
+                                    {dish.image_urls?.[0] && (
+                                        <motion.div
+                                            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.1, type: "spring" }}
+                                            className="w-40 h-40 mx-auto mb-4 relative z-10"
+                                        >
+                                            <img src={dish.image_urls[0]} alt={dish.name} className="w-full h-full object-cover rounded-[2rem] drop-shadow-[0_15px_30px_rgba(255,122,0,0.15)] border border-white/5" />
+                                        </motion.div>
+                                    )}
 
-                                {/* Upsells Section */}
-                                {upsellDishes.length > 0 && (
-                                    <div className="space-y-5">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
-                                            <div className="h-1 w-4 bg-orange-500 rounded-full" />
-                                            Accompagnements
-                                        </h4>
-                                        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-2 px-2">
-                                            {upsellDishes.map((u, idx) => (
-                                                <motion.button
-                                                    key={u.id}
-                                                    initial={{ opacity: 0, scale: 0.8 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    transition={{ delay: 0.5 + (idx * 0.1) }}
-                                                    onClick={() => toggleUpsell(u.id)}
-                                                    className={cn(
-                                                        "flex-shrink-0 w-32 group relative text-left transition-all",
-                                                        selectedUpsells.has(u.id) ? "translate-y-1" : "hover:translate-y-[-4px]"
-                                                    )}
+                                    <div className="space-y-6">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <motion.div
+                                                initial={{ x: -20, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                transition={{ delay: 0.2 }}
+                                                className="flex-1"
+                                            >
+                                                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">{dish.name}</h3>
+                                                <p className="text-orange-500 text-[10px] mt-1.5 uppercase font-black tracking-[0.2em]">{subtitle}</p>
+                                            </motion.div>
+
+                                            <motion.div
+                                                initial={{ x: 20, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                transition={{ delay: 0.3 }}
+                                                className="flex items-center bg-[#1A1A1A] rounded-full p-1 border border-white/5 shrink-0"
+                                            >
+                                                <button
+                                                    className="h-8 w-8 rounded-full flex items-center justify-center text-white disabled:opacity-50 active:scale-95 transition-transform"
+                                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                    disabled={quantity <= 1}
                                                 >
-                                                    <div className={cn(
-                                                        "aspect-square rounded-[2rem] overflow-hidden mb-3 border-2 transition-all relative shadow-md group-hover:shadow-xl",
-                                                        selectedUpsells.has(u.id) ? "border-orange-500 ring-4 ring-orange-500/10" : "border-transparent bg-slate-50"
-                                                    )}>
-                                                        {u.image_urls?.[0] ? (
-                                                            <img src={u.image_urls[0]} alt={u.name} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center bg-orange-50 text-orange-200">
-                                                                <Plus className="h-8 w-8" />
-                                                            </div>
-                                                        )}
-                                                        {selectedUpsells.has(u.id) && (
-                                                            <div className="absolute inset-0 bg-orange-600/20 backdrop-blur-[1px] flex items-center justify-center">
-                                                                <div className="bg-orange-600 text-white rounded-full p-1.5 shadow-2xl">
-                                                                    <Check className="h-5 w-5 stroke-[4]" />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-[11px] font-black uppercase tracking-tight text-slate-900 line-clamp-1 px-1">{u.name}</p>
-                                                    <p className="text-xs text-orange-600 font-black px-1">+{Math.round(u.price).toLocaleString()} <span className="opacity-50 text-[10px]">{currency}</span></p>
-                                                </motion.button>
-                                            ))}
+                                                    <Minus className="h-4 w-4" />
+                                                </button>
+                                                <span className="w-6 text-center text-white font-black text-sm">{quantity}</span>
+                                                <button
+                                                    className="h-8 w-8 rounded-full bg-orange-600 flex items-center justify-center text-white shadow-[0_5px_15px_rgba(234,88,12,0.4)] active:scale-95 transition-transform"
+                                                    onClick={() => setQuantity(quantity + 1)}
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            </motion.div>
                                         </div>
-                                    </div>
-                                )}
 
-                                <div className="space-y-4 pt-4 pb-6">
+                                        <motion.div
+                                            initial={{ y: 20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            transition={{ delay: 0.4 }}
+                                            className="pt-2"
+                                        >
+                                            <h4 className="text-sm font-bold text-white mb-2">Description</h4>
+                                            <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                                                {dish.description || "Une spécialité maison préparée avec soin pour révéler toutes ses saveurs."}
+                                            </p>
+                                        </motion.div>
+                                    </div>
+
+                                    {/* Upsells Section */}
+                                    {upsellDishes.length > 0 && (
+                                        <div className="space-y-5">
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
+                                                <div className="h-1 w-4 bg-orange-500 rounded-full" />
+                                                Accompagnements
+                                            </h4>
+                                            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
+                                                {upsellDishes.map((u, idx) => (
+                                                    <motion.button
+                                                        key={u.id}
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ delay: 0.5 + (idx * 0.1) }}
+                                                        onClick={() => toggleUpsell(u.id)}
+                                                        className={cn(
+                                                            "flex-shrink-0 w-32 group relative text-left transition-all",
+                                                            selectedUpsells.has(u.id) ? "translate-y-1" : "hover:translate-y-[-4px]"
+                                                        )}
+                                                    >
+                                                        <div className={cn(
+                                                            "aspect-square rounded-[1.5rem] overflow-hidden mb-3 border transition-all relative shadow-md group-hover:shadow-lg",
+                                                            selectedUpsells.has(u.id) ? "border-orange-500 ring-2 ring-orange-500/20" : "border-white/5 bg-[#1A1A1A]"
+                                                        )}>
+                                                            {u.image_urls?.[0] ? (
+                                                                <img src={u.image_urls[0]} alt={u.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-white/5 text-slate-500">
+                                                                    <Plus className="h-6 w-6" />
+                                                                </div>
+                                                            )}
+                                                            {selectedUpsells.has(u.id) && (
+                                                                <div className="absolute inset-0 bg-orange-600/20 backdrop-blur-[1px] flex items-center justify-center">
+                                                                    <div className="bg-orange-600 text-white rounded-full p-1.5 shadow-2xl">
+                                                                        <Check className="h-4 w-4 stroke-[4]" />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] font-black uppercase tracking-tight text-white line-clamp-1 px-1">{u.name}</p>
+                                                        <p className="text-xs text-orange-500 font-black px-1">+{Math.round(u.price).toLocaleString()} <span className="opacity-50 text-[10px]">{currency}</span></p>
+                                                    </motion.button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </div>
+
+                            {/* Sticky Bottom Action Bar */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-[#121212]/90 backdrop-blur-xl border-t border-white/5 px-6 py-6 pb-8 md:pb-6 pointer-events-auto">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-slate-400 font-bold mb-0.5 uppercase tracking-wider">Montant Total</span>
+                                        <span className="text-2xl font-black text-orange-500 tabular-nums leading-none">
+                                            {Math.round(totalPrice).toLocaleString()} <span className="text-sm opacity-60 text-white">{currency}</span>
+                                        </span>
+                                    </div>
                                     <Button
                                         onClick={handleAdd}
-                                        className="w-full text-lg h-20 rounded-[2.5rem] shadow-[0_20px_50px_-10px_rgba(234,88,12,0.4)] bg-orange-600 hover:bg-orange-700 font-black uppercase tracking-widest gap-4 active:scale-95 transition-all group overflow-hidden relative"
+                                        className="h-14 px-8 rounded-[1.5rem] shadow-[0_10px_20px_-5px_rgba(234,88,12,0.4)] bg-orange-600 hover:bg-orange-500 font-black text-white active:scale-95 transition-all text-sm uppercase tracking-widest"
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
-                                        <ShoppingCart className="h-6 w-6 transition-transform group-hover:rotate-12" />
-                                        <span className="relative z-10">
-                                            Ajouter • {Math.round(totalPrice).toLocaleString()} {currency}
-                                        </span>
+                                        Ajouter
                                     </Button>
-                                    <DrawerClose asChild>
-                                        <Button variant="ghost" className="w-full font-black text-slate-400 uppercase tracking-[0.2em] text-[10px] hover:bg-transparent hover:text-slate-600">
-                                            Fermer
-                                        </Button>
-                                    </DrawerClose>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                            </div>
+                        </>
+                    )}
+                </AnimatePresence>
             </DrawerContent>
         </Drawer>
     )

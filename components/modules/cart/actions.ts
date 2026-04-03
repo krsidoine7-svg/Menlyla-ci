@@ -17,14 +17,19 @@ const orderSchema = z.object({
 
 export async function submitOrder(data: any) {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     const validated = orderSchema.safeParse(data)
     if (!validated.success) {
-        return { success: false, message: "Données invalides" }
+        console.error("Validation error:", validated.error.flatten())
+        return { success: false, message: "Données invalides: " + Object.keys(validated.error.flatten().fieldErrors).join(', ') }
     }
 
-    const { restaurant_id, items, table_id } = validated.data
+    const { restaurant_id, items, table_id, customer_name } = validated.data
     const total_amount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+    // Append customer name to instructions if provided
+    let instructions = customer_name ? `Client: ${customer_name}` : ""
 
     const { data: order, error } = await supabase
         .from('orders')
@@ -32,14 +37,16 @@ export async function submitOrder(data: any) {
             restaurant_id,
             status: 'pending',
             total_amount,
-            table_id: table_id
+            table_id: table_id,
+            customer_id: user?.id || null,
+            special_instructions: instructions
         })
         .select()
         .single()
 
     if (error) {
-        console.error(error)
-        return { success: false, message: "Erreur création commande" }
+        console.error("Order creation error:", error)
+        return { success: false, message: `Erreur création commande: ${error.message}` }
     }
 
     // 2. Create Order Items
@@ -56,7 +63,8 @@ export async function submitOrder(data: any) {
         .insert(orderItems)
 
     if (itemsError) {
-        return { success: false, message: "Erreur détails commande" }
+        console.error("Order items creation error:", itemsError)
+        return { success: false, message: `Erreur détails commande: ${itemsError.message}` }
     }
 
     return { success: true, orderId: order.id }
