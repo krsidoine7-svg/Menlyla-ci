@@ -40,6 +40,7 @@ import { PassportCard } from '@/components/modules/passport/passport-card'
 import { ReviewModeration } from './review-moderation'
 import { ReviewStats } from './review-stats'
 import { PaymentGateways } from './payment-gateways'
+import { SubscriptionSettings } from './subscription-settings'
 
 const themePresets = [
     { color: '#0f172a', label: 'Ardoise' },
@@ -151,7 +152,7 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
         setProfileCustomLinks(initialProfile?.custom_links || [])
     }
 
-    const isExternalView = ['menu', 'legal', 'analytics', 'notifications', 'reviews'].includes(activeSection)
+    const isExternalView = ['menu', 'legal', 'analytics', 'notifications', 'reviews', 'subscription'].includes(activeSection)
 
     return (
         <div className="flex flex-col min-h-[80vh]">
@@ -165,6 +166,9 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
                         <ReviewStats reviews={initialReviews} />
                         <ReviewModeration initialReviews={initialReviews} />
                     </div>
+                )}
+                {activeSection === 'subscription' && (
+                    <SubscriptionSettings restaurant={restaurant} />
                 )}
 
                 {!isExternalView && (

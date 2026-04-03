@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils'
 import { reorderCategories, reorderDishes } from '../actions'
 import { toast } from 'sonner'
 import { DishDialog } from './dish-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 // --- SORTABLE CATEGORY ITEM ---
 function SortableCategoryItem({ category, children, viewMode }: { category: any, children: React.ReactNode, viewMode: string }) {
@@ -312,6 +313,24 @@ export function SortableCategoryList({
 }: any) {
     const [categories, setCategories] = useState(initialCategories)
     const [activeId, setActiveId] = useState<string | null>(null)
+    const [confirm, setConfirm] = useState<{
+        open: boolean
+        title: string
+        description: string
+        confirmLabel: string
+        variant: 'destructive' | 'warning' | 'default'
+        onConfirm: () => void
+    }>({
+        open: false,
+        title: '',
+        description: '',
+        confirmLabel: 'Confirmer',
+        variant: 'destructive',
+        onConfirm: () => {},
+    })
+
+    const ask = (cfg: Omit<typeof confirm, 'open'>) => setConfirm({ open: true, ...cfg })
+    const closeConfirm = () => setConfirm(c => ({ ...c, open: false }))
 
     useEffect(() => {
         setCategories(initialCategories)
@@ -378,6 +397,7 @@ export function SortableCategoryList({
     }
 
     return (
+        <>
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -407,9 +427,23 @@ export function SortableCategoryList({
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="rounded-xl">
                                                     <DropdownMenuItem onClick={() => onEdit(cat)}><Pencil className="mr-2 h-4 w-4" /> Modifier catégorie</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => onToggle(cat.id, cat.is_active)}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => ask({
+                                                        title: cat.is_active ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
+                                                        description: cat.is_active
+                                                            ? `La catégorie "${cat.name}" sera masquée du menu client.`
+                                                            : `La catégorie "${cat.name}" sera visible sur le menu client.`,
+                                                        confirmLabel: cat.is_active ? 'Désactiver' : 'Activer',
+                                                        variant: cat.is_active ? 'warning' : 'default',
+                                                        onConfirm: () => onToggle(cat.id, cat.is_active)
+                                                    })}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(cat.id)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => ask({
+                                                        title: 'Supprimer la catégorie ?',
+                                                        description: `"${cat.name}" et tous ses plats seront définitivement supprimés. Cette action est irréversible.`,
+                                                        confirmLabel: 'Supprimer définitivement',
+                                                        variant: 'destructive',
+                                                        onConfirm: () => onDelete(cat.id)
+                                                    })}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -418,7 +452,13 @@ export function SortableCategoryList({
                                         <SortableContext items={cat.dishes?.map((d: any) => d.id) || []} strategy={verticalListSortingStrategy}>
                                             <div className="space-y-3">
                                                 {cat.dishes?.map((dish: any) => (
-                                                    <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={onDeleteDish} onEdit={onEditDish || onEdit} />
+                                                    <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={(id: string) => ask({
+                                                        title: 'Supprimer le plat ?',
+                                                        description: `"${dish.name}" sera définitivement supprimé. Cette action est irréversible.`,
+                                                        confirmLabel: 'Supprimer',
+                                                        variant: 'destructive',
+                                                        onConfirm: () => onDeleteDish(id)
+                                                    })} onEdit={onEditDish || onEdit} />
                                                 ))}
                                             </div>
                                         </SortableContext>
@@ -447,9 +487,23 @@ export function SortableCategoryList({
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="rounded-xl">
                                                     <DropdownMenuItem onClick={() => onEdit(cat)}><Pencil className="mr-2 h-4 w-4" /> Modifier catégorie</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => onToggle(cat.id, cat.is_active)}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => ask({
+                                                        title: cat.is_active ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
+                                                        description: cat.is_active
+                                                            ? `La catégorie "${cat.name}" sera masquée du menu client.`
+                                                            : `La catégorie "${cat.name}" sera visible sur le menu client.`,
+                                                        confirmLabel: cat.is_active ? 'Désactiver' : 'Activer',
+                                                        variant: cat.is_active ? 'warning' : 'default',
+                                                        onConfirm: () => onToggle(cat.id, cat.is_active)
+                                                    })}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(cat.id)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => ask({
+                                                        title: 'Supprimer la catégorie ?',
+                                                        description: `"${cat.name}" et tous ses plats seront définitivement supprimés. Cette action est irréversible.`,
+                                                        confirmLabel: 'Supprimer définitivement',
+                                                        variant: 'destructive',
+                                                        onConfirm: () => onDelete(cat.id)
+                                                    })}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -457,14 +511,20 @@ export function SortableCategoryList({
 
                                     <SortableContext
                                         items={cat.dishes?.map((d: any) => d.id) || []}
-                                        strategy={rectSortingStrategy} // Grid Strategy
+                                        strategy={rectSortingStrategy}
                                     >
                                         <div className={viewMode === 'grid'
                                             ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
                                             : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                                         }>
                                             {cat.dishes?.map((dish: any) => (
-                                                <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={onDeleteDish} onEdit={onEditDish || onEdit} />
+                                                <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={(id: string) => ask({
+                                                    title: 'Supprimer le plat ?',
+                                                    description: `"${dish.name}" sera définitivement supprimé. Cette action est irréversible.`,
+                                                    confirmLabel: 'Supprimer',
+                                                    variant: 'destructive',
+                                                    onConfirm: () => onDeleteDish(id)
+                                                })} onEdit={onEditDish || onEdit} />
                                             ))}
                                             {(!cat.dishes || cat.dishes.length === 0) && (
                                                 <div className="col-span-full py-12 text-center border-2 border-dashed rounded-[2rem] bg-muted/5 text-muted-foreground font-medium">
@@ -480,5 +540,19 @@ export function SortableCategoryList({
                 </div>
             </SortableContext>
         </DndContext>
+
+        <ConfirmDialog
+            open={confirm.open}
+            onOpenChange={closeConfirm}
+            title={confirm.title}
+            description={confirm.description}
+            confirmLabel={confirm.confirmLabel}
+            variant={confirm.variant}
+            onConfirm={() => {
+                confirm.onConfirm()
+                closeConfirm()
+            }}
+        />
+        </>
     )
 }

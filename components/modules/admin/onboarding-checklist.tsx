@@ -11,6 +11,8 @@ type OnboardingStatus = {
     tables: boolean
     persona: boolean
     branding: boolean
+    logo: boolean
+    hours: boolean
 }
 
 export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {

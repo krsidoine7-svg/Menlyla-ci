@@ -1,6 +1,6 @@
-import { getAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
 import { 
     Settings, 
     Bell, 
@@ -13,7 +13,10 @@ import {
     AlertTriangle,
     Key,
     Activity,
-    Smartphone
+    Smartphone,
+    CreditCard,
+    Zap,
+    Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,217 +26,201 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SecretInput } from '@/components/modules/super-admin/secret-input'
+import { getSystemSettings, updateSystemSettings } from '@/app/(super-admin)/admin/actions'
+import { toast } from 'sonner'
 
-export default async function AdminSettingsPage() {
-    const supabase = await createClient()
-    const adminClient = getAdminClient()
+export default function AdminSettingsPage() {
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSaving, setIsSaving] = useState(false)
+    const [settings, setSettings] = useState<any>(null)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/admin/login')
+    useEffect(() => {
+        async function load() {
+            const data = await getSystemSettings()
+            setSettings(data)
+            setIsLoading(false)
+        }
+        load()
+    }, [])
 
-    // Verify admin
-    const { data: admin } = await adminClient
-        .from('app_admins')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
+    const handleSave = async () => {
+        setIsSaving(true)
+        const result = await updateSystemSettings({
+            platform_commission_percent: parseFloat(settings.platform_commission_percent),
+            monthly_pro_price_xof: parseInt(settings.monthly_pro_price_xof),
+            is_maintenance_mode: !!settings.is_maintenance_mode
+        })
 
-    if (!admin) redirect('/admin')
+        if (result.success) {
+            toast.success("Réglages enregistrés avec succès")
+        } else {
+            toast.error(result.error || "Une erreur est survenue")
+        }
+        setIsSaving(false)
+    }
+
+    if (isLoading) {
+        return (
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-4">
+                <Loader2 className="h-10 w-10 text-red-600 animate-spin" />
+                <p className="text-white/20 font-bold text-xs uppercase tracking-widest">Chargement de la configuration...</p>
+            </div>
+        )
+    }
 
     return (
-        <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-12 pb-12 animate-in fade-in duration-700">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm flex items-center gap-3 italic uppercase">
-                        <Settings className="h-8 w-8 text-slate-800" />
-                        Configurations
+                <div className="space-y-1">
+                    <h1 className="text-4xl font-bold tracking-tight text-white italic flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                            <Settings className="h-6 w-6 text-red-600" />
+                        </div>
+                        Configuration <span className="text-red-500">Système</span>
                     </h1>
-                    <p className="text-slate-500 font-medium max-w-2xl mt-1">Supervisez le cœur de la plateforme, de la sécurité aux tarifs, en passant par les APIs.</p>
+                    <p className="text-white/40 font-medium text-sm max-w-2xl">Paramètres critiques de la plateforme et des flux financiers.</p>
                 </div>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-xs px-8 h-12 rounded-2xl shadow-xl shadow-emerald-500/20 gap-2 transition-all hover:scale-105">
-                    <Save className="h-4 w-4" /> Sauvegarder tout
+                <Button 
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest px-10 h-14 rounded-2xl shadow-2xl shadow-red-600/30 gap-3 transition-all active:scale-95"
+                >
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Sauvegarder
                 </Button>
             </div>
 
-            <Tabs defaultValue="plateforme" className="w-full space-y-6">
-                <TabsList className="bg-white p-2 h-auto rounded-3xl border border-slate-100 shadow-sm gap-2 flex flex-wrap md:flex-nowrap justify-start">
-                    <TabsTrigger value="plateforme" className="rounded-2xl font-bold px-6 py-3 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all text-slate-500">
-                        <Globe className="h-4 w-4 mr-2" /> Plateforme & Tarifs
+            <Tabs defaultValue="plateforme" className="w-full space-y-8">
+                <TabsList className="bg-white/5 p-1.5 h-14 rounded-2xl border border-white/10 gap-2 flex overflow-x-auto scrollbar-none">
+                    <TabsTrigger value="plateforme" className="rounded-xl font-bold text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black h-full transition-all">
+                        <Globe className="h-4 w-4 mr-2" /> Plateforme
                     </TabsTrigger>
-                    <TabsTrigger value="notifications" className="rounded-2xl font-bold px-6 py-3 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:shadow-sm transition-all text-slate-500">
-                        <Bell className="h-4 w-4 mr-2" /> Alertes & Notifs
+                    <TabsTrigger value="api" className="rounded-xl font-bold text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black h-full transition-all">
+                        <Webhook className="h-4 w-4 mr-2" /> API & Webhooks
                     </TabsTrigger>
-                    <TabsTrigger value="api" className="rounded-2xl font-bold px-6 py-3 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all text-slate-500">
-                        <Webhook className="h-4 w-4 mr-2" /> Webhooks & API
-                    </TabsTrigger>
-                    <TabsTrigger value="securite" className="rounded-2xl font-bold px-6 py-3 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm transition-all text-slate-500">
-                        <ShieldCheck className="h-4 w-4 mr-2" /> Mon Compte & Sécurité
+                    <TabsTrigger value="securite" className="rounded-xl font-bold text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black h-full transition-all">
+                        <ShieldCheck className="h-4 w-4 mr-2" /> Sécurité
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="plateforme" className="space-y-6 mt-6">
-                    <Card className="border-none shadow-sm overflow-hidden bg-white/80 backdrop-blur-sm">
-                        <CardHeader className="bg-indigo-50/50 border-b border-indigo-100/50">
-                            <CardTitle className="flex items-center gap-2 text-xl font-black italic uppercase text-indigo-950">
-                                <Percent className="h-5 w-5 text-indigo-600" /> Tarification & Commissions
+                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden backdrop-blur-xl">
+                        <CardHeader className="bg-white/[0.02] border-b border-white/5 px-10 py-8">
+                            <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center gap-3">
+                                <Percent className="h-5 w-5 text-red-600" /> Tarification
                             </CardTitle>
-                            <CardDescription className="text-sm font-medium">Définissez les frais globaux appliqués par Menlyla aux transactions des restaurants.</CardDescription>
+                            <CardDescription className="text-xs font-medium text-white/20 uppercase tracking-widest leading-relaxed">Frais de plateforme et abonnements.</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-3">
-                                <Label className="font-bold text-slate-700 text-sm uppercase tracking-tight">Frais de Commission Menlyla</Label>
-                                <div className="relative">
-                                    <Input defaultValue="2.5" type="number" step="0.1" className="h-12 rounded-xl border-slate-200 font-black text-lg pl-4 pr-12 focus-visible:ring-indigo-500" />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black">%</span>
-                                </div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">+ frais GeniusPay/Lygos inclus</p>
-                            </div>
-                            <div className="space-y-3">
-                                <Label className="font-bold text-slate-700 text-sm uppercase tracking-tight">Abonnement PRO (Prix Mensuel)</Label>
-                                <div className="relative">
-                                    <Input defaultValue="25000" type="number" step="1000" className="h-12 rounded-xl border-slate-200 font-black text-lg pl-4 pr-16 focus-visible:ring-indigo-500" />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black">XOF</span>
-                                </div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Facturé automatiquement chaque mois</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-2 border-rose-100 shadow-sm overflow-hidden bg-white">
-                        <CardHeader className="bg-rose-50/30 border-b border-rose-100">
-                            <CardTitle className="flex items-center gap-2 text-xl font-black italic uppercase text-rose-950">
-                                <AlertTriangle className="h-5 w-5 text-rose-600" /> Globals & Urgences
-                            </CardTitle>
-                            <CardDescription className="text-sm font-medium text-rose-600/80">Paramètres système de bas-niveau.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-8 space-y-6">
-                            <div className="flex items-center justify-between p-5 rounded-2xl border border-rose-100 bg-rose-50/20 group hover:shadow-md transition-all">
-                                <div className="space-y-1">
-                                    <Label className="text-base font-black uppercase tracking-tight text-slate-900">Activer le Mode Maintenance</Label>
-                                    <p className="text-xs font-bold text-slate-500">Rend la plateforme client inaccessible et affiche une page 'En travaux'. Côté Admin reste accessible.</p>
-                                </div>
-                                <Switch className="data-[state=checked]:bg-rose-600" />
-                            </div>
-                            <div className="flex items-center justify-between p-5 rounded-2xl border border-indigo-100 bg-indigo-50/20 group hover:shadow-md transition-all">
-                                <div className="space-y-1">
-                                    <Label className="text-base font-black uppercase tracking-tight text-slate-900">Désactiver les Inscriptions Restaurants</Label>
-                                    <p className="text-xs font-bold text-slate-500">Bloque temporairement les nouvelles signatures sur la landing page SaaS.</p>
-                                </div>
-                                <Switch className="data-[state=checked]:bg-indigo-600" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="notifications" className="space-y-6 mt-6">
-                    <Card className="border-none shadow-sm overflow-hidden bg-white">
-                        <CardHeader className="bg-orange-50/50 border-b border-orange-100/50">
-                            <CardTitle className="flex items-center gap-2 text-xl font-black italic uppercase text-orange-950">
-                                <Bell className="h-5 w-5 text-orange-600" /> Préférences d'Envoi
-                            </CardTitle>
-                            <CardDescription className="text-sm font-medium">Contrôlez le volume d'emails que l'interface administrateur vous envoie.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-8 space-y-8">
+                        <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div className="space-y-4">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2"><Lock className="h-3 w-3" /> Modération & Sécurité</h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-black uppercase tracking-tight text-slate-900">Alerte Signalements Urgents</Label>
-                                            <p className="text-[10px] font-bold text-slate-500">Email envoyé immédiatement lorsqu'une boutique ou un profil est signalé(e).</p>
-                                        </div>
-                                        <Switch defaultChecked className="data-[state=checked]:bg-orange-600" />
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-black uppercase tracking-tight text-slate-900">Connexions depuis une nouvelle IP</Label>
-                                            <p className="text-[10px] font-bold text-slate-500">Sécurité de votre propre compte {admin.email}.</p>
-                                        </div>
-                                        <Switch defaultChecked className="data-[state=checked]:bg-orange-600" />
-                                    </div>
+                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Commission de service</Label>
+                                <div className="relative">
+                                    <Input 
+                                        value={settings.platform_commission_percent} 
+                                        onChange={(e) => setSettings({ ...settings, platform_commission_percent: e.target.value })}
+                                        type="number" 
+                                        step="0.1" 
+                                        className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold text-2xl text-white pl-8 pr-14 focus:border-red-600 transition-all shadow-inner" 
+                                    />
+                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-bold text-xl">%</span>
                                 </div>
+                            </div>
+                            <div className="space-y-4">
+                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Forfait PRO mensuel</Label>
+                                <div className="relative">
+                                    <Input 
+                                        value={settings.monthly_pro_price_xof} 
+                                        onChange={(e) => setSettings({ ...settings, monthly_pro_price_xof: e.target.value })}
+                                        type="number" 
+                                        className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold text-2xl text-white pl-8 pr-20 focus:border-red-600 transition-all shadow-inner" 
+                                    />
+                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-bold text-sm uppercase tracking-widest">XOF</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-red-600/5 border-red-600/10 rounded-[3rem] shadow-3xl overflow-hidden backdrop-blur-xl">
+                        <CardHeader className="border-b border-red-600/10 px-10 py-8 flex flex-row items-center justify-between">
+                            <div className="space-y-1">
+                                <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center gap-3">
+                                    <AlertTriangle className="h-5 w-5 text-red-600" /> Mode Urgence
+                                </CardTitle>
+                                <CardDescription className="text-[10px] font-medium text-red-600/40 uppercase tracking-widest">Contrôle de l'accès public</CardDescription>
+                            </div>
+                            <Switch 
+                                checked={settings.is_maintenance_mode}
+                                onCheckedChange={(val) => setSettings({ ...settings, is_maintenance_mode: val })}
+                                className="data-[state=checked]:bg-red-600" 
+                            />
+                        </CardHeader>
+                        <CardContent className="p-10">
+                            <div className="p-8 rounded-[2rem] bg-black/40 border border-white/5 space-y-2">
+                                <p className="text-sm font-bold text-white italic tracking-tight italic">Attention !</p>
+                                <p className="text-[10px] font-medium text-white/20 leading-relaxed uppercase tracking-widest">
+                                    L'activation du mode maintenance rendra tous les menus et boutiques inaccessibles pour les clients. 
+                                    Seul le dashboard admin restera opérationnel.
+                                </p>
                             </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="api" className="space-y-6 mt-6">
-                    <Card className="border-none shadow-sm overflow-hidden bg-white">
-                        <CardHeader className="bg-slate-900 border-b border-slate-800 text-white">
-                            <CardTitle className="flex items-center gap-2 text-xl font-black italic uppercase text-white">
-                                <Webhook className="h-5 w-5 text-emerald-400" /> Passerelles & Automatisation
+                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden">
+                        <CardHeader className="bg-black/40 border-b border-white/5 px-10 py-8">
+                            <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center gap-3">
+                                <Webhook className="h-5 w-5 text-red-600" /> Connexions Externes
                             </CardTitle>
-                            <CardDescription className="text-sm font-medium text-slate-400">Gérez les connexions critiques vers l'extérieur (Make, OpenAI, Paiements).</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-8 space-y-8">
-                            <div className="space-y-3">
-                                <Label className="font-bold text-slate-700 text-sm uppercase tracking-tight">Make.com Webhook URL (Lead Magnet)</Label>
+                        <CardContent className="p-10 space-y-10">
+                            <div className="space-y-4">
+                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Webhook Lead Magnet (Make.com)</Label>
                                 <SecretInput 
-                                    defaultValue={process.env.NEXT_PUBLIC_MAKE_WEBHOOK_URL || "https://hook.eu2.make.com/..."} 
-                                    placeholder="URL Make.com" 
+                                    defaultValue={process.env.NEXT_PUBLIC_MAKE_WEBHOOK_URL || ""} 
+                                    placeholder="https://hook.make.com/..." 
                                 />
-
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Connecté au formulaire public de contact/adhésion.</p>
                             </div>
 
-                            <div className="space-y-3 pt-4 border-t border-slate-100">
-                                <Label className="font-bold text-slate-700 text-sm uppercase tracking-tight">GeniusPay / Lygos - Clé API Secrète</Label>
+                            <div className="space-y-4 pt-10 border-t border-white/5">
+                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">GeniusPay / Lygos - Clé API Secrète (Live)</Label>
                                 <SecretInput 
-                                    defaultValue="lyg_live_sk_89f9e..." 
+                                    defaultValue="lyg_live_sk_..." 
                                     placeholder="Clé Secrète" 
                                 />
+                                <div className="flex items-center gap-3 px-4 py-2 bg-emerald-500/5 rounded-full border border-emerald-500/10 w-fit">
+                                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                                    <span className="text-[9px] font-black text-emerald-500/60 uppercase tracking-widest">Utilisé pour le checkout global Menlyla</span>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="securite" className="space-y-6 mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Account Details / Stats */}
-                    <Card className="border-none shadow-sm bg-gradient-to-br from-slate-900 to-slate-950 text-white overflow-hidden">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 text-emerald-500" /> Votre Session
+                <TabsContent value="securite" className="space-y-6 mt-6">
+                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden">
+                        <CardHeader className="bg-white/[0.02] border-b border-white/5 px-10 py-8 text-center sm:text-left">
+                            <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center justify-center sm:justify-start gap-3">
+                                <ShieldCheck className="h-5 w-5 text-red-600" /> Session Administrateur
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="pt-4">
-                            <div className="space-y-6">
-                                <div className="space-y-1">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Connecté en tant que</p>
-                                    <div className="font-black text-white italic text-xl truncate">{admin.email}</div>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {admin.is_super_admin ? (
-                                        <Badge className="bg-orange-500 hover:bg-orange-600 font-black uppercase tracking-widest text-[10px] px-3 py-1.5 shadow-lg shadow-orange-500/20 text-white border-none">Super-Admin</Badge>
-                                    ) : (
-                                        <Badge variant="outline" className="border-white/20 text-slate-300 font-black uppercase tracking-widest text-[10px] px-3 py-1.5">Administrateur</Badge>
-                                    )}
-                                    <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-black tracking-widest text-[10px] px-3 py-1.5">SÉCURISÉ</Badge>
-                                </div>
-                                <div className="pt-6 border-t border-white/10 flex flex-col gap-2">
-                                    <Button className="w-full bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] h-11 border border-white/10">
-                                        Changer mon mot de passe
-                                    </Button>
-                                    <Button variant="ghost" className="w-full text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-black uppercase tracking-widest text-[10px] h-11">
-                                        Se déconnecter de tous les appareils
-                                    </Button>
+                        <CardContent className="p-10 flex flex-col items-center sm:items-start gap-10">
+                            <div className="space-y-4">
+                                <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest">Compte Actif</p>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                                    <div className="h-16 w-16 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center text-red-600 font-bold text-2xl">
+                                        SA
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-2xl font-bold text-white italic tracking-tighter">Super Admin</div>
+                                        <div className="text-[10px] font-medium text-white/20 uppercase tracking-widest">Contrôle total activé</div>
+                                    </div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-dashed border-2 border-slate-200 bg-white rounded-3xl overflow-hidden flex flex-col justify-center">
-                        <CardContent className="p-8 text-center flex flex-col items-center">
-                            <div className="relative mb-6">
-                                <div className="h-24 w-24 bg-indigo-50 rounded-full flex items-center justify-center border-4 border-indigo-100 relative z-10">
-                                    <Smartphone className="h-10 w-10 text-indigo-600" />
-                                </div>
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-500/10 rounded-full animate-ping" />
+                            <div className="flex flex-wrap gap-4 pt-6 border-t border-white/5 w-full">
+                                <Button variant="outline" className="flex-1 min-w-[200px] h-14 border-white/10 bg-white/5 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-white/10 text-white">Sécurité du compte</Button>
+                                <Button variant="ghost" className="flex-1 min-w-[200px] h-14 text-red-600 font-bold text-xs uppercase tracking-widest hover:bg-red-600/10 rounded-2xl">Se déconnecter</Button>
                             </div>
-                            <h4 className="font-black text-slate-900 text-xl uppercase italic tracking-tighter">Authentification 2FA</h4>
-                            <p className="text-sm font-medium text-slate-500 mt-2 max-w-sm">Renforcez la sécurité de votre compte administrateur en associant Google Authenticator.</p>
-                            <Button className="mt-8 bg-indigo-600 hover:bg-indigo-700 w-full font-black uppercase tracking-widest h-12 rounded-xl shadow-xl shadow-indigo-600/20 text-white gap-2">
-                                <Key className="h-4 w-4" /> Configurer 2FA
-                            </Button>
                         </CardContent>
                     </Card>
                 </TabsContent>

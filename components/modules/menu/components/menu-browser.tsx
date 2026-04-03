@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
-import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check, MessageSquare, ChevronDown, ShoppingBag, Truck } from 'lucide-react'
+import { Search, Star, Flame, Leaf, FlameKindling, Wheat, UtensilsCrossed, Trophy, Heart, Share2, Bookmark, Receipt, User, History, MapPin, Phone, Mail, LogOut, Loader2, ChevronRight, Clock, Calendar, Instagram, Twitter, MessageCircle, Facebook, Video, Wifi, CreditCard, Navigation, ShieldCheck, StarHalf, Plus, Copy, Check, MessageSquare, ChevronDown, ShoppingBag, Truck, Store, Sparkles } from 'lucide-react'
 import { AddToCartDrawer } from '@/components/modules/menu/components/add-to-cart-drawer'
 import { LikeButton } from '@/components/modules/menu/components/like-button'
 import { EventFocusDrawer } from '@/components/modules/menu/components/event-focus-drawer'
@@ -17,7 +17,7 @@ import { useFavoritesStore } from '@/lib/store/favorites'
 import { useCartStore } from '@/lib/store/cart'
 import { useUIStore } from '@/lib/store/ui-store'
 import { cn, formatOrderId } from '@/lib/utils'
-import { getOrdersByIds } from '../actions'
+import { getOrdersByIds, submitOrderFeedback } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 
 const formatDate = (dateStr: string) => {
@@ -40,8 +40,7 @@ type Props = {
 }
 
 export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
-    const [searchQuery, setSearchQuery] = useState('')
-    const { activeTab: activeFilter, setActiveTab: setActiveFilter } = useUIStore()
+    const { activeTab: activeFilter, setActiveTab: setActiveFilter, searchQuery, setSearchQuery } = useUIStore()
     const { dishIds: favoriteIds } = useFavoritesStore()
     const searchRef = useMemo(() => ({ current: null as HTMLInputElement | null }), [])
 
@@ -105,7 +104,7 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
         <div className="flex flex-col gap-6">
             {/* Contextual Header: Only show search/filters if NOT in a special view */}
             {!['orders', 'profile', 'favorites'].includes(activeFilter || '') && (
-                <div className="sticky top-16 z-20 bg-[#080808]/80 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-white/5">
+                <div className="sticky top-16 z-20 bg-[#080808]/80 backdrop-blur-xl py-2 -mx-4 px-4 border-b border-white/5">
                     {activeFilter === 'search' && (
                         <div className="relative mb-4">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -119,8 +118,8 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                         </div>
                     )}
 
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 pt-1">
+                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 pt-1">
+
                             <FilterBadge
                                 active={activeFilter === 'promo'}
                                 onClick={() => toggleFilter('promo')}
@@ -156,9 +155,9 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                                 label="Sans Gluten"
                                 color="bg-sky-600 shadow-sky-600/20"
                             />
-                        </div>
                     </div>
                 </div>
+
             )}
 
             {/* View Indicator for special sections */}
@@ -230,8 +229,8 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                             </section>
                         )}
 
-                        {/* Events Section in Menu */}
-                        <EventsSection settings={restaurant.settings} />
+                        {/* Events Section in Menu (only show if no search) */}
+                        {!searchQuery && <EventsSection settings={restaurant.settings} />}
 
                         {filteredCategories.map((cat) => (
                             <section key={cat.id} id={`cat-${cat.id}`} className="scroll-mt-48 px-2">
@@ -272,13 +271,16 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
                                     )}
                                 </div>
                                 <h3 className="text-xl font-black uppercase mb-2 text-white">
-                                    {activeFilter === 'favorites' ? "Aucun favori" : "Aucun résultat"}
+                                    {searchQuery ? "Aucun résultat" : activeFilter === 'favorites' ? "Aucun favori" : "Aucun résultat"}
                                 </h3>
                                 <p className="text-muted-foreground mb-6">
-                                    {activeFilter === 'favorites'
-                                        ? "Cliquez sur le petit cœur des plats pour les retrouver ici plus tard !"
-                                        : "Aucun plat ne correspond à vos critères de recherche."}
+                                    {searchQuery 
+                                        ? `Désolé, nous n'avons trouvé aucun plat correspondant à "${searchQuery}".` 
+                                        : activeFilter === 'favorites'
+                                            ? "Cliquez sur le petit cœur des plats pour les retrouver ici plus tard !"
+                                            : "Aucun plat ne correspond à vos critères de recherche."}
                                 </p>
+
                                 <button
                                     onClick={() => { setSearchQuery(''); setActiveFilter(null); window.location.hash = '' }}
                                     className="px-6 py-3 bg-orange-500/10 text-orange-600 rounded-full font-black uppercase text-xs tracking-widest hover:bg-orange-500/20 transition-colors"
@@ -294,9 +296,110 @@ export function MenuBrowser({ categories, restaurant, ownerPassport }: Props) {
     )
 }
 
+function RatingForm({ orderId, currentRating }: { orderId: string, currentRating?: number }) {
+    const [rating, setRating] = useState(currentRating || 0)
+    const [hover, setHover] = useState(0)
+    const [comment, setComment] = useState('')
+    const [submitting, setSubmitting] = useState(false)
+    const [submitted, setSubmitted] = useState(!!currentRating)
+
+    const handleSubmit = async () => {
+        if (rating === 0) return
+        setSubmitting(true)
+        try {
+            await submitOrderFeedback(orderId, rating, comment)
+            setSubmitted(true)
+            toast.success("Merci pour votre retour ! ⭐")
+        } catch (e: any) {
+            toast.error(e.message)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    if (submitted) return (
+        <div className="bg-black/5 rounded-[2.5rem] p-6 text-center border border-dashed border-black/10">
+            <p className="text-[10px] font-black uppercase tracking-widest text-black/20 italic">Avis Consigné</p>
+            <div className="flex justify-center gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map(s => (
+                    <Star key={s} className={cn("h-4 w-4", s <= rating ? "text-orange-500 fill-orange-500" : "text-black/5")} />
+                ))}
+            </div>
+            <p className="text-xs font-bold mt-2 italic">Votre avis aide le restaurant à s'améliorer !</p>
+        </div>
+    )
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-black text-white rounded-[3rem] p-8 shadow-2xl space-y-6 relative overflow-hidden"
+        >
+            <div className="absolute top-0 right-0 h-32 w-32 bg-orange-600/10 blur-3xl rounded-full translate-x-10 -translate-y-10" />
+            
+            <div className="text-center space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 italic">Notez votre expérience</p>
+                <h4 className="text-xl font-black italic tracking-tighter">Comment s'est passé votre repas ?</h4>
+            </div>
+
+            <div className="flex justify-center gap-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <motion.button
+                        key={star}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.9 }}
+                        onMouseEnter={() => setHover(star)}
+                        onMouseLeave={() => setHover(0)}
+                        onClick={() => setRating(star)}
+                        className="relative"
+                    >
+                        <Star 
+                            className={cn(
+                                "h-10 w-10 transition-all duration-300", 
+                                (hover || rating) >= star ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.4)]" : "text-white/10"
+                            )} 
+                        />
+                    </motion.button>
+                ))}
+            </div>
+
+            <div className="space-y-4">
+                <div className="relative">
+                    <textarea 
+                        className="w-full bg-white/5 border border-white/5 rounded-[2rem] p-5 text-sm italic placeholder:text-white/20 focus:outline-none focus:border-orange-500/50 transition-all border-none resize-none min-h-[100px]"
+                        placeholder="Un petit mot au Chef ou pour nous ?"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                    />
+                    <Sparkles className="absolute right-4 bottom-4 h-4 w-4 text-white/5" />
+                </div>
+
+                <Button 
+                    disabled={rating === 0 || submitting}
+                    onClick={handleSubmit}
+                    className="w-full h-14 rounded-[1.8rem] bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-orange-600/20 active:scale-95 transition-all gap-2"
+                >
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Envoyer mon avis</>}
+                </Button>
+            </div>
+        </motion.div>
+    )
+}
+
 function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], currency: string }) {
     const [orders, setOrders] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+
+    const getStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
+            pending: 'Reçue',
+            preparing: 'En Cuisine',
+            ready: 'À servir !',
+            delivered: 'Servi',
+            completed: 'Dégusté'
+        }
+        return labels[status] || status
+    }
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -305,37 +408,33 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
             setOrders(data)
             setLoading(false)
         }
-        fetchOrders()
-
-        if (activeOrderIds.length === 0) return
         
-        const supabase = createClient()
-        const channel = supabase
-            .channel('customer-orders-view')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    table: 'orders',
-                    schema: 'public',
-                },
-                (payload: any) => {
-                    if (activeOrderIds.includes(payload.new.id)) {
-                        setOrders(current => {
-                            // Check if status changed
-                            const existing = current.find(o => o.id === payload.new.id)
-                            if (existing && existing.status !== payload.new.status) {
-                                return current.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)
-                            }
-                            return current
-                        })
+        if (activeOrderIds.length > 0) {
+            fetchOrders()
+            
+            const supabase = createClient()
+            const channel = supabase
+                .channel('customer-orders-view')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        table: 'orders',
+                        schema: 'public',
+                    },
+                    (payload: any) => {
+                        if (activeOrderIds.includes(payload.new?.id || payload.old?.id)) {
+                            fetchOrders() // Refresh all to stay in sync
+                        }
                     }
-                }
-            )
-            .subscribe()
+                )
+                .subscribe()
 
-        return () => {
-            supabase.removeChannel(channel)
+            return () => {
+                supabase.removeChannel(channel)
+            }
+        } else {
+            setLoading(false)
         }
     }, [activeOrderIds])
 
@@ -347,8 +446,8 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
                     <Receipt className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-orange-600" />
                 </div>
                 <div className="text-center space-y-2">
-                    <p className="text-lg font-black uppercase tracking-widest text-white">Vérification...</p>
-                    <p className="text-xs text-muted-foreground font-bold">Nous récupérons vos dernières commandes</p>
+                    <p className="text-lg font-black uppercase tracking-widest text-black/20 italic">Synchronisation...</p>
+                    <p className="text-xs text-muted-foreground font-bold">Récupération de vos commandes</p>
                 </div>
             </div>
         )
@@ -356,95 +455,89 @@ function OrdersView({ activeOrderIds, currency }: { activeOrderIds: string[], cu
 
     if (orders.length === 0) {
         return (
-            <div className="text-center py-20 px-8 space-y-6">
-                <div className="h-24 w-24 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-lg">
-                    <History className="h-10 w-10 text-orange-200" />
+            <div className="text-center py-20 px-8 space-y-6 opacity-30">
+                <div className="h-24 w-24 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-dashed border-black/10">
+                    <History className="h-10 w-10 text-black/20" />
                 </div>
                 <div className="space-y-2">
-                    <h3 className="text-2xl font-black uppercase text-white">Aucune commande</h3>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                        C'est ici que vous pourrez suivre vos commandes en temps réel dès qu'elles seront envoyées en cuisine.
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">Aucune commande active</h3>
+                    <p className="text-[10px] font-black uppercase tracking-widest max-w-[200px] mx-auto">
+                        Scannez un QR code ou commandez au menu pour voir vos plats ici.
                     </p>
                 </div>
-                <Button
-                    className="rounded-full h-12 px-8 bg-orange-600 hover:bg-orange-700 shadow-lg shadow-orange-600/20 font-black uppercase text-xs tracking-widest"
-                    onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                >
-                    Voir le menu
-                </Button>
             </div>
         )
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
-            <div className="relative px-1">
-                <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-orange-600 rounded-r-full" />
-                <h2 className="text-2xl font-black uppercase tracking-tight text-white">Suivi Cuisine</h2>
-                <p className="text-xs font-bold text-orange-600/60 uppercase tracking-widest leading-none mt-1">Vos plats en préparation</p>
+        <div className="space-y-10 animate-in fade-in duration-700">
+            <div className="flex items-center justify-between pb-2 border-b border-black/5">
+                <div className="flex items-center gap-3">
+                    <div className="h-6 w-1 bg-red-600 rounded-full" />
+                    <h2 className="text-xl font-bold tracking-tight text-slate-800 uppercase">Suivi de commande</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-red-600 animate-ping" />
+                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest italic">Live</span>
+                </div>
             </div>
 
-            <div className="grid gap-6">
+            <div className="space-y-8">
                 {orders.map((order) => {
-                    const statusConfig = {
-                        pending: { label: 'Reçue', icon: Clock, color: 'bg-slate-100 text-slate-600 border-slate-200' },
-                        preparing: { label: 'En Cuisine', icon: Flame, color: 'bg-orange-500 text-white shadow-orange-500/30' },
-                        ready: { label: 'Prête !', icon: Star, color: 'bg-green-600 text-white shadow-green-600/30' },
-                        completed: { label: 'Servie', icon: Receipt, color: 'bg-slate-900 text-white' }
-                    }[order.status as string] || { label: order.status, icon: Clock, color: 'bg-slate-100 text-slate-600' }
-
+                    const isTakeAway = order.dining_type === 'take_away'
+                    const isPaid = order.payment_status === 'paid'
+                    const canRate = ['ready', 'delivered', 'completed'].includes(order.status)
+                    
                     return (
-                        <div key={order.id} className="group relative bg-[#121212] border border-white/5 rounded-[2.5rem] p-6 shadow-2xl transition-all duration-300">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="space-y-1.5">
-                                    <Badge variant="outline" className="rounded-full border-orange-100 bg-orange-50/50 text-orange-600 font-black text-[10px] px-3">
-                                        #{formatOrderId(order.id, order.created_at)}
-                                    </Badge>
-                                    <div className="text-xl font-black uppercase tracking-tight text-slate-900">
-                                        {order.tables?.name || 'Sur place'}
-                                    </div>
-                                </div>
-                                <div className="text-right flex flex-col items-end gap-2">
-                                    <Badge className={cn(
-                                        "rounded-full font-black text-[10px] uppercase py-1.5 px-4 flex items-center gap-1.5 border-0",
-                                        statusConfig.color
-                                    )}>
-                                        <statusConfig.icon className="h-3 w-3" />
-                                        {statusConfig.label}
-                                    </Badge>
-                                    <span className="text-[10px] font-bold text-slate-400">
-                                        {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 py-4 border-t border-dashed border-orange-100">
-                                {order.order_items?.map((item: any, idx: number) => (
-                                    <div key={idx} className="flex justify-between items-center group/item">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-xl bg-orange-50 flex items-center justify-center font-black text-orange-600 text-sm">
-                                                {item.quantity}
-                                            </div>
-                                            <span className="font-bold text-slate-700 group-hover/item:text-orange-600 transition-colors">
-                                                {item.dishes?.name}
-                                            </span>
+                        <div key={order.id} className="space-y-2">
+                            <Card className="rounded-xl border border-white/5 shadow-none bg-[#0A0A0A] overflow-hidden text-white/90">
+                                <CardHeader className="p-3 pb-1.5 flex flex-row justify-between items-center space-y-0">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-[7px] font-black uppercase text-amber-500/40 tracking-[0.2em] leading-none mb-0.5">ORDER</span>
+                                            <span className="text-xs font-bold tracking-tight text-white/40 leading-none">#{formatOrderId(order.id, order.created_at).slice(-6)}</span>
                                         </div>
-                                        <span className="tabular-nums font-black text-slate-400 text-sm italic">
-                                            {(item.unit_price * item.quantity).toLocaleString()} <small className="not-italic text-[10px] opacity-70">{currency}</small>
-                                        </span>
+                                        <div className="h-4 w-px bg-white/5 mx-1" />
+                                        <div className={cn(
+                                            "px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest",
+                                            order.status === 'delivered' ? "bg-white/10 text-white/60" : "bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                                        )}>
+                                            {getStatusLabel(order.status)}
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="flex items-center gap-2">
+                                        {isPaid && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />}
+                                        <span className="text-[8px] font-black tabular-nums opacity-20">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-3 pt-1.5 space-y-3">
+                                    <div className="space-y-1.5">
+                                        {order.order_items?.map((item: any, idx: number) => (
+                                            <div key={idx} className="flex justify-between items-center text-[10px]">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-amber-500/60 font-bold tabular-nums min-w-[12px]">{item.quantity}x</span>
+                                                    <span className="font-medium tracking-tight text-white/70 truncate max-w-[120px]">{item.dishes?.name}</span>
+                                                </div>
+                                                <span className="font-bold tabular-nums text-white/30">{(item.price * item.quantity).toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
 
-                            <div className="flex justify-between items-center pt-6 border-t border-slate-50">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 rounded-full bg-orange-600 animate-pulse" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total payé</span>
-                                </div>
-                                <span className="text-2xl font-black text-slate-900 tracking-tighter">
-                                    {order.total_amount.toLocaleString()} <span className="text-sm font-bold opacity-30">{currency}</span>
-                                </span>
-                            </div>
+                                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                        <div className="flex items-center gap-1">
+                                            <div className="h-1 w-1 rounded-full bg-amber-500/50" />
+                                            <span className="text-[7px] font-black uppercase tracking-widest text-white/20">TOTAL</span>
+                                        </div>
+                                        <div className="text-base font-black tracking-tight text-white italic">
+                                            {Number(order.total_amount).toLocaleString()} <span className="text-[8px] opacity-10 font-bold uppercase not-italic">XOF</span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            
+                            {canRate && (
+                                <RatingForm orderId={order.id} currentRating={order.rating} />
+                            )}
                         </div>
                     )
                 })}
@@ -786,9 +879,12 @@ function ProfileView({ restaurant, ownerPassport }: { restaurant: any, ownerPass
                     <span>Données sécurisées & confidentialité</span>
                 </div>
                 <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-slate-200 to-transparent mx-auto" />
-                <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-300">
-                    Powered by MENLYLA
-                </p>
+                <div className="flex flex-col items-center gap-2">
+                    <img src="/logos/logo-text.svg" alt="MENLYLA" className="h-3 filter brightness-0 invert opacity-40 hover:opacity-100 transition-all" />
+                    <p className="text-[6px] font-black uppercase tracking-[0.3em] text-slate-500">
+                        Menu Digital & Paiement sécurisé
+                    </p>
+                </div>
             </div>
         </div>
     )
@@ -825,6 +921,9 @@ function FilterBadge({ active, onClick, icon, label, color, inactiveColor }: any
 }
 
 function DishCard({ dish, restaurant }: any) {
+    const { toggleFavorite, dishIds } = useFavoritesStore()
+    const isFavorite = dishIds.includes(dish.id)
+
     return (
         <AddToCartDrawer
             dish={dish}
@@ -841,8 +940,20 @@ function DishCard({ dish, restaurant }: any) {
                             alt={dish.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
                         />
-                        <button onClick={(e) => { e.stopPropagation(); /* Add Favorite Logic here */ }} className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white border border-white/10 hover:bg-orange-500 transition-colors z-10">
-                            <Heart className="h-4 w-4" />
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                toggleFavorite(dish.id);
+                                if (!isFavorite) toast.success(`${dish.name} ajouté aux favoris !`);
+                            }} 
+                            className={cn(
+                                "absolute top-3 right-3 h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center border transition-all z-10",
+                                isFavorite 
+                                    ? "bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/20" 
+                                    : "bg-black/20 text-white border-white/10 hover:bg-orange-500/50"
+                            )}
+                        >
+                            <Heart className={cn("h-4 w-4 transition-transform", isFavorite && "fill-current scale-110")} />
                         </button>
                         {/* Floating Price */}
                         <div className="absolute bottom-3 right-3 bg-orange-600 text-white px-3 py-1.5 rounded-full font-black text-xs shadow-lg">

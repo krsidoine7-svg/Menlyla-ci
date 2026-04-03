@@ -28,7 +28,7 @@ export function CategoryNav({ categories }: { categories: any[] }) {
     }, [categories])
 
     return (
-        <div className="relative sticky top-[160px] z-40 bg-gradient-to-b from-[#080808]/95 to-[#080808]/80 backdrop-blur-xl border-b border-white/5 shadow-xl -mx-4 px-4 overflow-x-auto no-scrollbar py-4 mb-8">
+        <div className="relative z-40 bg-gradient-to-b from-[#080808]/95 to-[#080808]/80 backdrop-blur-xl border-b border-white/5 -mx-4 px-4 overflow-x-auto no-scrollbar py-2">
             <div className="flex items-center gap-3 w-max">
             {categories?.map((cat) => {
                 const hasEmoji = cat.name.match(/^([\p{Emoji}\p{Extended_Pictographic}])/u)

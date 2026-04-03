@@ -13,6 +13,7 @@ import { ReviewDialog } from '@/components/modules/restaurant/components/review-
 import { ReviewsList } from '@/components/modules/restaurant/components/reviews-list'
 import { getRestaurantReviews } from '@/components/modules/restaurant/review-actions'
 import { MobileNavbar } from '@/components/modules/restaurant/components/mobile-navbar'
+import { HeaderSearchBar } from '@/components/modules/menu/components/header-search-bar'
 import { cn } from '@/lib/utils'
 
 import { WaiterFAB } from '@/components/modules/restaurant/components/waiter-fab'
@@ -45,7 +46,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
 
     const { data: categories } = await supabase
         .from('categories')
-        .select('*, dishes(*)').eq('restaurant_id', restaurantData.id).order('rank', { ascending: true }).order('rank', { foreignTable: 'dishes', ascending: true })
+        .select('*, dishes(*)')
+        .eq('restaurant_id', restaurantData.id)
+        .eq('is_active', true)
+        .order('rank', { ascending: true })
+        .order('rank', { foreignTable: 'dishes', ascending: true })
+
 
     const reviews = await getRestaurantReviews(restaurantData.id)
 
@@ -75,21 +81,19 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
                     </div>
                 )}
 
-                <div className="p-6 pb-2 flex flex-col relative">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="p-6 pb-0 flex flex-col relative">
+                    <div className="flex items-center justify-between mb-2">
                         <RestaurantInfoDrawer restaurant={restaurantData} />
                     </div>
 
-                    {/* Categories Navigation */}
-                    <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Catégories</h3>
-                    </div>
+                    <HeaderSearchBar />
+
                     <CategoryNav categories={categories || []} />
                 </div>
 
             </header>
 
-            <div className="p-4">
+            <div className="px-4 pt-1">
                 <MenuBrowser categories={categories || []} restaurant={restaurantData} ownerPassport={ownerPassport} />
             </div>
 
@@ -101,6 +105,9 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
             </div>
 
             <SocialLinks socialLinks={restaurantData.social_links} restaurantName={restaurantData.name} />
+
+            <MobileNavbar restaurantSlug={restaurantData.slug} />
         </div >
+
     )
 }

@@ -29,16 +29,57 @@ export async function getDashboardStats() {
 
     // Calc Stats
     const totalRevenue = orders
-        .filter(o => ['delivered', 'completed', 'paid'].includes(o.status)) // Only counted if served/paid
+        .filter(o => ['delivered', 'completed', 'paid', 'ready', 'confirmed'].includes(o.status)) // Count confirmed/ready as earned for the chart
         .reduce((sum, o) => sum + Number(o.total_amount), 0)
 
     const orderCount = orders.length
     const preparingCount = orders.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status)).length
 
+    // 2. Top Dishes
+    const { data: topItems } = await supabase
+        .from('order_items')
+        .select(`
+            quantity,
+            dishes (
+                name,
+                image_urls
+            ),
+            orders!inner(restaurant_id)
+        `)
+        .eq('orders.restaurant_id', restaurant.id)
+        .limit(100)
+
+    const dishCounts: Record<string, { count: number, name: string, image: string }> = {}
+    topItems?.forEach((item: any) => {
+        const dish = item.dishes
+        if (!dish) return
+        if (!dishCounts[dish.name]) {
+            dishCounts[dish.name] = { count: 0, name: dish.name, image: dish.image_urls?.[0] || '' }
+        }
+        dishCounts[dish.name].count += item.quantity
+    })
+
+    const topDishes = Object.values(dishCounts)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3)
+
+    // 3. Average Rating
+    const { data: ratedOrders } = await supabase
+        .from('orders')
+        .select('rating')
+        .eq('restaurant_id', restaurant.id)
+        .not('rating', 'is', null)
+
+    const avgRating = ratedOrders && ratedOrders.length > 0
+        ? ratedOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / ratedOrders.length
+        : 5.0
+
     return {
         revenue: totalRevenue,
         count: orderCount,
         preparing: preparingCount,
+        topDishes,
+        avgRating: Number(avgRating.toFixed(1)),
         currency: restaurant.currency || 'XOF'
     }
 }
@@ -97,7 +138,7 @@ export async function getWeeklyRevenue() {
         .select('total_amount, created_at')
         .eq('restaurant_id', restaurant.id)
         .gte('created_at', startDate)
-        .in('status', ['delivered', 'completed', 'paid']) // Only counted if money is effectively earned
+        .in('status', ['confirmed', 'preparing', 'ready', 'delivered', 'completed', 'paid']) // Count all active/completed orders as revenue for the chart
 
     // Initialize 7 days with 0
     const daysMap = new Map<string, number>()
@@ -145,10 +186,12 @@ export async function getOnboardingStatus() {
 
     const status = {
         restaurant: !!restaurant?.phone && !!restaurant?.address,
+        logo: !!restaurant?.logo_url,
+        hours: !!(restaurant?.settings as any)?.hours?.schedule,
         menu: false,
         tables: false,
         persona: !!profile?.username && !!profile?.full_name,
-        branding: !!restaurant?.logo_url && !!(restaurant?.settings as any)?.hours
+        branding: !!restaurant?.logo_url && !!(restaurant?.settings as any)?.hours?.schedule // Keep for backward compatibility if needed
     }
 
     if (restaurant) {
@@ -170,6 +213,20 @@ export async function getOnboardingStatus() {
     }
 
     return status
+}
+
+export async function getRestaurantInfo() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('slug, plan')
+        .eq('owner_id', user.id)
+        .single()
+
+    return restaurant || null
 }
 
 export async function getRestaurantSlug() {

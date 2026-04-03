@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard, ShieldCheck, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
 const navItems = [
     { name: 'Vue d\'ensemble', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Menu & Carte', href: '/dashboard/menu', icon: UtensilsCrossed },
     { name: 'QR Codes & Tables', href: '/dashboard/tables', icon: QrCode },
     { name: 'Commandes', href: '/dashboard/orders', icon: Receipt },
     { name: 'Statistiques', href: '/dashboard/analytics', icon: BarChart3 },
@@ -29,28 +28,25 @@ const navItems = [
             {
                 label: 'Expérience Client',
                 items: [
-                    { name: 'Menu & Produits', slug: 'menu', icon: UtensilsCrossed },
                     { name: 'Horaires', slug: 'hours', icon: Clock3 },
-                    { name: 'Fidélité', slug: 'passport', icon: Stamp },
                     { name: 'Avis & Retours', slug: 'reviews', icon: MessageSquare },
                     { name: 'Événements & Offres', slug: 'events', icon: CalendarDays },
                 ]
             },
             {
-                label: 'Opérations',
+                label: 'Ma Facturation',
                 items: [
-                    { name: 'Analytiques', slug: 'analytics', icon: LayoutGrid },
-                    { name: 'Paiements', slug: 'payments', icon: CreditCard },
-                    { name: 'Notifications', slug: 'notifications', icon: BellRing },
-                    { name: 'Juridique', slug: 'legal', icon: Scale },
+                    { name: 'Mon Abonnement', slug: 'subscription', icon: ShieldCheck },
+                    { name: 'Méthodes de Paiement', slug: 'payments', icon: CreditCard },
                 ]
             }
+
         ]
     },
     { name: 'Voir ma carte', href: '/', icon: UtensilsCrossed, external: true },
 ]
 
-export function DashboardSidebar({ className, onItemClick, restaurantSlug }: { className?: string, onItemClick?: () => void, restaurantSlug?: string | null }) {
+export function DashboardSidebar({ className, onItemClick, restaurantSlug, plan = 'solo' }: { className?: string, onItemClick?: () => void, restaurantSlug?: string | null, plan?: string }) {
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const currentSection = searchParams.get('section')
@@ -73,9 +69,15 @@ export function DashboardSidebar({ className, onItemClick, restaurantSlug }: { c
     return (
         <div className={cn("flex h-full flex-col border-r bg-card w-64", className)}>
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-                    <span className="text-xl font-bold text-primary">MENLYLA</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary uppercase tracking-tighter">Pro</span>
+                <Link href="/dashboard" className="flex items-center gap-3">
+                    <img src="/logos/logo-icon.svg" alt="Logo" className="w-8 h-8" />
+                    <img src="/logos/logo-text.svg" alt="MENLYLA" className="h-4 mt-1" />
+                    <span className={cn(
+                        "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter ml-1",
+                        plan === 'pro' ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"
+                    )}>
+                        {plan}
+                    </span>
                 </Link>
             </div>
             <div className="flex-1 overflow-auto py-2">

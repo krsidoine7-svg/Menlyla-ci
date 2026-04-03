@@ -514,6 +514,7 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
         logo_url: validatedFields.data.logo_url,
         cover_image_url: validatedFields.data.banner_url,
         primary_color: settingsPayload.primary_color,
+        hours: settingsPayload.hours,
         social_links: validatedFields.data.social_links,
         // Store flexible theme options in the JSONB column
         theme_settings: {

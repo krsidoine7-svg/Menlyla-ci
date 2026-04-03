@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from 
 import { Menu } from 'lucide-react'
 import { DashboardSidebar } from './sidebar'
 
-export function MobileHeader({ restaurantSlug }: { restaurantSlug?: string | null }) {
+export function MobileHeader({ restaurantSlug, plan }: { restaurantSlug?: string | null, plan?: string }) {
     const [open, setOpen] = useState(false)
 
     return (
@@ -27,10 +27,11 @@ export function MobileHeader({ restaurantSlug }: { restaurantSlug?: string | nul
                         className="w-full border-none"
                         onItemClick={() => setOpen(false)}
                         restaurantSlug={restaurantSlug}
+                        plan={plan}
                     />
                 </SheetContent>
             </Sheet>
-            <span className="font-bold">MENLYLA</span>
+            <img src="/logos/logo-text.svg" alt="MENLYLA" className="h-4 ml-auto lg:hidden" />
         </header>
     )
 }

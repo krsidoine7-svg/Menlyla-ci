@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
   title: "MENLYLA | Menu Digital & Paiement",
   description: "La solution de commande et paiement pour restaurants en Côte d'Ivoire",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/logos/logo-icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/logos/logo-icon.svg",
+
   },
 };
 
@@ -28,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${poppins.variable} antialiased font-sans overflow-x-hidden relative`}
+        className={`${inter.variable} antialiased font-sans overflow-x-hidden relative`}
       >
         <ThemeProvider
           attribute="class"

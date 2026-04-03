@@ -58,22 +58,22 @@ export default async function ModerationManagement(props: { searchParams?: Promi
         selectedRestaurantName = rest?.name || 'Restaurant Inconnu'
     }
 
-    // Fetch Restaurants needing review (or just all for now)
+    // Fetch Restaurants
     const { data: restaurants } = await supabase
         .from('restaurants')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(20)
 
     // Fetch Profiles
     const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(20)
 
     return (
-        <div className="space-y-8 pb-12">
+        <div className="space-y-12 pb-12 animate-in fade-in duration-700">
             {restaurantId && (
                 <RestaurantModerationDrawer 
                     restaurantId={restaurantId} 
@@ -82,157 +82,136 @@ export default async function ModerationManagement(props: { searchParams?: Promi
                 />
             )}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm flex items-center gap-3">
-                        <ShieldAlert className="h-8 w-8 text-orange-500" />
-                        Espace Modération
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-bold tracking-tight text-white italic flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <ShieldAlert className="h-7 w-7 text-white" />
+                        </div>
+                        Modération <span className="text-red-500">.</span>
                     </h1>
-                    <p className="text-slate-500 font-medium max-w-2xl">Surveillez le contenu de la plateforme pour garantir la sécurité et la qualité.</p>
+                    <p className="text-white/40 font-medium text-sm max-w-2xl">Supervisez les comptes marchands et l'intégrité de la plateforme.</p>
                 </div>
             </div>
 
-            <Tabs defaultValue="restaurants" className="w-full space-y-6">
-                <TabsList className="bg-slate-200/50 p-1.5 h-12 rounded-2xl border-none gap-2">
-                    <TabsTrigger value="restaurants" className="rounded-xl font-bold px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-300">
-                        <Store className="h-4 w-4 mr-2" /> Restaurants
+            <Tabs defaultValue="restaurants" className="w-full space-y-8">
+                <TabsList className="bg-white/5 p-1.5 h-14 rounded-2xl border border-white/10 gap-2">
+                    <TabsTrigger value="restaurants" className="rounded-xl font-medium text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black transition-all duration-500 h-full">
+                        <Store className="h-3.5 w-3.5 mr-2" /> Restaurants
                     </TabsTrigger>
-                    <TabsTrigger value="profiles" className="rounded-xl font-bold px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-300">
-                        <User className="h-4 w-4 mr-2" /> Profiles Publics
+                    <TabsTrigger value="profiles" className="rounded-xl font-medium text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black transition-all duration-500 h-full">
+                        <User className="h-3.5 w-3.5 mr-2" /> Profils
                     </TabsTrigger>
-                    <TabsTrigger value="reports" className="rounded-xl font-bold px-6 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-lg transition-all duration-300">
-                        <Flag className="h-4 w-4 mr-2" /> Signalements
-                        <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px] bg-rose-500 border-none shadow-md">3</Badge>
+                    <TabsTrigger value="reports" className="rounded-xl font-medium text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all duration-500 h-full flex items-center gap-2">
+                        <Flag className="h-3.5 w-3.5" /> Signalements
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="restaurants">
-                    <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-sm">
-                        <CardHeader className="bg-slate-50/80 border-b px-6 py-4 flex flex-row items-center justify-between">
-                            <div className="space-y-0.5">
-                                <CardTitle className="text-lg font-bold">Nouveaux Restaurants</CardTitle>
-                                <CardDescription className="text-xs font-semibold uppercase tracking-widest text-slate-400">À valider ou modérer</CardDescription>
-                            </div>
+                <TabsContent value="restaurants" className="animate-in slide-in-from-bottom-4 duration-500">
+                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden">
+                        <CardHeader className="bg-white/[0.02] border-b border-white/5 px-10 py-8">
+                            <CardTitle className="text-2xl font-bold italic text-white tracking-tight">Flux de vérification</CardTitle>
+                            <CardDescription className="text-xs font-medium text-white/20">Établissements récemment inscrits sur Menlyla.</CardDescription>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-100">
+                            <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-y divide-white/5 bg-transparent border-b border-white/5">
                                 {restaurants?.map((restaurant) => (
-                                    <div key={restaurant.id} className="bg-white p-6 group hover:bg-slate-50/50 transition-colors">
+                                    <div key={restaurant.id} className="p-10 group hover:bg-white/[0.03] transition-all duration-500 relative">
                                         <div className="flex items-start justify-between">
-                                            <div className="flex items-start gap-4">
-                                                <div className="h-14 w-14 rounded-2xl bg-slate-100 flex items-center justify-center border-2 border-slate-200 shadow-sm overflow-hidden group-hover:rotate-3 transition-transform duration-300">
+                                            <div className="flex items-start gap-6">
+                                                <div className="h-20 w-20 rounded-[2.5rem] bg-white/5 flex items-center justify-center border border-white/10 shadow-2xl relative overflow-hidden group-hover:rotate-3 transition-all duration-500">
                                                     {restaurant.logo_url ? (
                                                         <img src={restaurant.logo_url} alt={restaurant.name} className="h-full w-full object-cover" />
                                                     ) : (
-                                                        <Store className="h-6 w-6 text-slate-400" />
+                                                        <Store className="h-10 w-10 text-white/10 transition-colors" />
                                                     )}
                                                 </div>
-                                                <div>
-                                                    <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors text-lg">{restaurant.name}</h3>
-                                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-tighter mb-2">@{restaurant.slug}</div>
-                                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                                        <Badge variant="outline" className="text-[10px] font-black tracking-widest border-slate-200 bg-white shadow-sm">{restaurant.plan}</Badge>
+                                                <div className="space-y-1">
+                                                    <h3 className="font-bold text-white text-2xl italic tracking-tight">{restaurant.name}</h3>
+                                                    <div className="text-[10px] font-medium text-white/20 tracking-wider uppercase">@{restaurant.slug}</div>
+                                                    <div className="flex items-center gap-2 pt-3">
+                                                        <Badge className="text-[8px] font-black tracking-widest border-white/10 bg-white/5 text-white/60 px-3 py-1 rounded-full uppercase italic">{restaurant.plan}</Badge>
                                                         <Badge variant="outline" className={cn(
-                                                            "text-[10px] font-black tracking-widest shadow-sm",
-                                                            restaurant.subscription_status === 'active' ? "border-emerald-100 bg-emerald-50 text-emerald-600" : "border-slate-100 bg-slate-50 text-slate-400"
+                                                            "text-[8px] font-black tracking-widest px-3 py-1 rounded-full uppercase italic",
+                                                            restaurant.subscription_status === 'active' ? "border-emerald-500/20 text-emerald-500" : "border-white/10 text-white/20"
                                                         )}>{restaurant.subscription_status}</Badge>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <RestaurantModerationActions restaurantId={restaurant.id} currentStatus={restaurant.subscription_status} />
+                                            <RestaurantModerationActions 
+                                                restaurantId={restaurant.id} 
+                                                currentStatus={restaurant.subscription_status} 
+                                                currentPlan={restaurant.plan} 
+                                                currentPaymentEnabled={restaurant.settings?.payment_config?.enabled}
+                                            />
                                         </div>
-                                        <div className="mt-6 flex items-center gap-2">
-                                            <Button asChild variant="outline" size="sm" className="flex-1 h-9 rounded-xl border-slate-200 font-bold text-slate-600 hover:bg-slate-100 gap-2">
+                                        <div className="mt-10 flex items-center gap-3">
+                                            <Button asChild variant="outline" className="flex-1 h-12 rounded-2xl border-white/10 bg-white/5 font-bold text-[10px] uppercase tracking-widest text-white hover:bg-white/10 gap-3">
                                                 <Link href={`/${restaurant.slug}`}>
-                                                    <Eye className="h-3.5 w-3.5" /> Voir page
+                                                    <Eye className="h-3.5 w-3.5" /> Voir le menu
                                                 </Link>
                                             </Button>
-                                            <Button asChild variant="outline" size="sm" className="h-9 w-9 rounded-xl border-slate-200 p-0 hover:bg-primary/5 hover:text-primary transition-all">
+                                            <Button asChild variant="ghost" className="h-12 w-12 rounded-2xl text-white/20 hover:text-red-600 hover:bg-red-600/10 p-0 border border-transparent hover:border-red-600/20">
                                                 <Link href={`/admin/moderation?restaurantId=${restaurant.id}`} scroll={false}>
-                                                    <Info className="h-4 w-4" />
+                                                    <Info className="h-5 w-5" />
                                                 </Link>
                                             </Button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            {(!restaurants || restaurants.length === 0) && (
-                                <div className="p-20 text-center bg-white">
-                                    <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-sm">
-                                        <Store className="h-8 w-8 text-slate-100" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2 italic">Aucun restaurant à modérer</h3>
-                                    <p className="text-slate-500 font-medium">Tout est en ordre !</p>
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="profiles">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <TabsContent value="profiles" className="animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {profiles?.map((profile) => (
-                            <Card key={profile.id} className="border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden bg-white/80">
-                                <CardHeader className="text-center pt-8 pb-4">
-                                    <div className="relative mx-auto mb-4">
-                                        <div className="h-20 w-20 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-black text-3xl border-4 border-white shadow-xl group-hover:scale-110 transition-transform duration-300">
+                            <Card key={profile.id} className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden group relative">
+                                <CardHeader className="text-center p-10 pb-6">
+                                    <div className="relative mx-auto mb-6">
+                                        <div className="h-24 w-24 rounded-[2.5rem] bg-white/5 text-white flex items-center justify-center font-bold text-3xl border border-white/10 shadow-3xl group-hover:rotate-3 transition-transform duration-500 overflow-hidden">
                                             {profile.profile_image ? (
-                                                <img src={profile.profile_image} alt={profile.full_name} className="h-full w-full object-cover rounded-full" />
+                                                <img src={profile.profile_image} alt={profile.full_name} className="h-full w-full object-cover" />
                                             ) : (
                                                 profile.full_name?.charAt(0) || profile.username?.charAt(0) || '?'
                                             )}
                                         </div>
-                                        <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-emerald-500 border-4 border-white shadow-lg animate-pulse" />
                                     </div>
-                                    <CardTitle className="font-extrabold text-xl text-slate-900 line-clamp-1">{profile.full_name || 'Sans Nom'}</CardTitle>
-                                    <CardDescription className="text-xs font-bold uppercase tracking-widest text-slate-400">@{profile.username || 'user'}</CardDescription>
+                                    <CardTitle className="font-bold text-2xl text-white italic tracking-tight line-clamp-1">{profile.full_name || 'Sans Nom'}</CardTitle>
+                                    <CardDescription className="text-[10px] font-medium text-white/20 mt-2 uppercase tracking-widest">@{profile.username || 'user'}</CardDescription>
                                 </CardHeader>
-                                <CardContent className="px-6 pb-6">
-                                    <div className="space-y-4">
-                                        <p className="text-xs font-medium text-slate-600 text-center line-clamp-2 italic h-8 leading-relaxed">
+                                <CardContent className="px-10 pb-10">
+                                    <div className="space-y-6">
+                                        <p className="text-[10px] font-medium text-white/20 text-center line-clamp-2 italic h-10 leading-relaxed">
                                             {profile.bio || "Aucune biographie renseignée..."}
                                         </p>
-                                        <div className="flex items-center gap-2">
-                                            <Button asChild variant="outline" size="sm" className="flex-1 h-9 rounded-xl border-slate-200 font-bold text-slate-600 hover:bg-slate-100 transition-all uppercase tracking-tighter text-[10px]">
+                                        <div className="flex items-center gap-3">
+                                            <Button asChild variant="outline" className="flex-1 h-12 rounded-2xl border-white/10 bg-white/5 font-bold text-[10px] uppercase tracking-widest text-white hover:bg-white/10">
                                                 <Link href={`/passport/${profile.username}`}>
-                                                    Review Passport
+                                                    Passport
                                                 </Link>
                                             </Button>
-                                            <Button variant="destructive" size="sm" className="h-9 w-9 p-0 rounded-xl shadow-lg shadow-rose-500/10 transition-all hover:rotate-12">
-                                                <ThumbsDown className="h-4 w-4" />
+                                            <Button variant="ghost" size="sm" className="h-12 w-12 p-0 rounded-2xl text-white/10 hover:text-red-600 hover:bg-red-600/10 transition-all border border-transparent hover:border-red-600/20">
+                                                <ThumbsDown className="h-5 w-5" />
                                             </Button>
                                         </div>
                                     </div>
                                 </CardContent>
-                                <div className="h-1.5 w-full bg-slate-100">
-                                    <div className="h-full bg-orange-500 w-full opacity-5 group-hover:opacity-20 transition-opacity" />
-                                </div>
+                                <div className="absolute top-0 right-0 h-32 w-32 bg-red-600/5 rounded-full blur-[100px] pointer-events-none" />
                             </Card>
                         ))}
                     </div>
                 </TabsContent>
                 
-                <TabsContent value="reports">
-                    <Card className="border-none shadow-sm overflow-hidden bg-white/50 border-2 border-rose-50">
-                        <CardHeader className="bg-rose-50/50 border-b border-rose-100 px-6 py-4 flex flex-row items-center justify-between">
-                            <div className="space-y-0.5">
-                                <CardTitle className="text-lg font-bold text-rose-900 flex items-center gap-2">
-                                    <AlertTriangle className="h-5 w-5 text-rose-500" /> Signalements Actifs
-                                </CardTitle>
-                                <CardDescription className="text-xs font-semibold uppercase tracking-widest text-rose-400">Contenu signalé par les utilisateurs</CardDescription>
+                <TabsContent value="reports" className="animate-in slide-in-from-bottom-4 duration-500">
+                    <Card className="bg-white/5 border-red-600/10 rounded-[3rem] shadow-3xl overflow-hidden">
+                        <CardContent className="p-20 flex flex-col items-center text-center space-y-8">
+                            <div className="h-24 w-24 rounded-[2.5rem] bg-red-600 flex items-center justify-center text-white shadow-3xl shadow-red-600/20">
+                                <Flag className="h-10 w-10" />
                             </div>
-                        </CardHeader>
-                        <CardContent className="p-6">
-                            <div className="flex flex-col items-center justify-center p-12 text-center bg-rose-50/20 rounded-3xl border-2 border-dashed border-rose-200">
-                                <div className="h-16 w-16 rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4 shadow-inner">
-                                    <ShieldAlert className="h-8 w-8" />
-                                </div>
-                                <h3 className="text-xl font-bold text-rose-900">Module de signalements actif</h3>
-                                <p className="text-slate-500 font-medium max-w-sm mt-2">Ici apparaîtront les contenus signalés par la communauté Menlyla via le bouton "Signaler" public.</p>
-                                <Button asChild className="mt-6 bg-rose-600 hover:bg-rose-700 font-bold px-8 rounded-xl shadow-lg shadow-rose-600/20">
-                                    <Link href="/admin/settings">
-                                        Configurer Alertes Email
-                                    </Link>
-                                </Button>
+                            <div className="space-y-2">
+                                <h3 className="text-3xl font-bold text-white italic tracking-tight">Signalements</h3>
+                                <p className="text-white/20 font-medium text-sm max-w-sm mx-auto">Aucun contenu n'a été signalé pour le moment. La plateforme est saine.</p>
                             </div>
                         </CardContent>
                     </Card>

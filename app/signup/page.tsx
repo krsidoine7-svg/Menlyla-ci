@@ -9,7 +9,7 @@ export default function SignupPage() {
                 <div className="mx-auto grid w-[350px] gap-6">
                     <div className="grid gap-2 text-center">
                         <div className="flex justify-center mb-6">
-                            <img src="/favicon.png" alt="MENLYLA Logo" className="h-16 w-16 rounded-[1.5rem] shadow-xl shadow-orange-500/20" />
+                            <img src="/logos/logo-icon.svg" alt="MENLYLA Logo" className="h-16 w-16" />
                         </div>
                         <h1 className="text-3xl font-bold">Créer un compte</h1>
                         <p className="text-balance text-muted-foreground">
@@ -26,7 +26,7 @@ export default function SignupPage() {
                 </div>
             </div>
             <div className="hidden bg-muted lg:block relative">
-                <div className="absolute inset-0 bg-gradient-to-bl from-slate-800 to-slate-900 flex items-center justify-center text-white">
+                <div className="absolute inset-0 bg-gradient-to-bl from-[#080808] to-[#1a1a1a] flex items-center justify-center text-white">
                     <div className="max-w-md p-10 text-center">
                         <blockquote className="space-y-2">
                             <p className="text-lg">

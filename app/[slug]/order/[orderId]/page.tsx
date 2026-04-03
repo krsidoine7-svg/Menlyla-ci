@@ -4,18 +4,21 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { formatOrderId } from '@/lib/utils'
 import { ClientOrderActions } from '@/components/modules/checkout/client-order-actions'
+import { getSystemSettings } from '@/app/(super-admin)/admin/actions'
 
 export default async function OrderConfirmationPage({ params }: { params: Promise<{ slug: string, orderId: string }> }) {
     const { slug, orderId } = await params
     const supabase = await createClient()
+    const systemSettings = await getSystemSettings()
 
     const { data: order } = await supabase
         .from('orders')
         .select(`
-            id, 
-            created_at, 
-            total_amount,
-            restaurants (name),
+            *,
+            restaurants (
+                name,
+                settings
+            ),
             payments (status)
         `)
         .eq('id', orderId)
@@ -26,36 +29,43 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
     }
 
     const simpleId = formatOrderId(order.id, order.created_at)
-    // Check if any payment is successful
-    const isPaid = order.payments?.some((p: any) => p.status === 'success')
+    const isPaid = order.payments?.some((p: any) => p.status === 'COMPLETED' || p.status === 'success')
+
+    // Local restaurant setting vs Global platform setting
+    const restaurantSettings = (order.restaurants as any)?.settings || {}
+    const isRestaurantPaymentEnabled = restaurantSettings.payment_config?.enabled !== false
+    const isGlobalPaymentEnabled = systemSettings.is_order_payments_enabled !== false
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center space-y-8 bg-slate-50">
-            <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md space-y-6">
-                <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 animate-bounce">
-                    <CheckCircle2 className="h-10 w-10" />
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center space-y-8 bg-black">
+            <div className="bg-white/5 backdrop-blur-xl p-10 rounded-[3rem] border border-white/10 w-full max-w-md space-y-8 shadow-2xl relative overflow-hidden group">
+                <div className="absolute -top-24 -right-24 h-48 w-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-1000" />
+                
+                <div className="mx-auto h-24 w-24 bg-emerald-500 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 animate-in zoom-in duration-700">
+                    <CheckCircle2 className="h-12 w-12" />
                 </div>
 
-                <div>
-                    <h1 className="text-2xl font-black text-slate-900">Commande Reçue !</h1>
-                    <p className="text-slate-500 mt-2">
-                        Votre commande <span className="font-bold text-slate-800">#{simpleId}</span> a bien été transmise en cuisine.
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-white italic tracking-tight">C'est parti !</h1>
+                    <p className="text-white/40 font-medium">
+                        Commande <span className="text-emerald-500 font-black">#{simpleId}</span> transmise avec succès.
                     </p>
                 </div>
 
-                <div className="py-4 border-t border-b border-slate-100">
+                <div className="py-2">
                     <ClientOrderActions
                         orderId={order.id}
                         totalAmount={order.total_amount}
-                        restaurantName={Array.isArray(order.restaurants) ? order.restaurants[0]?.name : (order.restaurants as any)?.name || 'Restaurant'}
+                        restaurantName={(order.restaurants as any)?.name || 'Restaurant'}
                         isPaid={isPaid}
+                        isPaymentEnabled={isGlobalPaymentEnabled && isRestaurantPaymentEnabled}
                     />
                 </div>
 
-                <Link href={`/${slug}`} className="block">
-                    <Button variant="ghost" className="w-full text-slate-500 hover:text-slate-800 hover:bg-slate-100">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Retour au menu
+                <Link href={`/${slug}`} className="block relative z-10">
+                    <Button variant="ghost" className="w-full text-white/40 hover:text-white hover:bg-white/5 rounded-2xl h-14 font-bold text-xs uppercase tracking-widest gap-3">
+                        <ArrowLeft className="h-4 w-4" />
+                        Reprendre mes commandes
                     </Button>
                 </Link>
             </div>

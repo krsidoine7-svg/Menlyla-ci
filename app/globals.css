@@ -272,3 +272,42 @@
 .animate-mesh {
   animation: mesh-gradient 20s ease-in-out infinite alternate;
 }
+
+/* DASHBOARD SPECIFIC THEME (Light, Orange & Black) */
+.dashboard-theme {
+  --background: #ffffff;
+  --foreground: #09090b; /* Zinc 950 */
+  
+  --primary: #FF7A00;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #f4f4f5; /* Zinc 100 */
+  --secondary-foreground: #18181b;
+  
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  
+  --border: #e4e4e7;
+  --input: #ffffff;
+  --ring: #FF7A00;
+  
+  --sidebar: #f8f8fa;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #FF7A00;
+  --sidebar-accent: #f1f1f4;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #FF7A00;
+
+  /* Chart Colors for Light Dashboard */
+  --chart-1: #FF7A00;
+  --chart-2: #18181b;
+  --chart-3: #71717a;
+  --chart-4: #e11d48;
+  --chart-5: #2563eb;
+}

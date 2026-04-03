@@ -32,14 +32,14 @@ export default async function SuperAdminLayout({
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900">
+        <div className="flex h-screen bg-[#0a0a0a] overflow-hidden text-white selection:bg-red-500/30">
             {/* Sidebar — receives full admin object for permission-based nav filtering */}
-            <div className="hidden lg:block h-full">
+            <div className="hidden lg:block h-full border-r border-white/5">
                 <SuperAdminSidebar admin={adminRecord} isSuperAdmin={adminRecord.is_super_admin} />
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+            <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-red-500/20 scrollbar-track-transparent transition-all">
                 <div className="py-8 px-6 lg:px-12 max-w-7xl mx-auto">
                     {children}
                 </div>

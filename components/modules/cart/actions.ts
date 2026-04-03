@@ -13,6 +13,7 @@ const orderSchema = z.object({
     })),
     table_id: z.string().uuid().optional().nullable(),
     customer_name: z.string().optional(),
+    dining_type: z.enum(['dine_in', 'take_away']).optional().default('dine_in'),
 })
 
 export async function submitOrder(data: any) {
@@ -25,8 +26,24 @@ export async function submitOrder(data: any) {
         return { success: false, message: "Données invalides: " + Object.keys(validated.error.flatten().fieldErrors).join(', ') }
     }
 
-    const { restaurant_id, items, table_id, customer_name } = validated.data
+    const { restaurant_id, items, table_id, customer_name, dining_type } = validated.data
     const total_amount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+    // Verify table belongs to restaurant if provided
+    let finalTableId = table_id
+    if (table_id) {
+        const { data: tableData } = await supabase
+            .from('tables')
+            .select('id')
+            .eq('id', table_id)
+            .eq('restaurant_id', restaurant_id)
+            .single()
+
+        if (!tableData) {
+            console.error("Invalid table ID for this restaurant:", table_id)
+            return { success: false, message: "La table associée n'existe plus ou n'appartient pas à ce restaurant. Veuillez scanner à nouveau le QR code de votre table." }
+        }
+    }
 
     // Append customer name to instructions if provided
     let instructions = customer_name ? `Client: ${customer_name}` : ""
@@ -37,17 +54,23 @@ export async function submitOrder(data: any) {
             restaurant_id,
             status: 'pending',
             total_amount,
-            table_id: table_id,
+            table_id: finalTableId,
             customer_id: user?.id || null,
-            special_instructions: instructions
+            special_instructions: instructions,
+            dining_type: dining_type || 'dine_in'
         })
         .select()
         .single()
 
     if (error) {
         console.error("Order creation error:", error)
+        // If it's still a foreign key error, tell the user politely
+        if (error.code === '23503' && error.message.includes('table_id')) {
+            return { success: false, message: "Erreur de table: Le QR code scanné semble invalide ou n'existe plus." }
+        }
         return { success: false, message: `Erreur création commande: ${error.message}` }
     }
+
 
     // 2. Create Order Items
     const orderItems = items.map(item => ({

@@ -79,14 +79,14 @@ export function SuperAdminSidebar({
             href={item.href}
             onClick={onItemClick}
             className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all",
+                "group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300",
                 pathname === item.href 
-                    ? "bg-slate-800 text-white shadow-sm" 
-                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)] ring-1 ring-red-400/30" 
+                    : "text-white/40 hover:text-white hover:bg-white/5"
             )}
         >
-            <item.icon className={cn("h-4 w-4 shrink-0", pathname === item.href ? "text-orange-500" : "")} />
-            {item.name}
+            <item.icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", pathname === item.href ? "text-white" : "group-hover:text-red-500")} />
+            <span className="font-medium tracking-tight">{item.name}</span>
         </Link>
     )
 
@@ -94,22 +94,28 @@ export function SuperAdminSidebar({
     const visibleReports = REPORTS_NAV.filter(filterNavItem)
 
     return (
-        <div className={cn("flex h-full flex-col border-r bg-slate-950 text-slate-200 w-64", className)}>
-            <div className="flex flex-col border-b border-slate-800 p-4 gap-4">
-                <Link href="/admin" className="flex items-center gap-2 font-semibold">
-                    <div className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center">
+        <div className={cn("flex h-full flex-col bg-black text-white w-72", className)}>
+            <div className="flex flex-col p-6 gap-6">
+                <Link href="/admin" className="flex items-center gap-3 group">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-red-600/20 group-hover:rotate-6 transition-all duration-500">
                         <ShieldAlert className="h-5 w-5 text-white" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-white">MENLYLA <span className="text-xs text-orange-500 font-mono">ADMIN</span></span>
+                    <div className="flex flex-col">
+                        <span className="text-xl font-semibold tracking-tight leading-none text-white">Menlyla<span className="text-red-500">.</span></span>
+                        <span className="text-[10px] text-white/40 font-medium tracking-wider mt-1">Plateforme Admin</span>
+                    </div>
                 </Link>
                 <CommandPalette />
             </div>
             
-            <div className="flex-1 overflow-auto py-6">
-                <nav className="grid items-start px-4 text-sm font-medium gap-2">
+            <div className="flex-1 overflow-auto py-2 scrollbar-none">
+                <nav className="grid items-start px-4 text-sm gap-6">
                     {visiblePlatform.length > 0 && (
-                        <div className="mb-4">
-                            <h4 className="px-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-2">Gestion Plateforme</h4>
+                        <div className="space-y-2">
+                            <h4 className="px-4 text-[10px] font-medium text-white/20 tracking-wider flex items-center gap-2">
+                                <div className="h-px w-4 bg-white/10" />
+                                Gestion
+                            </h4>
                             <div className="space-y-1">
                                 {visiblePlatform.map(renderLink)}
                             </div>
@@ -117,8 +123,11 @@ export function SuperAdminSidebar({
                     )}
 
                     {visibleReports.length > 0 && (
-                        <div className="mb-4">
-                            <h4 className="px-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-2">Analyses & Rapports</h4>
+                        <div className="space-y-2">
+                            <h4 className="px-4 text-[10px] font-medium text-white/20 tracking-wider flex items-center gap-2">
+                                <div className="h-px w-4 bg-white/10" />
+                                Analytiques
+                            </h4>
                             <div className="space-y-1">
                                 {visibleReports.map(renderLink)}
                             </div>
@@ -127,17 +136,17 @@ export function SuperAdminSidebar({
                 </nav>
             </div>
 
-            <div className="p-4 border-t border-slate-800 bg-slate-950/50">
+            <div className="p-4 bg-gradient-to-t from-black to-transparent space-y-2">
                 <Link href="/dashboard">
-                    <Button variant="ghost" className="w-full justify-start gap-2 text-slate-400 hover:text-white hover:bg-slate-900 mb-2">
-                        <ArrowLeft className="h-4 w-4" />
-                        Retour Dashboard
+                    <Button variant="ghost" className="w-full justify-start gap-3 text-white/40 hover:text-white hover:bg-white/5 h-11 rounded-xl group transition-all">
+                        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        <span className="font-medium tracking-tight">Retour Site</span>
                     </Button>
                 </Link>
                 <form action="/auth/signout" method="post" onSubmit={onItemClick}>
-                    <Button variant="ghost" className="w-full justify-start gap-2 text-slate-400 hover:text-destructive hover:bg-destructive/10">
-                        <LogOut className="h-4 w-4" />
-                        Déconnexion
+                    <Button variant="ghost" className="w-full justify-start gap-3 text-white/40 hover:text-red-500 hover:bg-red-500/10 h-11 rounded-xl group transition-all">
+                        <LogOut className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                        <span className="font-medium tracking-tight">Déconnexion</span>
                     </Button>
                 </form>
             </div>

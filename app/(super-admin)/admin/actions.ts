@@ -349,6 +349,88 @@ export async function updateRestaurantStatus(restaurantId: string, status: 'acti
 }
 
 /**
+ * Update restaurant plan (subscription)
+ */
+export async function updateRestaurantPlan(restaurantId: string, plan: 'solo' | 'pro') {
+    try {
+        const caller = await verifyAdmin()
+        const adminClient = getAdminClient()
+
+        const { error } = await adminClient
+            .from('restaurants')
+            .update({ plan: plan })
+            .eq('id', restaurantId)
+
+        if (error) throw error
+
+        // Log audit
+        await adminClient.from('admin_audit_logs').insert({
+            admin_id: caller.id,
+            action: 'UPDATE_RESTAURANT_PLAN',
+            entity_type: 'restaurant',
+            entity_id: restaurantId,
+            details: { new_plan: plan }
+        })
+
+        revalidatePath('/admin/moderation')
+        revalidatePath('/admin/restaurants')
+        return { success: true, message: `Plan du restaurant mis à jour: ${plan}` }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+/**
+ * Toggle order payments for a restaurant
+ */
+export async function toggleRestaurantPayments(restaurantId: string, enabled: boolean) {
+    try {
+        const caller = await verifyAdmin()
+        const adminClient = getAdminClient()
+
+        // We need to fetch current settings to update them safely
+        const { data: restaurant } = await adminClient
+            .from('restaurants')
+            .select('settings')
+            .eq('id', restaurantId)
+            .single()
+
+        const currentSettings = restaurant?.settings || {}
+        const paymentConfig = currentSettings.payment_config || {}
+        
+        const nextSettings = {
+            ...currentSettings,
+            payment_config: {
+                ...paymentConfig,
+                enabled: enabled
+            }
+        }
+
+        const { error } = await adminClient
+            .from('restaurants')
+            .update({ settings: nextSettings })
+            .eq('id', restaurantId)
+
+        if (error) throw error
+
+        // Log audit
+        await adminClient.from('admin_audit_logs').insert({
+            admin_id: caller.id,
+            action: 'TOGGLE_RESTAURANT_PAYMENTS',
+            entity_type: 'restaurant',
+            entity_id: restaurantId,
+            details: { enabled }
+        })
+
+        revalidatePath('/admin/restaurants')
+        revalidatePath('/admin/moderation')
+        return { success: true, message: `Paiements ${enabled ? 'activés' : 'désactivés'} pour ce restaurant.` }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+/**
  * Génère un lien de connexion magique pour usurper l'identité d'un utilisateur (Impersonation)
  * Utile pour le support client.
  */
@@ -404,3 +486,56 @@ export async function getImpersonationLink(userId: string) {
     }
 }
 
+/**
+ * Fetch global system settings (singleton)
+ */
+export async function getSystemSettings() {
+    try {
+        const supabase = await createClient()
+        const { data: settings, error } = await supabase
+            .from('system_settings')
+            .select('*')
+            .eq('id', 1)
+            .maybeSingle()
+        
+        if (error) throw error
+        return settings || { 
+            is_saas_payments_enabled: true, 
+            is_order_payments_enabled: true, 
+            platform_commission_percent: 2.5,
+            monthly_pro_price_xof: 25000,
+            is_maintenance_mode: false
+        }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+/**
+ * Toggle global SaaS payment gateway (GeniusPay for subscriptions)
+ */
+export async function updateSystemSettings(data: { 
+    is_saas_payments_enabled?: boolean, 
+    is_order_payments_enabled?: boolean,
+    platform_commission_percent?: number,
+    monthly_pro_price_xof?: number,
+    is_maintenance_mode?: boolean
+}) {
+    try {
+        await verifySuperAdmin()
+        const adminClient = getAdminClient()
+
+        const { error } = await adminClient
+            .from('system_settings')
+            .update(data)
+            .eq('id', 1)
+
+        if (error) throw error
+
+        revalidatePath('/admin/payments')
+        revalidatePath('/admin/settings')
+        return { success: true, message: 'Paramètres système mis à jour.' }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}

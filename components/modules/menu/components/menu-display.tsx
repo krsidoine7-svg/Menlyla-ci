@@ -21,6 +21,7 @@ import { EditDishDialog } from './edit-dish-dialog'
 import { cn } from '@/lib/utils'
 import { Sparkles } from 'lucide-react'
 import { SortableCategoryList } from './sortable-category-list'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 type ViewMode = 'list' | 'grid' | 'table' | 'mini'
 
@@ -34,6 +35,18 @@ export function MenuDisplay({ categories, restaurant }: Props) {
     const [isSeeding, setIsSeeding] = useState(false)
     const [editingCategory, setEditingCategory] = useState<any>(null)
     const [editingDish, setEditingDish] = useState<any>(null)
+    const [confirm, setConfirm] = useState<{
+        open: boolean
+        title: string
+        description: string
+        confirmLabel: string
+        variant: 'destructive' | 'warning' | 'default'
+        onConfirm: () => void
+    }>({
+        open: false, title: '', description: '', confirmLabel: 'Confirmer', variant: 'destructive', onConfirm: () => {}
+    })
+    const ask = (cfg: Omit<typeof confirm, 'open'>) => setConfirm({ open: true, ...cfg })
+    const closeConfirm = () => setConfirm(c => ({ ...c, open: false }))
 
     const currency = restaurant?.currency || 'FCFA'
 
@@ -70,30 +83,52 @@ export function MenuDisplay({ categories, restaurant }: Props) {
     }
 
     const handleDeleteCategory = async (id: string) => {
-        if (confirm("Êtes-vous sûr de vouloir supprimer cette catégorie et tous ses plats ?")) {
-            const result = await deleteCategory(id)
-            if (result?.message) toast.success(result.message)
-        }
+        ask({
+            title: 'Supprimer la catégorie ?',
+            description: 'Cette catégorie et tous ses plats seront définitivement supprimés. Cette action est irréversible.',
+            confirmLabel: 'Supprimer définitivement',
+            variant: 'destructive',
+            onConfirm: async () => {
+                const result = await deleteCategory(id)
+                if (result?.message) toast.success(result.message)
+            }
+        })
     }
 
     const handleToggleCategory = async (id: string, current: boolean) => {
-        const result = await toggleCategoryStatus(id, !current)
-        if (result?.message) toast.error(result.message)
-        else toast.success(current ? "Catégorie désactivée" : "Catégorie activée")
+        ask({
+            title: current ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
+            description: current
+                ? 'Cette catégorie sera masquée du menu client.'
+                : 'Cette catégorie sera visible sur le menu client.',
+            confirmLabel: current ? 'Désactiver' : 'Activer',
+            variant: current ? 'warning' : 'default',
+            onConfirm: async () => {
+                const result = await toggleCategoryStatus(id, !current)
+                if (result?.message) toast.error(result.message)
+                else toast.success(current ? 'Catégorie désactivée' : 'Catégorie activée')
+            }
+        })
     }
 
     const handleDeleteDish = async (id: string) => {
-        if (confirm("Supprimer ce plat ?")) {
-            const result = await deleteDish(id)
-            if (result?.message) toast.success(result.message)
-        }
+        ask({
+            title: 'Supprimer ce plat ?',
+            description: 'Ce plat sera définitivement supprimé. Cette action est irréversible.',
+            confirmLabel: 'Supprimer',
+            variant: 'destructive',
+            onConfirm: async () => {
+                const result = await deleteDish(id)
+                if (result?.message) toast.success(result.message)
+            }
+        })
     }
 
     const handleToggleDish = async (id: string, current: boolean) => {
         const result = await toggleDishStatus(id, !current)
         if (result?.message) toast.error(result.message)
         else {
-            toast.success(!current ? "Plat disponible" : "Plat marqué en rupture")
+            toast.success(!current ? 'Plat disponible' : 'Plat marqué en rupture')
         }
     }
 
@@ -269,6 +304,19 @@ export function MenuDisplay({ categories, restaurant }: Props) {
                     onOpenChange={(open) => !open && setEditingDish(null)}
                 />
             )}
+
+            <ConfirmDialog
+                open={confirm.open}
+                onOpenChange={closeConfirm}
+                title={confirm.title}
+                description={confirm.description}
+                confirmLabel={confirm.confirmLabel}
+                variant={confirm.variant}
+                onConfirm={() => {
+                    confirm.onConfirm()
+                    closeConfirm()
+                }}
+            />
         </div>
     )
 }

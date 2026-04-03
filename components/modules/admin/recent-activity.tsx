@@ -74,8 +74,9 @@ export function RecentActivity({ initialOrders, currency, restaurantId }: { init
                 }
             )
             .subscribe((status: string) => {
-                if (status !== 'SUBSCRIBED') {
-                    console.warn("Recent Activity subscription status:", status)
+                const failureStatuses = ['CHANNEL_ERROR', 'TIMED_OUT']
+                if (failureStatuses.includes(status)) {
+                    console.error("Recent Activity subscription error:", status)
                 }
             })
 
@@ -100,7 +101,7 @@ export function RecentActivity({ initialOrders, currency, restaurantId }: { init
                 </Button>
             </div>
             <div className="space-y-4">
-                {orders.length === 0 ? (
+                {!orders || orders.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Aucune activité récente.</p>
                 ) : (
                     orders.map((order: any) => {

@@ -4,6 +4,35 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
+export async function submitOrderFeedback(orderId: string, rating: number, feedback?: string) {
+    const supabase = await createClient()
+
+    const { data: order, error: checkError } = await supabase
+        .from('orders')
+        .select('status, id')
+        .eq('id', orderId)
+        .single()
+
+    if (checkError || !order) throw new Error("Commande introuvable")
+    
+    // We only allow feedback for ready/delivered/completed orders
+    if (!['ready', 'delivered', 'completed'].includes(order.status)) {
+        throw new Error("Vous ne pouvez pas encore noter cette commande")
+    }
+
+    const { error } = await supabase
+        .from('orders')
+        .update({
+            rating,
+            feedback: feedback?.trim() || null
+        })
+        .eq('id', orderId)
+
+    if (error) throw new Error(error.message)
+    revalidatePath('/')
+    return { success: true }
+}
+
 // --- CATEGORIES ---
 
 const categorySchema = z.object({

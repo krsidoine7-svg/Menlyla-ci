@@ -68,9 +68,9 @@ export default function LeadMagnet() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #fff; overscroll-behavior: none; }
+        body { font-family: var(--font-poppins), 'Poppins', sans-serif; background: #030303; color: #fff; overscroll-behavior: none; }
 
         .page { 
           min-height: 100vh; 
@@ -78,10 +78,11 @@ export default function LeadMagnet() {
           align-items: center; 
           justify-content: center;
           padding: 40px 24px;
-          background: linear-gradient(135deg, #0f172a 0%, #1e3358 60%, #0f172a 100%);
+          background: radial-gradient(circle at top right, #1a1a1a, #030303);
           position: relative;
           overflow: hidden;
         }
+
         .page::before {
           content: '';
           position: absolute;
@@ -109,13 +110,12 @@ export default function LeadMagnet() {
 
         .badge {
           display: inline-flex; align-items: center; gap: 8px;
-          background: rgba(234,88,12,0.25); border: 1px solid #f97316;
+          background: rgba(255,122,0,0.15); border: 1px solid #FF7A00;
           color: #fff; font-size: 11px; font-weight: 800;
           padding: 8px 18px; border-radius: 100px; letter-spacing: 0.1em;
           text-transform: uppercase; margin-bottom: 28px;
-          box-shadow: 0 0 15px rgba(249,115,22,0.5), inset 0 0 8px rgba(249,115,22,0.3);
-          animation: blink-strong 1.2s infinite ease-in-out, glow-burn 1.5s infinite alternate;
-          text-shadow: 0 0 5px rgba(255,255,255,0.4);
+          box-shadow: 0 0 15px rgba(255,122,0,0.3);
+          font-family: var(--font-poppins), sans-serif;
         }
         .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px #fff; }
 
@@ -172,12 +172,12 @@ export default function LeadMagnet() {
 
         .cta-btn {
           width: 100%; padding: 16px; margin-top: 8px;
-          background: linear-gradient(135deg, #ea580c, #f97316);
+          background: linear-gradient(135deg, #FF7A00, #ff9500);
           color: #fff; font-size: 16px; font-weight: 800;
           border: none; border-radius: 14px; cursor: pointer;
           display: flex; align-items: center; justify-content: center; gap: 10px;
-          box-shadow: 0 10px 30px rgba(234,88,12,0.3);
-          font-family: 'Inter', sans-serif; letter-spacing: -0.02em;
+          box-shadow: 0 10px 30px rgba(255,122,0,0.3);
+          font-family: var(--font-poppins), sans-serif; letter-spacing: -0.02em;
           transition: transform 0.15s, box-shadow 0.15s;
         }
         .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(234,88,12,0.4); }
@@ -223,8 +223,23 @@ export default function LeadMagnet() {
           position: absolute;
           top: 0; left: 0; right: 0;
           padding: 24px 40px;
-          display: flex; justify-content: flex-end;
+          display: flex; justify-content: space-between;
+          align-items: center;
           z-index: 100;
+        }
+        .logo-link {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-decoration: none;
+        }
+        .logo-icon {
+          height: 40px;
+          width: 40px;
+        }
+        .logo-text {
+          height: 18px;
+          filter: brightness(0) invert(1); /* Force white for the landing page */
         }
         .login-link {
           color: rgba(255,255,255,0.7);
@@ -290,6 +305,10 @@ export default function LeadMagnet() {
       ) : (
         <div className="page">
           <header className="header">
+            <a href="/" className="logo-link">
+              <img src="/logos/logo-icon.svg" alt="Logo" className="logo-icon" />
+              <img src="/logos/logo-text.svg" alt="Menlyla" className="logo-text" />
+            </a>
             <a href="/login" className="login-link">Se connecter</a>
           </header>
 
