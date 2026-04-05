@@ -48,11 +48,21 @@ export async function submitOrder(data: any) {
     // Append customer name to instructions if provided
     let instructions = customer_name ? `Client: ${customer_name}` : ""
 
+    // Fetch restaurant settings to check payment mode
+    const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('settings')
+        .eq('id', restaurant_id)
+        .single()
+    
+    // Use 'pending' as it is the valid database enum for new orders
+    const initialStatus = 'pending'
+
     const { data: order, error } = await supabase
         .from('orders')
         .insert({
             restaurant_id,
-            status: 'pending',
+            status: initialStatus as any,
             total_amount,
             table_id: finalTableId,
             customer_id: user?.id || null,

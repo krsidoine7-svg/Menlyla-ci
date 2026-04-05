@@ -7,19 +7,23 @@ import { Eye, EyeOff } from 'lucide-react'
 
 interface SecretInputProps {
     defaultValue?: string
+    value?: string
+    onChange?: (val: string) => void
     placeholder?: string
 }
 
-export function SecretInput({ defaultValue, placeholder }: SecretInputProps) {
+export function SecretInput({ defaultValue, value, onChange, placeholder }: SecretInputProps) {
     const [show, setShow] = useState(false)
 
     return (
         <div className="flex gap-2 w-full">
             <Input 
                 defaultValue={defaultValue} 
+                value={value}
+                onChange={(e) => onChange?.(e.target.value)}
                 type={show ? "text" : "password"} 
                 placeholder={placeholder} 
-                className="h-11 rounded-xl bg-slate-50 border-slate-200 font-mono text-xs focus-visible:ring-emerald-500 w-full" 
+                className="h-11 rounded-xl bg-white/5 border-white/10 font-mono text-xs text-white placeholder:text-white/20 focus-visible:ring-red-500/50 w-full" 
             />
             <Button 
                 type="button"

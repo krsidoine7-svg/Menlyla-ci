@@ -165,17 +165,23 @@ export async function handleWebhookEvent(event: GeniusPayWebhookEvent): Promise<
             const restaurantId = payment.metadata?.restaurant_id
             const type = payment.metadata?.type
 
-            // Activate restaurant if onboarding
-            if (type === 'onboarding' && restaurantId) {
+            // Activate restaurant if onboarding or subscription payment
+            if ((type === 'onboarding' || type === 'subscription') && restaurantId) {
+                const expiresAt = new Date()
+                expiresAt.setDate(expiresAt.getDate() + 30) // Default 30 days
+
                 const { error: restaurantError } = await supabase
                     .from('restaurants')
-                    .update({ subscription_status: 'active' })
+                    .update({ 
+                        subscription_status: 'active',
+                        subscription_expires_at: expiresAt.toISOString()
+                    })
                     .eq('id', restaurantId)
 
                 if (restaurantError) {
-                    console.error('[GeniusPay Webhook] Failed to activate restaurant:', restaurantError)
+                    console.error('[GeniusPay Webhook] Failed to update restaurant subscription:', restaurantError)
                 } else {
-                    console.log(`[GeniusPay Webhook] Restaurant ${restaurantId} activated via onboarding payment`)
+                    console.log(`[GeniusPay Webhook] Restaurant ${restaurantId} subscription updated. Expires: ${expiresAt.toISOString()}`)
                 }
             }
 

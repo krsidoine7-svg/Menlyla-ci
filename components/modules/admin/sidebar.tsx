@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard, ShieldCheck, Zap } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard, ShieldCheck, Zap, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
@@ -11,6 +11,7 @@ const navItems = [
     { name: 'Vue d\'ensemble', href: '/dashboard', icon: LayoutDashboard },
     { name: 'QR Codes & Tables', href: '/dashboard/tables', icon: QrCode },
     { name: 'Commandes', href: '/dashboard/orders', icon: Receipt },
+    { name: 'Historique & Factures', href: '/dashboard/archive', icon: History },
     { name: 'Statistiques', href: '/dashboard/analytics', icon: BarChart3 },
     {
         name: 'Paramètres',

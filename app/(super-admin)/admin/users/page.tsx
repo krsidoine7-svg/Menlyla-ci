@@ -130,26 +130,33 @@ export default async function UsersManagement({
     }
 
     return (
-        <div className="space-y-8 pb-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm flex items-center gap-3">
-                        <Users className="h-8 w-8 text-orange-500" />
-                        Gestion des Utilisateurs
-                    </h1>
-                    <p className="text-slate-500 font-medium max-w-2xl">Visualisez, modérez et gérez tous les comptes utilisateurs inscrits sur Menlyla.</p>
+        <div className="space-y-12 pb-12 animate-in fade-in duration-1000">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-[2rem] bg-orange-600 flex items-center justify-center shadow-2xl shadow-orange-600/20 rotate-3 group hover:rotate-0 transition-transform duration-500">
+                            <Users className="h-8 w-8 text-white" />
+                        </div>
+                        <h1 className="text-5xl font-black tracking-tight text-white italic">
+                            Utilisateurs <span className="text-orange-500">.</span>
+                        </h1>
+                    </div>
+                    <p className="text-white/40 font-medium max-w-2xl text-sm leading-relaxed">
+                        Gestion centralisée de la base de données. Visualisez, modérez et gérez les comptes de votre plateforme.
+                    </p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                    <div className="relative w-full md:w-80">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+                    <div className="relative w-full md:w-96 group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-orange-500 transition-colors" />
                         <form method="get" action="/admin/users" className="w-full">
                             <Input 
                                 name="q"
                                 defaultValue={query}
-                                placeholder="Rechercher (nom, email, @username)..." 
-                                className="pl-10 h-10 rounded-xl border-slate-200 bg-white shadow-sm focus-visible:ring-emerald-500 w-full font-medium"
+                                placeholder="Rechercher par nom, email, @username..." 
+                                className="pl-14 h-16 bg-white/5 border-white/10 rounded-[2rem] font-bold text-sm text-white transition-all shadow-2xl focus:ring-4 focus:ring-orange-600/10 focus:border-orange-600 placeholder:text-white/10"
                             />
-                            {/* Keep sort params when searching, reset page to 1 */}
                             <input type="hidden" name="sort" value={sort} />
                             <input type="hidden" name="order" value={order} />
                             <input type="hidden" name="page" value="1" />
@@ -158,65 +165,82 @@ export default async function UsersManagement({
                 </div>
             </div>
 
-            <Card className="border-none shadow-sm overflow-hidden bg-white/60 backdrop-blur-sm">
-                <CardHeader className="bg-slate-50/80 border-b px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="space-y-0.5">
-                        <CardTitle className="text-lg font-bold italic uppercase tracking-tighter text-slate-900">Base Utilisateurs</CardTitle>
-                        <CardDescription className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-                            {totalCount} utilisateurs {query ? 'trouvés' : 'au total'}
+            {/* Main Content Card */}
+            <Card className="border-none shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden bg-white/[0.02] backdrop-blur-3xl rounded-[3.5rem] relative">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-600/5 rounded-full blur-[120px] pointer-events-none" />
+                
+                <CardHeader className="bg-white/[0.01] border-b border-white/5 px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                    <div className="space-y-2">
+                        <CardTitle className="text-2xl font-black italic text-white tracking-tight flex items-center gap-3">
+                            <Filter className="h-5 w-5 text-orange-500" />
+                            Répertoire Global
+                        </CardTitle>
+                        <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
+                            {totalCount.toLocaleString()} comptes {query ? 'référencés' : 'enregistrés'}
                         </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    
+                    <div className="flex items-center gap-4">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9 rounded-xl border-slate-200 bg-white font-bold text-slate-600 gap-2 shadow-sm">
-                                    <Filter className="h-3.5 w-3.5" />
-                                    Trier par: {sort === 'created_at' ? 'Date' : sort === 'full_name' ? 'Nom' : sort === 'email' ? 'Email' : sort}
-                                    <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+                                <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 font-black text-[10px] uppercase tracking-widest text-white/60 gap-4 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all group">
+                                    Organiser par: <span className="text-white">{sort === 'created_at' ? 'Date' : sort === 'full_name' ? 'Nom' : sort === 'email' ? 'Email' : sort}</span>
+                                    <ChevronDown className="h-4 w-4 opacity-30 group-hover:opacity-100 group-hover:rotate-180 transition-all" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 rounded-xl border-slate-100 shadow-xl p-2 bg-white">
-                                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">Champ de tri</DropdownMenuLabel>
-                                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                                    <Link href={getSortUrl('created_at')} className="font-bold flex items-center justify-between w-full">Date d'inscription {sort === 'created_at' && <SortIcon column="created_at" />}</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                                    <Link href={getSortUrl('full_name')} className="font-bold flex items-center justify-between w-full">Nom complet {sort === 'full_name' && <SortIcon column="full_name" />}</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                                    <Link href={getSortUrl('email')} className="font-bold flex items-center justify-between w-full">Email {sort === 'email' && <SortIcon column="email" />}</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                                    <Link href={getSortUrl('username')} className="font-bold flex items-center justify-between w-full">Identifiant (@) {sort === 'username' && <SortIcon column="username" />}</Link>
-                                </DropdownMenuItem>
+                            <DropdownMenuContent align="end" className="w-64 rounded-2xl border-white/10 shadow-3xl p-3 bg-black/90 backdrop-blur-xl border border-white/10">
+                                <DropdownMenuLabel className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Critères de tri</DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-white/5" />
+                                {[
+                                    { id: 'created_at', label: "Date d'inscription" },
+                                    { id: 'full_name', label: "Nom complet" },
+                                    { id: 'email', label: "Adresse Email" },
+                                    { id: 'username', label: "Nom d'utilisateur" }
+                                ].map((item) => (
+                                    <DropdownMenuItem key={item.id} asChild className="rounded-xl mt-1 focus:bg-orange-600 focus:text-white cursor-pointer group">
+                                        <Link href={getSortUrl(item.id)} className="font-bold flex items-center justify-between px-4 py-3 w-full transition-all">
+                                            {item.label}
+                                            {sort === item.id && <SortIcon column={item.id} />}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0 overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
+
+                <CardContent className="p-0 overflow-x-auto relative z-10">
+                    <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
-                            <tr className="bg-white border-b border-slate-100/50">
-                                <th className="px-6 py-4">
-                                    <Link href={getSortUrl('full_name')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center hover:text-emerald-600 transition-colors">
+                            <tr className="bg-white/[0.01] border-b border-white/5">
+                                <th className="px-12 py-8">
+                                    <Link href={getSortUrl('full_name')} className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] flex items-center gap-3 hover:text-orange-500 transition-colors group">
+                                        <UserCircle className="h-4 w-4 text-orange-600/40 group-hover:text-orange-500 transition-colors" />
                                         Utilisateur <SortIcon column="full_name" />
                                     </Link>
                                 </th>
-                                <th className="px-6 py-4">
-                                    <Link href={getSortUrl('email')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center hover:text-emerald-600 transition-colors">
+                                <th className="px-10 py-8">
+                                    <Link href={getSortUrl('email')} className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] flex items-center gap-3 hover:text-orange-500 transition-colors group">
+                                        <Mail className="h-4 w-4 text-orange-600/40 group-hover:text-orange-500 transition-colors" />
                                         Contact <SortIcon column="email" />
                                     </Link>
                                 </th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Compte & Rôle</th>
-                                <th className="px-6 py-4">
-                                    <Link href={getSortUrl('created_at')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center hover:text-emerald-600 transition-colors">
-                                        Inscription <SortIcon column="created_at" />
+                                <th className="px-10 py-8 text-[11px] font-black text-white/50 uppercase tracking-[0.2em]">
+                                    <div className="flex items-center gap-3">
+                                        <ShieldCheck className="h-4 w-4 text-orange-600/40" />
+                                        Compte & Rôle
+                                    </div>
+                                </th>
+                                <th className="px-10 py-8">
+                                    <Link href={getSortUrl('created_at')} className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] flex items-center gap-3 hover:text-orange-500 transition-colors group">
+                                        <Calendar className="h-4 w-4 text-orange-600/40 group-hover:text-orange-500 transition-colors" />
+                                        Depuis <SortIcon column="created_at" />
                                     </Link>
                                 </th>
-                                <th className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Menu</th>
+                                <th className="px-12 py-8 text-right text-[11px] font-black text-white/50 uppercase tracking-[0.2em]">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100/50 bg-white">
+                        <tbody className="divide-y divide-white/5 bg-transparent">
                             {usersWithRoles?.map((user: any) => (
                                 <UserRow 
                                     key={user.id} 
@@ -231,45 +255,40 @@ export default async function UsersManagement({
                     </table>
                     
                     {(!usersWithRoles || usersWithRoles.length === 0) && (
-                        <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 backdrop-blur-sm">
-                            <div className="h-20 w-20 rounded-3xl bg-white border border-slate-100 shadow-sm flex items-center justify-center mb-6 -rotate-3 hover:rotate-0 transition-transform">
-                                <Search className="h-8 w-8 text-orange-200" />
+                        <div className="flex flex-col items-center justify-center py-40 bg-transparent">
+                            <div className="h-24 w-24 rounded-[2.5rem] bg-white/5 border border-white/10 shadow-3xl flex items-center justify-center mb-8 rotate-12 group hover:rotate-0 transition-transform duration-700">
+                                <Search className="h-10 w-10 text-white/10" />
                             </div>
-                            <h3 className="text-xl font-black italic uppercase text-slate-900 tracking-tight">Aucun utilisateur trouvé</h3>
-                            <p className="text-slate-500 font-medium mt-1">Votre requête pour "{query}" n'a donné aucun résultat sur la page {page}.</p>
-                            <Button variant="outline" asChild className="mt-6 font-bold uppercase tracking-widest text-[10px] h-10 px-6 border-slate-200 rounded-xl hover:bg-slate-900 hover:text-white transition-all">
-                                <Link href="/admin/users">Effacer tous les filtres</Link>
+                            <h3 className="text-3xl font-black italic uppercase text-white tracking-tight">Oups, le vide absolu</h3>
+                            <p className="text-white/20 font-medium mt-4 text-sm max-w-sm text-center leading-relaxed">
+                                Aucun utilisateur ne correspond à votre recherche "{query}". Essayez un autre mot-clé.
+                            </p>
+                            <Button variant="outline" asChild className="mt-12 h-14 px-10 rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-[10px] text-white hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all shadow-xl">
+                                <Link href="/admin/users">Réinitialiser la vue</Link>
                             </Button>
                         </div>
                     )}
                 </CardContent>
 
-                {/* Pagination Footer */}
+                {/* Pagination Luxe */}
                 {totalCount > 0 && (
-                    <div className="flex items-center justify-between px-6 py-4 bg-slate-50/30 border-t border-slate-100">
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            Affichage <span className="text-slate-900 font-black">{totalCount > 0 ? from + 1 : 0}</span> à <span className="text-slate-900 font-black">{Math.min(to + 1, totalCount)}</span> sur <span className="text-slate-900 font-black">{totalCount}</span>
+                    <div className="flex flex-col md:flex-row items-center justify-between px-12 py-10 bg-white/[0.01] border-t border-white/5 relative z-10 gap-8">
+                        <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] flex items-center gap-4">
+                            Séquence <span className="text-white font-bold bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">{from + 1} — {Math.min(to + 1, totalCount)}</span> sur <span className="text-orange-500 font-black">{totalCount}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            {page > 1 ? (
-                                <Button variant="outline" size="sm" asChild className="font-black text-xs h-9 rounded-xl border-slate-200">
-                                    <Link href={getPageUrl(page - 1)}>Précédent</Link>
-                                </Button>
-                            ) : (
-                                <Button variant="outline" size="sm" disabled className="font-black text-xs h-9 rounded-xl border-slate-200 opacity-50 cursor-not-allowed">
-                                    Précédent
-                                </Button>
-                            )}
+                        
+                        <div className="flex items-center gap-3">
+                            <Button variant="outline" disabled={page <= 1} asChild={page > 1} className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 font-black text-[10px] uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20 transition-all">
+                                {page > 1 ? <Link href={getPageUrl(page - 1)}>Antérieur</Link> : <span>Antérieur</span>}
+                            </Button>
 
-                            {page < totalPages ? (
-                                <Button variant="outline" size="sm" asChild className="font-black text-xs h-9 rounded-xl border-slate-200">
-                                    <Link href={getPageUrl(page + 1)}>Suivant</Link>
-                                </Button>
-                            ) : (
-                                <Button variant="outline" size="sm" disabled className="font-black text-xs h-9 rounded-xl border-slate-200 opacity-50 cursor-not-allowed">
-                                    Suivant
-                                </Button>
-                            )}
+                            <div className="flex items-center gap-2 px-4 h-14 bg-white/5 rounded-2xl border border-white/5 mx-2 font-black text-[10px] text-orange-500">
+                                {page} <span className="text-white/20">/</span> {totalPages}
+                            </div>
+
+                            <Button variant="outline" disabled={page >= totalPages} asChild={page < totalPages} className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 font-black text-[10px] uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20 transition-all">
+                                {page < totalPages ? <Link href={getPageUrl(page + 1)}>Ultérieur</Link> : <span>Ultérieur</span>}
+                            </Button>
                         </div>
                     </div>
                 )}

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { RestaurantModerationActions } from '@/components/modules/super-admin/moderation-actions'
 import { RestaurantModerationDrawer } from '@/components/modules/super-admin/restaurant-moderation-drawer'
+import { getAllReviews } from '@/app/(super-admin)/admin/actions'
+import { GlobalReviewModeration } from '@/components/modules/super-admin/global-review-moderation'
 import Link from 'next/link'
 import { 
     ShieldAlert, 
@@ -17,7 +19,8 @@ import {
     XCircle,
     Info,
     AlertTriangle,
-    Flag
+    Flag,
+    MessageSquare
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,6 +38,9 @@ import { cn } from '@/lib/utils'
 export default async function ModerationManagement(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
     const supabase = await createClient()
     const searchParams = await props.searchParams
+    
+    // Fetch Global Reviews
+    const reviews = await getAllReviews()
     
     // Check if drawer should be open
     const restaurantId = searchParams?.restaurantId
@@ -100,6 +106,9 @@ export default async function ModerationManagement(props: { searchParams?: Promi
                     </TabsTrigger>
                     <TabsTrigger value="profiles" className="rounded-xl font-medium text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black transition-all duration-500 h-full">
                         <User className="h-3.5 w-3.5 mr-2" /> Profils
+                    </TabsTrigger>
+                    <TabsTrigger value="reviews" className="rounded-xl font-medium text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all duration-500 h-full flex items-center gap-2">
+                        <MessageSquare className="h-3.5 w-3.5" /> Avis Clients
                     </TabsTrigger>
                     <TabsTrigger value="reports" className="rounded-xl font-medium text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all duration-500 h-full flex items-center gap-2">
                         <Flag className="h-3.5 w-3.5" /> Signalements
@@ -201,6 +210,10 @@ export default async function ModerationManagement(props: { searchParams?: Promi
                             </Card>
                         ))}
                     </div>
+                </TabsContent>
+                
+                <TabsContent value="reviews" className="animate-in slide-in-from-bottom-4 duration-500">
+                    <GlobalReviewModeration initialReviews={reviews.data || []} />
                 </TabsContent>
                 
                 <TabsContent value="reports" className="animate-in slide-in-from-bottom-4 duration-500">

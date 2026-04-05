@@ -1,6 +1,6 @@
 'use client'
 
-import { Star, Reply, CheckCheck } from 'lucide-react'
+import { Star, Reply, CheckCheck, BadgeCheck } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { ReviewDialog } from './review-dialog'
@@ -85,10 +85,22 @@ export function ReviewsList({ reviews, restaurantId }: Props) {
                                         </div>
                                         <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-orange-500">
                                             <div className="h-1.5 w-1.5 rounded-full bg-orange-500/50" />
-                                            Réponse de l'équipe
+                                            Réponse du restaurant
                                         </div>
                                         <p className="text-xs font-bold text-orange-100/80 leading-relaxed relative z-10">
                                             {review.owner_reply}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {review.platform_reply && (
+                                    <div className="bg-red-500/10 rounded-2xl p-4 mt-4 space-y-2 relative overflow-hidden border border-red-500/10">
+                                        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-red-500">
+                                            <BadgeCheck className="h-3 w-3" />
+                                            Support Menlyla
+                                        </div>
+                                        <p className="text-xs font-bold text-red-100/80 leading-relaxed italic">
+                                            "{review.platform_reply}"
                                         </p>
                                     </div>
                                 )}

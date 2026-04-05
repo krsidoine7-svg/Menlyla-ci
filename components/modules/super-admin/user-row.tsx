@@ -48,36 +48,83 @@ type UserRowProps = {
 
 export function UserRow({ user, isAdmin, canEdit = true, canDelete = true, canImpersonate = true }: UserRowProps) {
     const [isLoading, setIsLoading] = useState(false)
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean,
+        type: 'delete' | 'impersonate' | 'role',
+        title: string,
+        description: string,
+        action: () => void,
+        color: string,
+        icon: any
+    }>({
+        isOpen: false,
+        type: 'delete',
+        title: '',
+        description: '',
+        action: () => {},
+        color: 'bg-red-600',
+        icon: Trash2
+    })
 
-    const handleToggleRole = async () => {
-        setIsLoading(true)
-        const res = await toggleAdminRole(user.id)
-        if (res.success) toast.success(res.message)
-        else toast.error(res.error)
-        setIsLoading(false)
+    const onToggleRole = () => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'role',
+            title: isAdmin ? "Révocation" : "Élévation Admin",
+            description: isAdmin 
+                ? "Vous allez retirer les privilèges d'accès total à cet utilisateur. Il ne pourra plus accéder au Super Dashboard." 
+                : "ATTENTION : Vous allez accorder un ACCÈS TOTAL à cet utilisateur. Il pourra modifier d'autres utilisateurs et voir les données SaaS.",
+            action: async () => {
+                setIsLoading(true)
+                const res = await toggleAdminRole(user.id)
+                if (res.success) toast.success(res.message)
+                else toast.error(res.error)
+                setIsLoading(false)
+            },
+            color: isAdmin ? 'bg-amber-500' : 'bg-orange-600',
+            icon: ShieldCheck
+        })
     }
 
-    const handleDelete = async () => {
-        setIsLoading(true)
-        setShowDeleteConfirm(false)
-        const res = await deleteUserAccount(user.id)
-        if (res.success) toast.success(res.message)
-        else toast.error(res.error)
-        setIsLoading(false)
+    const onImpersonate = () => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'impersonate',
+            title: "Infiltration (Ghost Mode)",
+            description: "Vous allez être déconnecté de votre session admin pour entrer dans le compte de ce restaurateur. C'est idéal pour le support technique ou la configuration.",
+            action: async () => {
+                setIsLoading(true)
+                toast.loading("Génération du passe-partout...", { id: 'impersonate' })
+                const res = await getImpersonationLink(user.id)
+                if (res.success && res.link) {
+                    toast.success('Connexion établie. Redirection...', { id: 'impersonate' })
+                    window.location.href = res.link
+                } else {
+                    toast.error(res.error || "Une erreur est survenue.", { id: 'impersonate' })
+                    setIsLoading(false)
+                }
+            },
+            color: 'bg-emerald-600',
+            icon: LogIn
+        })
     }
 
-    const handleImpersonate = async () => {
-        setIsLoading(true)
-        toast.loading("Génération du passe-partout...", { id: 'impersonate' })
-        const res = await getImpersonationLink(user.id)
-        if (res.success && res.link) {
-            toast.success('Connexion établie. Redirection...', { id: 'impersonate' })
-            window.location.href = res.link
-        } else {
-            toast.error(res.error || "Une erreur est survenue.", { id: 'impersonate' })
-            setIsLoading(false)
-        }
+    const onDelete = () => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'delete',
+            title: "Extermination Totale",
+            description: `Supprimer "${user.full_name || user.email}" ? Cette action effacera ses menus, QR codes et historiques. C'est irréversible.`,
+            action: async () => {
+                setIsLoading(true)
+                const res = await deleteUserAccount(user.id)
+                if (res.success) toast.success(res.message)
+                else toast.error(res.error)
+                setIsLoading(false)
+            },
+            color: 'bg-red-600',
+            icon: Trash2
+        })
     }
 
     const hasAnyAction = canEdit || canDelete || canImpersonate
@@ -85,101 +132,111 @@ export function UserRow({ user, isAdmin, canEdit = true, canDelete = true, canIm
     return (
         <>
         <tr className={cn(
-            "hover:bg-slate-50/50 transition-colors group",
+            "hover:bg-white/[0.03] transition-all duration-300 group",
             isLoading && "opacity-50 pointer-events-none animate-pulse"
         )}>
 
-            <td className="px-6 py-5 whitespace-nowrap">
-                <div className="flex items-center gap-4">
-                    <div className="h-11 w-11 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-black text-lg border-2 border-orange-200 group-hover:bg-orange-600 group-hover:text-white group-hover:rotate-3 transition-all duration-300">
-                        {user.full_name?.charAt(0) || user.username?.charAt(0) || '?'}
+            <td className="px-12 py-8 whitespace-nowrap">
+                <div className="flex items-center gap-6">
+                    <div className="h-14 w-14 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-black text-xl shadow-[0_10px_30px_-10px_rgba(234,88,12,0.5)] group-hover:rotate-6 transition-all duration-500 overflow-hidden relative border border-white/10">
+                        {user.profile_image ? (
+                             <img src={user.profile_image} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                            <span className="relative z-10">{user.full_name?.charAt(0) || user.username?.charAt(0) || '?'}</span>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none" />
                     </div>
                     <div>
-                        <div className="font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{user.full_name || 'Sans nom'}</div>
-                        <div className="text-xs font-bold text-slate-400 tracking-tighter uppercase">{user.username ? `@${user.username}` : "Pas d'identifiant"}</div>
+                        <div className="font-bold text-white text-lg tracking-tight group-hover:text-orange-500 transition-colors uppercase italic flex items-center gap-2">
+                            {user.full_name || 'Anonyme'}
+                            {isAdmin && <ShieldCheck className="h-4 w-4 text-orange-500" />}
+                        </div>
+                        <div className="text-[10px] font-black text-white/20 tracking-[0.2em] uppercase mt-1">
+                            {user.username ? `@${user.username}` : "SANS IDENTIFIANT"}
+                        </div>
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-5 whitespace-nowrap">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
-                        <Mail className="h-3.5 w-3.5 text-slate-400" />
-                        {user.email || 'Non renseigné'}
+            <td className="px-10 py-8 whitespace-nowrap">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-white/60">
+                        <Mail className="h-4 w-4 text-orange-600/60" />
+                        {user.email || '—'}
                     </div>
-                    <div className="text-[10px] font-mono font-bold text-slate-400 tracking-tighter uppercase overflow-hidden max-w-[120px] truncate">
-                        ID: {user.id}
+                    <div className="text-[9px] font-mono font-black text-white/10 tracking-widest uppercase truncate max-w-[150px]">
+                        UID: {user.id.slice(0, 8)}...
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-5 whitespace-nowrap">
-                <Badge variant={isAdmin ? 'default' : 'outline'} className={cn(
-                    "capitalize font-bold tracking-tight px-3 py-1 border-2",
+            <td className="px-10 py-8 whitespace-nowrap">
+                <Badge className={cn(
+                    "font-black text-[9px] tracking-[0.2em] px-4 py-1.5 rounded-full uppercase border-none italic",
                     isAdmin 
-                        ? "bg-slate-900 text-white border-slate-900 shadow-sm" 
-                        : "bg-white text-slate-600 border-slate-200"
+                        ? "bg-orange-600 text-white shadow-xl shadow-orange-600/20" 
+                        : "bg-white/5 text-white/40 border border-white/5"
                 )}>
                     {isAdmin ? (
-                        <span className="flex items-center gap-1"><ShieldAlert className="h-3 w-3 text-orange-400" /> Admin</span>
-                    ) : 'Utilisateur'}
+                        <span className="flex items-center gap-2"><ShieldAlert className="h-3 w-3" /> Root Admin</span>
+                    ) : 'Standard'}
                 </Badge>
             </td>
-            <td className="px-6 py-5 whitespace-nowrap">
-                <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                    {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Indéterminé'}
+            <td className="px-10 py-8 whitespace-nowrap">
+                <div className="flex items-center gap-3 text-sm font-bold text-white/40">
+                    <Calendar className="h-4 w-4 text-orange-600/40" />
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                 </div>
             </td>
-            <td className="px-6 py-5 text-right whitespace-nowrap">
+            <td className="px-12 py-8 text-right whitespace-nowrap">
                 {hasAnyAction ? (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-9 w-9 p-0 hover:bg-slate-200/50 rounded-xl transition-all">
-                                <span className="sr-only">Menu actions</span>
-                                <MoreHorizontal className="h-5 w-5 text-slate-600" />
+                            <Button variant="ghost" className="h-12 w-12 p-0 hover:bg-white/10 rounded-2xl transition-all border border-transparent hover:border-white/5 group/btn">
+                                <span className="sr-only">Actions</span>
+                                <MoreHorizontal className="h-6 w-6 text-white/20 group-hover/btn:text-white transition-colors" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-none shadow-2xl bg-white/95 backdrop-blur-sm animate-in zoom-in-95 duration-200">
-                            <DropdownMenuLabel className="px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-400">Actions Rapides</DropdownMenuLabel>
+                        <DropdownMenuContent align="end" className="w-64 p-3 rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,1)] bg-black/95 backdrop-blur-2xl animate-in zoom-in-95 duration-200">
+                            <DropdownMenuLabel className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Contrôle Alpha</DropdownMenuLabel>
                             
                             {canEdit && (
-                                <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl font-bold group focus:bg-orange-50 focus:text-orange-600 transition-all">
-                                    <Edit className="h-4 w-4 text-slate-400 group-focus:text-orange-500" />
-                                    Modifier Profile
+                                <DropdownMenuItem className="flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-xl font-bold group focus:bg-orange-600 focus:text-white transition-all">
+                                    <Edit className="h-4 w-4 text-orange-500 group-focus:text-white" />
+                                    Rectifier
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl font-bold group focus:bg-indigo-50 focus:text-indigo-600 transition-all">
-                                <UserCircle className="h-4 w-4 text-slate-400 group-focus:text-indigo-500" />
-                                Voir Passport
+                            <DropdownMenuItem className="flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-xl font-bold group focus:bg-white/10 focus:text-white transition-all text-white/60">
+                                <UserCircle className="h-4 w-4 text-white/20 group-focus:text-white" />
+                                Profil Public
                             </DropdownMenuItem>
                             {canImpersonate && (
                                 <DropdownMenuItem 
-                                    onClick={handleImpersonate}
-                                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl font-bold group focus:bg-emerald-50 focus:text-emerald-600 transition-all"
+                                    onClick={onImpersonate}
+                                    className="flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-xl font-bold group focus:bg-emerald-600 focus:text-white transition-all text-white/60"
                                 >
-                                    <LogIn className="h-4 w-4 text-slate-400 group-focus:text-emerald-500" />
-                                    Connexion en tant que...
+                                    <LogIn className="h-4 w-4 text-emerald-500 group-focus:text-white" />
+                                    Accès Ghost
                                 </DropdownMenuItem>
                             )}
 
                             {(canEdit) && (
                                 <>
-                                    <DropdownMenuSeparator className="my-1 border-slate-100" />
-                                    <DropdownMenuLabel className="px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-400">Sécurité & Modération</DropdownMenuLabel>
+                                    <DropdownMenuSeparator className="my-2 bg-white/5" />
+                                    <DropdownMenuLabel className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Permissions</DropdownMenuLabel>
                                     {!isAdmin ? (
                                         <DropdownMenuItem 
-                                            onClick={handleToggleRole}
-                                            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl font-bold group focus:bg-emerald-50 focus:text-emerald-600 transition-all"
+                                            onClick={onToggleRole}
+                                            className="flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-xl font-bold group focus:bg-orange-600 focus:text-white transition-all text-white/60"
                                         >
-                                            <ShieldCheck className="h-4 w-4 text-slate-400 group-focus:text-emerald-500" />
-                                            Passer Admin
+                                            <ShieldCheck className="h-4 w-4 text-orange-500 group-focus:text-white" />
+                                            Élever Admin
                                         </DropdownMenuItem>
                                     ) : (
                                         <DropdownMenuItem 
-                                            onClick={handleToggleRole}
-                                            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl font-bold group focus:bg-amber-50 focus:text-amber-600 transition-all"
+                                            onClick={onToggleRole}
+                                            className="flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-xl font-bold group focus:bg-red-600 focus:text-white transition-all text-white/60"
                                         >
-                                            <ShieldX className="h-4 w-4 text-slate-400 group-focus:text-amber-500" />
-                                            Rétrograder
+                                            <ShieldX className="h-4 w-4 text-red-500 group-focus:text-white" />
+                                            Révoquer Droits
                                         </DropdownMenuItem>
                                     )}
                                 </>
@@ -187,47 +244,48 @@ export function UserRow({ user, isAdmin, canEdit = true, canDelete = true, canIm
 
                             {canDelete && (
                                 <>
-                                    <DropdownMenuSeparator className="my-1 border-slate-100" />
+                                    <DropdownMenuSeparator className="my-2 bg-white/5" />
                                     <DropdownMenuItem 
-                                        onClick={() => setShowDeleteConfirm(true)}
-                                        className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl font-bold group focus:bg-destructive/10 focus:text-destructive transition-all"
+                                        onClick={onDelete}
+                                        className="flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-xl font-bold group focus:bg-red-900 focus:text-white transition-all text-red-500"
                                     >
-                                        <Trash2 className="h-4 w-4 text-slate-400 group-focus:text-destructive" />
-                                        Supprimer définitivement
+                                        <Trash2 className="h-4 w-4 opacity-50 group-focus:opacity-100" />
+                                        Exterminer
                                     </DropdownMenuItem>
                                 </>
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 ) : (
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Lecture seule</span>
+                    <Badge variant="outline" className="bg-transparent border-white/5 text-[9px] font-black text-white/10 uppercase tracking-widest px-3 py-1">ReadOnly</Badge>
                 )}
             </td>
         </tr>
 
-        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-            <AlertDialogContent className="rounded-3xl border-none shadow-2xl overflow-hidden p-0">
-                <div className="bg-rose-600 p-6 flex items-center gap-4 text-white">
-                    <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                        <AlertTriangle className="h-6 w-6 text-white" />
+        <AlertDialog open={confirmConfig.isOpen} onOpenChange={(open) => setConfirmConfig(prev => ({ ...prev, isOpen: open }))}>
+            <AlertDialogContent className="rounded-[3rem] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,1)] overflow-hidden p-0 bg-black backdrop-blur-3xl animate-in zoom-in-95 duration-500">
+                <div className={cn("p-10 flex items-center gap-8 text-white relative overflow-hidden", confirmConfig.color)}>
+                    <div className="absolute top-0 right-0 p-10 opacity-10 rotate-12">
+                         {confirmConfig.icon && <confirmConfig.icon className="h-32 w-32" />}
                     </div>
-                    <div>
-                        <AlertDialogTitle className="text-xl font-black italic uppercase">Confirmation de suppression</AlertDialogTitle>
-                        <p className="text-rose-100 text-xs font-bold uppercase tracking-widest opacity-80">Action irréversible</p>
+                    <div className="h-20 w-20 rounded-3xl bg-white/20 flex items-center justify-center shrink-0 border border-white/20 relative z-10">
+                        {confirmConfig.icon && <confirmConfig.icon className="h-10 w-10 text-white" />}
+                    </div>
+                    <div className="relative z-10 space-y-1">
+                        <AlertDialogTitle className="text-3xl font-black italic uppercase tracking-tight leading-none">{confirmConfig.title}</AlertDialogTitle>
+                        <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em]">Action Prioritaire • Admin</p>
                     </div>
                 </div>
                 
-                <div className="p-6 space-y-4">
-                    <AlertDialogDescription className="text-slate-600 font-bold leading-relaxed">
-                        Vous êtes sur le point de supprimer définitivement le compte de <span className="text-slate-900 font-black italic">"{user.full_name || user.email}"</span>.
-                        <br /><br />
-                        Toutes ses données, profil et accès associés à Menlyla seront effacés de la base de données.
+                <div className="p-10 space-y-6">
+                    <AlertDialogDescription className="text-white/80 font-bold text-lg leading-relaxed italic">
+                        {confirmConfig.description}
                     </AlertDialogDescription>
                 </div>
 
-                <AlertDialogFooter className="p-6 pt-0 flex gap-3">
+                <AlertDialogFooter className="p-10 pt-0 flex gap-4">
                     <AlertDialogCancel asChild>
-                        <Button variant="ghost" className="flex-1 h-12 rounded-2xl font-black uppercase tracking-widest text-xs border-slate-100 hover:bg-slate-50">
+                        <Button variant="outline" className="flex-1 h-16 rounded-[1.5rem] border-white/10 bg-white/5 font-black uppercase tracking-widest text-[10px] text-white/40 hover:bg-white/10 hover:text-white transition-all">
                             Annuler
                         </Button>
                     </AlertDialogCancel>
@@ -235,12 +293,12 @@ export function UserRow({ user, isAdmin, canEdit = true, canDelete = true, canIm
                         <Button 
                             onClick={(e) => {
                                 e.preventDefault()
-                                handleDelete()
+                                setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+                                confirmConfig.action()
                             }}
-                            className="flex-1 h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs gap-2 shadow-xl shadow-rose-500/20"
+                            className={cn("flex-1 h-16 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] gap-3 shadow-2xl transition-all active:scale-[0.98]", confirmConfig.color)}
                         >
-                            <Trash2 className="h-4 w-4" />
-                            Supprimer
+                            Confirmer la Tâche
                         </Button>
                     </AlertDialogAction>
                 </AlertDialogFooter>
@@ -249,4 +307,3 @@ export function UserRow({ user, isAdmin, canEdit = true, canDelete = true, canIm
         </>
     )
 }
-

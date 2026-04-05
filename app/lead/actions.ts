@@ -1,10 +1,13 @@
 "use server";
 
+import { getSystemSettings } from "@/app/(super-admin)/admin/actions";
+
 export async function submitLead(formData: any) {
-  const WEBHOOK_URL = process.env.WEBHOOK_MAKE_URL;
+  const settings = await getSystemSettings();
+  const WEBHOOK_URL = settings.lead_magnet_webhook_url || process.env.WEBHOOK_MAKE_URL;
 
   if (!WEBHOOK_URL) {
-    console.error("WEBHOOK_MAKE_URL is not defined in .env");
+    console.error("WEBHOOK_MAKE_URL is not defined in .env or database");
     return { success: false, error: "Configuration error" };
   }
 

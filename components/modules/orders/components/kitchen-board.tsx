@@ -26,7 +26,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: a
     cancelled: { label: 'Annulé', color: 'bg-slate-300', icon: AlertCircle },
 }
 
-export function KitchenBoard({ initialOrders, restaurantId }: { initialOrders: any[], restaurantId: string }) {
+export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }: { initialOrders: any[], restaurantId: string, restaurantSettings?: any }) {
     const [orders, setOrders] = useState(initialOrders)
     const [loading, setLoading] = useState<string | null>(null)
     const [confirmCancel, setConfirmCancel] = useState<{ open: boolean, orderId: string | null }>({ open: false, orderId: null })
@@ -35,16 +35,47 @@ export function KitchenBoard({ initialOrders, restaurantId }: { initialOrders: a
     const supabase = useMemo(() => createClient(), [])
     const router = useRouter()
 
+    const vocalStyle = (restaurantSettings as any)?.notification_vocal_style || 'continuous'
+
     useEffect(() => {
         // Initialize audio
         audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
     }, [])
+
+    // Continuous Vocal Reminder Effect
+    useEffect(() => {
+        if (vocalStyle !== 'continuous') return
+
+        const interval = setInterval(() => {
+            const hasPending = orders.some(o => o.status === 'pending')
+            if (hasPending && typeof window !== 'undefined') {
+                const utterance = new SpeechSynthesisUtterance('Nouvelle commande en attente !')
+                utterance.lang = 'fr-FR'
+                window.speechSynthesis.speak(utterance)
+            }
+        }, 60000) // Every 1 minute to be persistent but less intrusive
+
+        return () => clearInterval(interval)
+    }, [orders, vocalStyle])
 
     const playNotificationSound = () => {
         if (audioRef.current) {
             audioRef.current.play().catch(e => console.log("Audio play blocked by browser. Click anywhere to enable."))
         }
         
+        // Vocal Alert Logic
+        if (vocalStyle === 'twice' && typeof window !== 'undefined') {
+            for(let i=0; i<2; i++) {
+                const utterance = new SpeechSynthesisUtterance('Nouvelle commande arrivée !')
+                utterance.lang = 'fr-FR'
+                window.speechSynthesis.speak(utterance)
+            }
+        } else if (vocalStyle === 'continuous' && typeof window !== 'undefined') {
+            const utterance = new SpeechSynthesisUtterance('Nouvelle commande arrivée !')
+            utterance.lang = 'fr-FR'
+            window.speechSynthesis.speak(utterance)
+        }
+
         setLastOrderFlash(true)
         setTimeout(() => setLastOrderFlash(false), 3000)
 

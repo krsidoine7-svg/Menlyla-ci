@@ -27,6 +27,16 @@ export default async function AdminDashboard() {
     const { data: totalRevenueArr } = await adminClient.from('payments').select('amount').eq('status', 'COMPLETED')
     
     const totalRevenue = totalRevenueArr?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0
+    
+    // Fetch subscriptions expiring soon (next 7 days)
+    const sevenDaysFromNow = new Date()
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7)
+    
+    const { count: expiringCount } = await adminClient
+        .from('restaurants')
+        .select('*', { count: 'exact', head: true })
+        .lte('subscription_expires_at', sevenDaysFromNow.toISOString())
+        .gt('subscription_expires_at', new Date().toISOString())
 
     // Recent Users
     const { data: recentUsers } = await adminClient.from('profiles').select('*').order('created_at', { ascending: false }).limit(5)
@@ -187,6 +197,13 @@ export default async function AdminDashboard() {
                             <ul className="space-y-4">
                                 <li className="flex items-center gap-3 group/item cursor-pointer">
                                     <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                    <span className="text-xs font-medium text-white">{expiringCount || 0} Abonnements à expirer (7j)</span>
+                                    <Link href="/admin/restaurants" className="ml-auto opacity-40 group-hover/item:translate-x-1 group-hover/item:-translate-y-1 transition-transform">
+                                        <ArrowUpRight className="h-3 w-3" />
+                                    </Link>
+                                </li>
+                                <li className="flex items-center gap-3 group/item cursor-pointer">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-white opacity-40" />
                                     <span className="text-xs font-medium text-white">3 Restaurants à vérifier</span>
                                     <ArrowUpRight className="h-3 w-3 ml-auto opacity-40 group-hover/item:translate-x-1 group-hover/item:-translate-y-1 transition-transform" />
                                 </li>

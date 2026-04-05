@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { PaymentModal } from './payment-modal'
 import { CreditCard, CheckCircle2 } from 'lucide-react'
 
@@ -37,11 +38,19 @@ export function ClientOrderActions({
 
     if (!isPaymentEnabled) {
         return (
-            <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 text-center space-y-2">
-                <p className="text-white font-bold italic">Paiement Mobile Indisponible</p>
-                <p className="text-[10px] text-white/20 font-medium uppercase tracking-widest leading-relaxed">
-                    Veuillez régler votre note directement au comptoir ou auprès de votre serveur.
-                </p>
+            <div className="flex flex-col items-center gap-4 p-8 bg-emerald-500/5 rounded-[2rem] border border-emerald-500/10 text-center animate-in fade-in zoom-in duration-1000">
+                <div className="h-16 w-16 rounded-3xl bg-emerald-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                </div>
+                <div className="space-y-1">
+                    <p className="text-white font-black italic text-lg tracking-tight uppercase">Commande en Préparation</p>
+                    <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] leading-relaxed max-w-[200px] mx-auto">
+                        Le règlement se fera directement sur place auprès de notre équipe.
+                    </p>
+                </div>
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-black text-[8px] px-4 py-1 tracking-widest italic animate-pulse">
+                    EN ATTENTE DE RÈGLEMENT (SUR PLACE)
+                </Badge>
             </div>
         )
     }

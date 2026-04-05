@@ -4,8 +4,10 @@ import { Suspense } from 'react'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { z } from 'zod'
 import { GeniusPayClient } from '@/lib/geniuspay/client'
+import { getSaaSGeniusPayClient } from '@/app/(super-admin)/admin/actions'
 
 // Validations
 const restaurantSchema = z.object({
@@ -25,6 +27,9 @@ const restaurantSchema = z.object({
     settings: z.any().optional(),
     social_links: z.any().optional(),
     plan: z.enum(['solo', 'pro']).default('solo'),
+    geniuspay_api_key: z.string().optional().nullable(),
+    geniuspay_api_secret: z.string().optional().nullable(),
+    geniuspay_webhook_secret: z.string().optional().nullable(),
 })
 
 export type RestaurantState = {
@@ -278,7 +283,8 @@ export async function initiateOnboardingPayment(plan: 'pro' | 'solo') {
     const planFee = plan === 'pro' ? 9900 : 0
     const totalAmount = setupFee + planFee
 
-    const { data: paymentRecord, error: paymentError } = await supabase
+    const adminClient = getAdminClient()
+    const { data: paymentRecord, error: paymentError } = await adminClient
         .from('payments')
         .insert({
             restaurant_id: restaurantId,
@@ -295,7 +301,7 @@ export async function initiateOnboardingPayment(plan: 'pro' | 'solo') {
         throw new Error(`Erreur base de données: ${paymentError.message}`)
     }
 
-    const geniuspay = new GeniusPayClient()
+    const geniuspay = await getSaaSGeniusPayClient()
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     try {
@@ -320,7 +326,7 @@ export async function initiateOnboardingPayment(plan: 'pro' | 'solo') {
         if (geniusResponse.success && (geniusResponse.data.payment_url || geniusResponse.data.checkout_url)) {
             const finalUrl = geniusResponse.data.payment_url || geniusResponse.data.checkout_url
             if (paymentRecord) {
-                await supabase
+                await adminClient
                     .from('payments')
                     .update({
                         geniuspay_reference: geniusResponse.data.reference,
@@ -441,6 +447,9 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
         banner_url: formData.get('banner_url') || undefined,
         social_links: formData.get('social_links') ? JSON.parse(formData.get('social_links') as string) : {},
         settings: formData.get('settings') ? JSON.parse(formData.get('settings') as string) : {},
+        geniuspay_api_key: formData.get('geniuspay_api_key') || undefined,
+        geniuspay_api_secret: formData.get('geniuspay_api_secret') || undefined,
+        geniuspay_webhook_secret: formData.get('geniuspay_webhook_secret') || undefined,
     }
 
     const validatedFields = restaurantSchema.safeParse(rawData)
@@ -489,6 +498,9 @@ export async function updateRestaurant(restaurantId: string, prevState: Restaura
         banner_url: validatedFields.data.banner_url,
         social_links: validatedFields.data.social_links,
         settings: cleanSettings,
+        geniuspay_api_key: validatedFields.data.geniuspay_api_key,
+        geniuspay_api_secret: validatedFields.data.geniuspay_api_secret,
+        geniuspay_webhook_secret: validatedFields.data.geniuspay_webhook_secret,
         updated_at: new Date().toISOString()
     }
 

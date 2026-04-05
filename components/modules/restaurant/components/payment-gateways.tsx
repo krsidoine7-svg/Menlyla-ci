@@ -9,9 +9,16 @@ import { cn } from '@/lib/utils'
 interface Props {
     settings: any
     setSettings: (settings: any) => void
+    geniuspayKeys?: {
+        apiKey: string
+        apiSecret: string
+        webhookSecret: string
+    }
+    setGeniuspayKeys?: (keys: any) => void
+    systemSettings?: any
 }
 
-export function PaymentGateways({ settings, setSettings }: Props) {
+export function PaymentGateways({ settings, setSettings, geniuspayKeys, setGeniuspayKeys, systemSettings }: Props) {
     const paymentConfig = settings.payment_config || {
         enabled: false,
         active_gateway: 'manual',
@@ -22,6 +29,12 @@ export function PaymentGateways({ settings, setSettings }: Props) {
             manual: { enabled: true }
         }
     }
+
+    // Global settings from Super Admin
+    const isGeniusPayAllowed = systemSettings?.is_geniuspay_enabled ?? true
+    const isLygosAllowed = systemSettings?.is_lygos_enabled ?? false
+    const isPaystackAllowed = systemSettings?.is_paystack_enabled ?? false
+    const isManualAllowed = systemSettings?.is_manual_payment_enabled ?? true
 
     const isGlobalEnabled = paymentConfig.enabled ?? false
 
@@ -104,108 +117,140 @@ export function PaymentGateways({ settings, setSettings }: Props) {
                 </div>
 
                 {/* GeniusPay - Local Hero */}
-                <GatewayCard 
-                    id="geniuspay"
-                    title="GeniusPay Africa"
-                    description="Paiements Mobiles (Orange, MTN, Wave) & Cartes en Afrique de l'Ouest."
-                    icon={<Zap className="h-5 w-5 text-orange-600" />}
-                    enabled={paymentConfig.gateways.geniuspay.enabled}
-                    active={paymentConfig.active_gateway === 'geniuspay'}
-                    onToggle={(enabled) => updateGateway('geniuspay', { enabled })}
-                    onSelect={() => setActiveGateway('geniuspay')}
-                >
-                    <div className="space-y-2 pt-4 border-t border-slate-50 mt-4">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clé API (Live)</Label>
-                        <Input 
-                            type="password" 
-                            placeholder="sk_live_..." 
-                            value={paymentConfig.gateways.geniuspay.api_key}
-                            onChange={(e) => updateGateway('geniuspay', { api_key: e.target.value })}
-                            className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
-                        />
-                    </div>
-                </GatewayCard>
+                {isGeniusPayAllowed && (
+                    <GatewayCard 
+                        id="geniuspay"
+                        title="GeniusPay Africa"
+                        description="Paiements Mobiles (Orange, MTN, Wave) & Cartes en Afrique de l'Ouest."
+                        icon={<Zap className="h-5 w-5 text-orange-600" />}
+                        enabled={paymentConfig.gateways.geniuspay.enabled}
+                        active={paymentConfig.active_gateway === 'geniuspay'}
+                        onToggle={(enabled) => updateGateway('geniuspay', { enabled })}
+                        onSelect={() => setActiveGateway('geniuspay')}
+                    >
+                        <div className="space-y-4 pt-4 border-t border-slate-50 mt-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clé API (API Key)</Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="ex: apik_live_..." 
+                                    value={geniuspayKeys?.apiKey || ''}
+                                    onChange={(e) => setGeniuspayKeys?.({ ...geniuspayKeys, apiKey: e.target.value })}
+                                    className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                />
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secret API (API Secret)</Label>
+                                    <Input 
+                                        type="password" 
+                                        placeholder="apis_live_..." 
+                                        value={geniuspayKeys?.apiSecret || ''}
+                                        onChange={(e) => setGeniuspayKeys?.({ ...geniuspayKeys, apiSecret: e.target.value })}
+                                        className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Webhook Secret</Label>
+                                    <Input 
+                                        type="password" 
+                                        placeholder="whs_live_..." 
+                                        value={geniuspayKeys?.webhookSecret || ''}
+                                        onChange={(e) => setGeniuspayKeys?.({ ...geniuspayKeys, webhookSecret: e.target.value })}
+                                        className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </GatewayCard>
+                )}
  
                 {/* LYGOS - Local Powerhouse */}
-                <GatewayCard 
-                    id="lygos"
-                    title="LYGOS"
-                    description="Solution de paiement sécurisée pour l'Afrique. Supporte OM, Moov, MTN et Wave."
-                    icon={<ShieldCheck className="h-5 w-5 text-purple-600" />}
-                    enabled={paymentConfig.gateways.lygos?.enabled}
-                    active={paymentConfig.active_gateway === 'lygos'}
-                    onToggle={(enabled) => updateGateway('lygos', { enabled })}
-                    onSelect={() => setActiveGateway('lygos')}
-                >
-                    <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-slate-50 mt-4">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Public Key (Clef Publique)</Label>
-                            <Input 
-                                placeholder="lygos_pub_..." 
-                                value={paymentConfig.gateways.lygos?.public_key || ''}
-                                onChange={(e) => updateGateway('lygos', { public_key: e.target.value })}
-                                className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
-                            />
+                {isLygosAllowed && (
+                    <GatewayCard 
+                        id="lygos"
+                        title="LYGOS"
+                        description="Solution de paiement sécurisée pour l'Afrique. Supporte OM, Moov, MTN et Wave."
+                        icon={<ShieldCheck className="h-5 w-5 text-purple-600" />}
+                        enabled={paymentConfig.gateways.lygos?.enabled}
+                        active={paymentConfig.active_gateway === 'lygos'}
+                        onToggle={(enabled) => updateGateway('lygos', { enabled })}
+                        onSelect={() => setActiveGateway('lygos')}
+                    >
+                        <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-slate-50 mt-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Public Key (Clef Publique)</Label>
+                                <Input 
+                                    placeholder="lygos_pub_..." 
+                                    value={paymentConfig.gateways.lygos?.public_key || ''}
+                                    onChange={(e) => updateGateway('lygos', { public_key: e.target.value })}
+                                    className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Private Key (Clef Privée)</Label>
+                                <Input 
+                                    type="password" 
+                                    placeholder="lygos_priv_..." 
+                                    value={paymentConfig.gateways.lygos?.private_key || ''}
+                                    onChange={(e) => updateGateway('lygos', { private_key: e.target.value })}
+                                    className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Private Key (Clef Privée)</Label>
-                            <Input 
-                                type="password" 
-                                placeholder="lygos_priv_..." 
-                                value={paymentConfig.gateways.lygos?.private_key || ''}
-                                onChange={(e) => updateGateway('lygos', { private_key: e.target.value })}
-                                className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
-                            />
-                        </div>
-                    </div>
-                </GatewayCard>
+                    </GatewayCard>
+                )}
 
                 {/* Paystack - Nigeria / Ghana / CI focus */}
-                <GatewayCard 
-                    id="paystack"
-                    title="Paystack"
-                    description="Une solution robuste pour l'Afrique, supportant les cartes et le Mobile Money."
-                    icon={<ShieldCheck className="h-5 w-5 text-blue-500" />}
-                    enabled={paymentConfig.gateways.paystack.enabled}
-                    active={paymentConfig.active_gateway === 'paystack'}
-                    onToggle={(enabled) => updateGateway('paystack', { enabled })}
-                    onSelect={() => setActiveGateway('paystack')}
-                >
-                    <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-slate-50 mt-4">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Public Key</Label>
-                            <Input 
-                                placeholder="pk_live_..." 
-                                value={paymentConfig.gateways.paystack.public_key}
-                                onChange={(e) => updateGateway('paystack', { public_key: e.target.value })}
-                                className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
-                            />
+                {isPaystackAllowed && (
+                    <GatewayCard 
+                        id="paystack"
+                        title="Paystack"
+                        description="Une solution robuste pour l'Afrique, supportant les cartes et le Mobile Money."
+                        icon={<ShieldCheck className="h-5 w-5 text-blue-500" />}
+                        enabled={paymentConfig.gateways.paystack.enabled}
+                        active={paymentConfig.active_gateway === 'paystack'}
+                        onToggle={(enabled) => updateGateway('paystack', { enabled })}
+                        onSelect={() => setActiveGateway('paystack')}
+                    >
+                        <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-slate-50 mt-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Public Key</Label>
+                                <Input 
+                                    placeholder="pk_live_..." 
+                                    value={paymentConfig.gateways.paystack.public_key}
+                                    onChange={(e) => updateGateway('paystack', { public_key: e.target.value })}
+                                    className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secret Key</Label>
+                                <Input 
+                                    type="password" 
+                                    placeholder="sk_live_..." 
+                                    value={paymentConfig.gateways.paystack.secret_key}
+                                    onChange={(e) => updateGateway('paystack', { secret_key: e.target.value })}
+                                    className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secret Key</Label>
-                            <Input 
-                                type="password" 
-                                placeholder="sk_live_..." 
-                                value={paymentConfig.gateways.paystack.secret_key}
-                                onChange={(e) => updateGateway('paystack', { secret_key: e.target.value })}
-                                className="h-11 rounded-xl bg-slate-50/50 border-slate-100 focus:bg-white transition-all text-xs"
-                            />
-                        </div>
-                    </div>
-                </GatewayCard>
+                    </GatewayCard>
+                )}
 
                 {/* Manual / Cash / Delivery */}
-                <GatewayCard 
-                    id="manual"
-                    title="Paiement Manuel & Livraison"
-                    description="Le client commande en ligne et règle directement sur place ou à la livraison."
-                    icon={<MessageSquare className="h-5 w-5 text-slate-600" />}
-                    enabled={paymentConfig.gateways.manual.enabled}
-                    active={paymentConfig.active_gateway === 'manual'}
-                    onToggle={(enabled) => updateGateway('manual', { enabled })}
-                    onSelect={() => setActiveGateway('manual')}
-                    hideFields
-                />
+                {isManualAllowed && (
+                    <GatewayCard 
+                        id="manual"
+                        title="Paiement Manuel & Livraison"
+                        description="Le client commande en ligne et règle directement sur place ou à la livraison."
+                        icon={<MessageSquare className="h-5 w-5 text-slate-600" />}
+                        enabled={paymentConfig.gateways.manual.enabled}
+                        active={paymentConfig.active_gateway === 'manual'}
+                        onToggle={(enabled) => updateGateway('manual', { enabled })}
+                        onSelect={() => setActiveGateway('manual')}
+                        hideFields
+                    />
+                )}
             </div>
 
             {/* Note Section (Grayed out if disabled) */}

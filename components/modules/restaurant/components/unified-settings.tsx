@@ -64,7 +64,7 @@ const DAY_LABELS: Record<typeof DAYS[number], string> = {
     sunday: 'Dimanche',
 }
 
-export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: { restaurant: any, initialProfile: any, initialReviews?: any[] }) {
+export function UnifiedSettings({ restaurant, initialProfile, initialReviews, systemSettings }: { restaurant: any, initialProfile: any, initialReviews?: any[], systemSettings?: any }) {
     const searchParams = useSearchParams()
     const activeSection = searchParams.get('section') || 'profile'
 
@@ -84,6 +84,12 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
     const [themeColor, setThemeColor] = useState(restaurant.settings?.primary_color || '#0f172a')
     const [secondaryColor, setSecondaryColor] = useState(restaurant.settings?.secondary_color || '#f8fafc')
     const [useGradient, setUseGradient] = useState(restaurant.settings?.use_gradient || false)
+
+    const [geniuspayKeys, setGeniuspayKeys] = useState<{ apiKey: string, apiSecret: string, webhookSecret: string }>({
+        apiKey: restaurant.geniuspay_api_key || '',
+        apiSecret: restaurant.geniuspay_api_secret || '',
+        webhookSecret: restaurant.geniuspay_webhook_secret || ''
+    })
 
     const [profileCustomLinks, setProfileCustomLinks] = useState(initialProfile?.custom_links || [])
 
@@ -106,10 +112,13 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
             useGradient !== (restaurant.settings?.use_gradient || false) ||
             JSON.stringify(socialLinks) !== JSON.stringify(restaurant.settings?.social_links || {}) ||
             JSON.stringify(settings) !== JSON.stringify(restaurant.settings || {}) ||
-            JSON.stringify(profileCustomLinks) !== JSON.stringify(initialProfile?.custom_links || [])
+            JSON.stringify(profileCustomLinks) !== JSON.stringify(initialProfile?.custom_links || []) ||
+            geniuspayKeys.apiKey !== (restaurant.geniuspay_api_key || '') ||
+            geniuspayKeys.apiSecret !== (restaurant.geniuspay_api_secret || '') ||
+            geniuspayKeys.webhookSecret !== (restaurant.geniuspay_webhook_secret || '')
 
         return restoDirty
-    }, [name, slug, description, phone, email, address, logoUrl, bannerUrl, themeColor, secondaryColor, useGradient, socialLinks, settings, restaurant, profileCustomLinks, initialProfile, whatsapp])
+    }, [name, slug, description, phone, email, address, logoUrl, bannerUrl, themeColor, secondaryColor, useGradient, socialLinks, settings, restaurant, profileCustomLinks, initialProfile, whatsapp, geniuspayKeys])
 
     useEffect(() => {
         if (state.success) {
@@ -150,6 +159,11 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
         setSecondaryColor(restaurant.settings?.secondary_color || '#f8fafc')
         setUseGradient(restaurant.settings?.use_gradient || false)
         setProfileCustomLinks(initialProfile?.custom_links || [])
+        setGeniuspayKeys({
+            apiKey: restaurant.geniuspay_api_key || '',
+            apiSecret: restaurant.geniuspay_api_secret || '',
+            webhookSecret: restaurant.geniuspay_webhook_secret || ''
+        })
     }
 
     const isExternalView = ['menu', 'legal', 'analytics', 'notifications', 'reviews', 'subscription'].includes(activeSection)
@@ -186,6 +200,9 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
                             <input type="hidden" name="banner_url" value={bannerUrl || ''} />
                             <input type="hidden" name="social_links" value={JSON.stringify(socialLinks)} />
                             <input type="hidden" name="settings" value={JSON.stringify(settings)} />
+                            <input type="hidden" name="geniuspay_api_key" value={geniuspayKeys.apiKey} />
+                            <input type="hidden" name="geniuspay_api_secret" value={geniuspayKeys.apiSecret} />
+                            <input type="hidden" name="geniuspay_webhook_secret" value={geniuspayKeys.webhookSecret} />
 
                             {/* Passport specifics - now pointing to consolidated restaurant fields where possible */}
                             <input type="hidden" name="profile_username" value={slug || ''} />
@@ -871,7 +888,13 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews }: 
                             )}
 
                             {activeSection === 'payments' && (
-                                <PaymentGateways settings={settings} setSettings={setSettings} />
+                                <PaymentGateways 
+                                    settings={settings} 
+                                    setSettings={setSettings} 
+                                    geniuspayKeys={geniuspayKeys} 
+                                    setGeniuspayKeys={setGeniuspayKeys} 
+                                    systemSettings={systemSettings} 
+                                />
                             )}
 
                             <div className="sticky bottom-8 z-50 flex items-center justify-between p-2 pl-6 rounded-full bg-slate-900/90 backdrop-blur-md border border-white/10 text-white shadow-2xl animate-in slide-in-from-bottom-8 duration-500 max-w-2xl mx-auto ring-1 ring-black/5">

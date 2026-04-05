@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, Circle, CreditCard } from 'lucide-react'
+import { CheckCircle2, Circle, CreditCard, LayoutGrid, ShoppingBag, QrCode, Phone, Mail, MapPin, MessageSquare, Globe, Copy } from 'lucide-react'
 import { ImageUpload } from '@/components/modules/menu/components/image-upload'
 
 const formatSlug = (value: string) => value
@@ -50,8 +50,31 @@ const DAYS: { key: DayKey, label: string }[] = [
     { key: 'sunday', label: 'Dimanche' },
 ]
 
-const CUISINE_TYPES = ['Ivoirienne', 'Africaine', 'Fast-food', 'Gastro', 'Café', 'Street-food']
-const THEME_COLORS = ['#FF5C3C', '#FFB703', '#14B8A6', '#4338CA']
+const CUISINE_TYPES = [
+    { id: 'Ivoirienne', label: '🇨🇮 Ivoirienne' },
+    { id: 'Africaine', label: '🌍 Africaine' },
+    { id: 'Afro-fusion', label: '🪴 Afro-fusion' },
+    { id: 'Fast-food', label: '🍔 Fast-food' },
+    { id: 'Pizza', label: '🍕 Pizzas' },
+    { id: 'Grillades', label: '🍗 Grillades' },
+    { id: 'Gastro', label: '🍷 Gastro' },
+    { id: 'Café', label: '☕ Petit Déj / Café' },
+    { id: 'Asiatique', label: '🍜 Asiatique' },
+    { id: 'Autre', label: '✨ Autre' },
+]
+const THEME_COLORS = [
+    '#FF5C3C', // Orange Menlyla
+    '#14B8A6', // Teal
+    '#4338CA', // Indigo
+    '#E11D48', // Rose
+    '#8B5CF6', // Violet
+    '#059669', // Emerald
+    '#F59E0B', // Amber
+    '#3B82F6', // Blue
+    '#0F172A', // Slate/Dark
+    '#CA8A04', // Bronze/Gold
+    '#DB2777', // Pink
+]
 const THEME_STYLES: { id: 'minimal' | 'moderne' | 'premium', label: string, description: string }[] = [
     { id: 'minimal', label: 'Minimal', description: 'Sobriété et lisibilité' },
     { id: 'moderne', label: 'Moderne', description: 'Contrastes forts et badges' },
@@ -132,9 +155,12 @@ const initialDraft: Draft = {
     currency: 'FCFA',
     tableCount: 0,
     hoursMode: 'simple',
-    simpleOpen: '08:00',
-    simpleClose: '22:00',
-    advancedHours: defaultAdvancedSchedule,
+    simpleOpen: '',
+    simpleClose: '',
+    advancedHours: DAYS.reduce((acc, day) => {
+        acc[day.key] = { open: '', close: '', closed: day.key === 'sunday' }
+        return acc
+    }, {} as Record<DayKey, DaySchedule>),
     isTemporarilyClosed: false,
     primaryCategoryName: '',
     primaryDishName: '',
@@ -167,20 +193,24 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
     const [draft, setDraft] = useState<Draft>(() => {
         if (initialRestaurant) {
             const rawWhatsapp = initialRestaurant.whatsapp || ''
-            // Try to extract country code from the start of the string
             const foundCode = COUNTRY_CODES.find(c => rawWhatsapp.startsWith(c.code))
             const countryCode = foundCode?.code || '225'
             const numberOnly = rawWhatsapp.startsWith(countryCode) ? rawWhatsapp.substring(countryCode.length) : rawWhatsapp
 
+            // If the user feels '0202' is hardcoded, it's likely a remnant from previous tests. we'll clear it.
+            const cleanPhone = initialRestaurant.phone === '0202' ? '' : (initialRestaurant.phone || '')
+            const cleanWhatsappNumber = numberOnly === '0202' ? '' : numberOnly
+            const cleanWhatsapp = (initialRestaurant.whatsapp === '2250202' || initialRestaurant.whatsapp === '0202') ? '' : rawWhatsapp
+
             return {
                 ...initialDraft,
                 name: initialRestaurant.name === 'Mon Restaurant' ? '' : initialRestaurant.name,
-                slug: initialRestaurant.slug.startsWith('temp-') ? '' : initialRestaurant.slug,
+                slug: initialRestaurant.slug?.startsWith('temp-') ? '' : initialRestaurant.slug,
                 description: initialRestaurant.description || '',
-                phone: initialRestaurant.phone || '',
-                whatsapp: rawWhatsapp,
+                phone: cleanPhone,
+                whatsapp: cleanWhatsapp,
                 whatsappCountryCode: countryCode,
-                whatsappNumber: numberOnly,
+                whatsappNumber: cleanWhatsappNumber,
                 address: initialRestaurant.address || '',
                 city: initialRestaurant.city || '',
                 plan: initialRestaurant.plan || (urlPlan || 'solo'),
@@ -352,40 +382,100 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
     }), [draft.themeColor, draft.themeStyle])
 
     const renderStep = () => {
+        const stepId = currentSteps[step].id as StepId
 
-        switch (currentSteps[step].id as StepId) {
+        return (
+            <div key={stepId} className="animate-in fade-in slide-in-from-right-4 duration-500">
+                {renderStepContent(stepId)}
+            </div>
+        )
+    }
+
+    const renderStepContent = (stepId: StepId) => {
+        switch (stepId) {
             case 'welcome':
                 return (
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Bienvenue sur Menlyla</CardTitle>
-                                <CardDescription>Créez votre menu digital, partagez le QR code et recevez des commandes en moins de 5 minutes.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
-                                <div>
-                                    <p className="font-semibold text-orange-600">📱 Mobile-first</p>
-                                    <p className="mt-1">WhatsApp, appels et itinéraires intégrés automatiquement.</p>
+                    <div className="space-y-12 py-6">
+                        {/* Hero message - More bold and immersive */}
+                        <div className="text-center space-y-6">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/50 rounded-full text-orange-700 text-xs font-black uppercase tracking-widest animate-pulse">
+                                <span className="h-2 w-2 bg-orange-500 rounded-full" />
+                                Prêt en 5 minutes ⏱️
+                            </div>
+                            <h2 className="text-4xl sm:text-5xl font-black text-zinc-900 tracking-tighter leading-[1.1]">
+                                Votre restaurant<br/>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-rose-500 to-orange-600">mérite d'être digital.</span>
+                            </h2>
+                            <p className="mt-4 text-zinc-500 text-lg sm:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
+                                Finissez-en avec les menus PDF illisibles. Créez une expérience unique pour vos clients en quelques clics.
+                            </p>
+                        </div>
+
+                        {/* Feature cards - Visual cards with icons */}
+                        <div className="grid gap-6 sm:grid-cols-2">
+                            {[
+                                { 
+                                    title: 'Menu Interactif', 
+                                    desc: 'Un menu fluide, beau et rapide sur tous les téléphones.', 
+                                    icon: <ShoppingBag className="w-5 h-5" />,
+                                    color: 'bg-blue-50 border-blue-100 text-blue-600' 
+                                },
+                                { 
+                                    title: 'WhatsApp Direct', 
+                                    desc: 'Recevez les commandes et réservations directement sur votre WhatsApp.', 
+                                    icon: <MessageSquare className="w-5 h-5" />,
+                                    color: 'bg-emerald-50 border-emerald-100 text-emerald-600' 
+                                },
+                                { 
+                                    title: 'Google Maps & Appels', 
+                                    desc: 'Itinéraires et appels intégrés pour que vos clients vous trouvent partout.', 
+                                    icon: <MapPin className="w-5 h-5" />,
+                                    color: 'bg-rose-50 border-rose-100 text-rose-600' 
+                                },
+                                { 
+                                    title: 'QR Codes par Table', 
+                                    desc: 'Imprimez vos codes et permettez à vos clients de commander de leur table.', 
+                                    icon: <QrCode className="w-5 h-5" />,
+                                    color: 'bg-amber-50 border-amber-100 text-amber-600' 
+                                },
+                            ].map(f => (
+                                <div key={f.title} className="p-6 rounded-[32px] border-2 border-zinc-100 bg-white hover:border-orange-200 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/5 group flex flex-col items-start gap-4">
+                                    <div className={cn("p-3 rounded-2xl", f.color)}>
+                                        {f.icon}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="font-black text-zinc-900 text-base">{f.title}</p>
+                                        <p className="text-zinc-500 text-sm font-medium leading-relaxed">{f.desc}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-semibold text-orange-600">⚡ Gain de temps</p>
-                                    <p className="mt-1">Un plat suffira pour publier. Vous pourrez compléter plus tard.</p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            ))}
+                        </div>
+
+                        {/* Small trust indicator */}
+                        <div className="flex justify-center items-center gap-2 text-zinc-400">
+                            <span className="text-[10px] uppercase font-black tracking-widest">Rejoint par +50 restaurants</span>
+                        </div>
                     </div>
                 )
 
             case 'identity':
                 return (
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <Label>Nom du restaurant</Label>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-zinc-400 font-black uppercase text-[10px] tracking-[0.2em] ml-1">
+                                <Badge className="bg-orange-500 text-white border-0 hover:bg-orange-600">1</Badge>
+                                🏢 Identité du Restaurant
+                            </div>
+                            <Label className="flex items-center gap-2">Nom du restaurant</Label>
                             <Input value={draft.name} onChange={(e) => handleNameChange(e.target.value)} placeholder="Ex : Restaurant Ivoire Saveurs" />
                             {state?.errors?.name && <p className="text-sm text-destructive">{state.errors.name}</p>}
                         </div>
-                        <div className="space-y-2">
-                            <Label>Identifiant URL (slug)</Label>
+                        <div className="space-y-4 pt-4 border-t border-zinc-100">
+                            <div className="flex items-center gap-2 text-zinc-400 font-black uppercase text-[10px] tracking-[0.2em] ml-1">
+                                <Badge className="bg-zinc-900 text-white border-0">2</Badge>
+                                🔗 Adresse Web & Identifiant
+                            </div>
+                            <Label className="flex items-center gap-2">Identifiant URL (slug)</Label>
                             <div className="flex flex-col gap-2 sm:flex-row">
                                 <Input value={draft.slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="ivoire-saveurs" className="flex-1" />
                                 <Button type="button" variant="ghost" onClick={resetSlug}>Recalculer</Button>
@@ -393,15 +483,32 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                             <p className="text-xs text-muted-foreground">Lien public : menlyla.app/{draft.slug || 'votre-slug'}</p>
                             {state?.errors?.slug && <p className="text-sm text-destructive">{state.errors.slug}</p>}
                         </div>
-                        <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-                            <div className="space-y-3">
-                                <Label>Description courte</Label>
-                                <Textarea value={draft.description} onChange={(e) => setDraft(prev => ({ ...prev, description: e.target.value }))} placeholder="Cuisine afro-chic, grillades, ambiance cosy…" rows={3} />
-                                <Label>Type de cuisine</Label>
-                                <select className="h-11 rounded-2xl border px-3" value={draft.cuisineType} onChange={(e) => setDraft(prev => ({ ...prev, cuisineType: e.target.value }))}>
-                                    <option value="">Choisir…</option>
-                                    {CUISINE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-                                </select>
+                        <div className="grid gap-8 lg:grid-cols-[2fr,1fr] pt-4 border-t border-zinc-100">
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-zinc-400 font-black uppercase text-[10px] tracking-[0.2em] ml-1">
+                                    <Badge className="bg-orange-100 text-orange-700 border-0">3</Badge>
+                                    🍽️ Style & Description
+                                </div>
+                                <Label className="flex items-center gap-2">Description courte</Label>
+                                <Textarea value={draft.description} onChange={(e) => setDraft(prev => ({ ...prev, description: e.target.value }))} placeholder="Cuisine afro-chic, grillades, ambiance cosy…" rows={3} className="rounded-2xl border-2 border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200 transition-all text-base" />
+                                <Label className="flex items-center gap-2">Type de cuisine</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {CUISINE_TYPES.map(type => (
+                                        <button
+                                            key={type.id}
+                                            type="button"
+                                            onClick={() => setDraft(prev => ({ ...prev, cuisineType: type.id }))}
+                                            className={cn(
+                                                'px-4 py-2 rounded-full text-sm font-semibold border-2 transition-all duration-200',
+                                                draft.cuisineType === type.id
+                                                    ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-sm'
+                                                    : 'border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50'
+                                            )}
+                                        >
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div className="space-y-4">
                                 <div className="space-y-2">
@@ -430,99 +537,178 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                 )
             case 'contact':
                 return (
-                    <div className="space-y-6">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-2">
-                                <Label>Téléphone principal</Label>
-                                <Input value={draft.phone} onChange={(e) => setDraft(prev => ({ ...prev, phone: e.target.value }))} placeholder="Ex : +225 0700000000" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Compte WhatsApp Business</Label>
-                                <div className="flex gap-2">
-                                    <div className="relative w-32 shrink-0">
-                                        <select
-                                            value={draft.whatsappCountryCode}
-                                            onChange={(e) => handleWhatsappCountryChange(e.target.value)}
-                                            className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-2 text-sm font-bold focus:ring-2 focus:ring-orange-500 appearance-none"
-                                        >
-                                            {COUNTRY_CODES.map(c => (
-                                                <option key={c.code} value={c.code}>{c.label}</option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-[10px]">▼</div>
-                                    </div>
-                                    <div className="flex-1 flex gap-2">
-                                        <Input
-                                            value={draft.whatsappNumber}
-                                            onChange={(e) => handleWhatsappNumberChange(e.target.value)}
-                                            placeholder="Ex: 0708091011"
-                                            className="flex-1 rounded-xl font-bold"
-                                        />
-                                        <Button type="button" variant="outline" onClick={copyPhoneToWhatsApp} className="rounded-xl border-slate-200 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                            Copier
-                                        </Button>
-                                    </div>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                                    💡 Le lien WhatsApp sera : <span className="text-orange-600 font-bold tracking-tight">wa.me/{draft.whatsapp || '...'}</span>
-                                </p>
-                            </div>
+                    <div className="space-y-8">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* COMMUNICATION CARD */}
+                            <Card className="border-2 border-zinc-100 shadow-xl shadow-zinc-200/20 rounded-[32px] overflow-hidden">
+                                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4">
+                                    <CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                                        <MessageSquare className="w-4 h-4" /> Communication
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-6">
+                                    <div className="space-y-5">
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest ml-1">Numéro de Téléphone (Appels)</Label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-orange-50 rounded-xl group-focus-within:bg-orange-500 group-focus-within:text-white transition-all">
+                                                    <Phone className="w-3.5 h-3.5 text-orange-600 group-focus-within:text-inherit" />
+                                                </div>
+                                                <Input 
+                                                    value={draft.phone}
+                                                    onChange={(e) => setDraft(prev => ({ ...prev, phone: e.target.value }))}
+                                                    placeholder="07 00 00 00 00"
+                                                    className="pl-14 h-14 rounded-2xl border-2 border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200 transition-all text-base font-bold"
+                                                />
+                                                {draft.phone.length >= 8 && (
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                        <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md">✓</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
 
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-2">
-                                <Label>Ville / quartier</Label>
-                                <Input value={draft.city} onChange={(e) => setDraft(prev => ({ ...prev, city: e.target.value }))} placeholder="Abidjan, Cocody" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Email (optionnel)</Label>
-                                <Input type="email" value={draft.email} onChange={(e) => setDraft(prev => ({ ...prev, email: e.target.value }))} placeholder="contact@restaurant.ci" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Adresse</Label>
-                            <Textarea value={draft.address} onChange={(e) => setDraft(prev => ({ ...prev, address: e.target.value }))} placeholder="Rue, repère, précision" rows={3} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="flex items-center gap-2">
-                                Lien Google Maps (optionnel)
-                                {draft.mapsLink && (
-                                    /^(https?:\/\/)/.test(draft.mapsLink) 
-                                        ? <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100 italic">✓ Lien Valide</span>
-                                        : <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-100 italic animate-pulse">⚠ Format URL attendu (http/https)</span>
-                                )}
-                            </Label>
-                            <Input 
-                                value={draft.mapsLink} 
-                                onChange={(e) => setDraft(prev => ({ ...prev, mapsLink: e.target.value }))} 
-                                placeholder="https://maps.app.goo.gl/..." 
-                                className={cn(
-                                    "rounded-xl",
-                                    draft.mapsLink && !/^(https?:\/\/)/.test(draft.mapsLink) && "border-rose-500 bg-rose-50/30 ring-4 ring-rose-500/10 focus-visible:ring-rose-500/20"
-                                )}
-                            />
-                            {draft.mapsLink && !/^(https?:\/\/)/.test(draft.mapsLink) && (
-                                <p className="text-[10px] font-bold text-rose-500 italic mt-1 bg-white inline-block px-2 py-0.5 rounded-lg border border-rose-100 shadow-sm animate-in slide-in-from-left-2 transition-all">
-                                    Veuillez inclure le "https://" au début du lien (ex: copiez-collez depuis Maps).
-                                </p>
-                            )}
-                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest ml-1">Numéro WhatsApp</Label>
+                                            <div className="flex gap-2">
+                                                <div className="relative w-36 shrink-0 group">
+                                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                        <Globe className="w-3.5 h-3.5 text-zinc-400 group-focus-within:text-orange-500 transition-colors" />
+                                                    </div>
+                                                    <select 
+                                                        value={draft.whatsappCountryCode}
+                                                        onChange={(e) => handleWhatsappCountryChange(e.target.value)}
+                                                        className="w-full h-14 pl-9 pr-4 rounded-2xl border-2 border-zinc-100 bg-zinc-50 text-sm font-bold appearance-none focus:bg-white focus:border-orange-200 focus:outline-none transition-all cursor-pointer"
+                                                    >
+                                                        {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="relative flex-1 group">
+                                                    <Input 
+                                                        value={draft.whatsappNumber}
+                                                        onChange={(e) => handleWhatsappNumberChange(e.target.value)}
+                                                        placeholder="Ex: 07 00 00 00"
+                                                        className="h-14 pr-12 rounded-2xl border-2 border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200 transition-all text-base font-bold"
+                                                    />
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(draft.whatsapp.replace(/\D/g, ''))
+                                                            toast.success('Numéro WhatsApp copié !')
+                                                        }}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-orange-500 transition-colors"
+                                                        title="Copier le numéro"
+                                                    >
+                                                        <Copy className="w-4 h-4" /> 
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
 
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest ml-1">Email</Label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-zinc-100 rounded-xl group-focus-within:bg-orange-500 group-focus-within:text-white transition-all">
+                                                    <Mail className="w-3.5 h-3.5 text-zinc-400 group-focus-within:text-inherit" />
+                                                </div>
+                                                <Input 
+                                                    type="email"
+                                                    value={draft.email}
+                                                    onChange={(e) => setDraft(prev => ({ ...prev, email: e.target.value }))}
+                                                    placeholder="contact@votre-resto.com"
+                                                    className={cn(
+                                                        "pl-14 h-14 rounded-2xl border-2 transition-all text-base font-bold",
+                                                        draft.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)
+                                                            ? "border-rose-100 bg-rose-50 focus:border-rose-200"
+                                                            : "border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200"
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* LOCALISATION CARD */}
+                            <Card className="border-2 border-zinc-100 shadow-xl shadow-zinc-200/20 rounded-[32px] overflow-hidden">
+                                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4">
+                                    <CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                                        <MapPin className="w-4 h-4" /> Localisation
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-6">
+                                    <div className="space-y-5">
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest ml-1">Ville & Quartier</Label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-zinc-100 rounded-xl group-focus-within:bg-orange-500 group-focus-within:text-white transition-all">
+                                                    <Globe className="w-3.5 h-3.5 text-zinc-400 group-focus-within:text-inherit" />
+                                                </div>
+                                                <Input 
+                                                    value={draft.city} 
+                                                    onChange={(e) => setDraft(prev => ({ ...prev, city: e.target.value }))} 
+                                                    placeholder="Abidjan, Cocody..." 
+                                                    className="pl-14 h-14 rounded-2xl border-2 border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200 transition-all text-base font-bold"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest ml-1">Adresse / Indications</Label>
+                                            <Textarea 
+                                                value={draft.address} 
+                                                onChange={(e) => setDraft(prev => ({ ...prev, address: e.target.value }))} 
+                                                placeholder="Rue des jardins, face à la banque..." 
+                                                rows={2} 
+                                                className="rounded-2xl border-2 border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200 transition-all text-base font-bold min-h-[100px] resize-none"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest ml-1 flex justify-between items-center">
+                                                <span>Lien Google Maps</span>
+                                                {draft.mapsLink && (
+                                                    /^(https?:\/\/)/.test(draft.mapsLink) 
+                                                    ? <span className="text-[9px] text-emerald-500 font-black uppercase bg-emerald-50 px-2 py-0.5 rounded-md">✓ Validé</span>
+                                                    : <span className="text-[9px] text-rose-500 font-black uppercase bg-rose-50 px-2 py-0.5 rounded-md">⚠ Invalide</span>
+                                                )}
+                                            </Label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-zinc-100 rounded-xl group-focus-within:bg-orange-500 group-focus-within:text-white transition-all">
+                                                    <MapPin className="w-3.5 h-3.5 text-zinc-400 group-focus-within:text-inherit" />
+                                                </div>
+                                                <Input 
+                                                    value={draft.mapsLink} 
+                                                    onChange={(e) => setDraft(prev => ({ ...prev, mapsLink: e.target.value }))} 
+                                                    placeholder="https://maps.app.goo.gl/..." 
+                                                    className={cn(
+                                                        "pl-14 h-14 rounded-2xl border-2 transition-all text-base font-bold",
+                                                        draft.mapsLink && !/^(https?:\/\/)/.test(draft.mapsLink) 
+                                                            ? "border-rose-100 bg-rose-50 focus:border-rose-200" 
+                                                            : "border-zinc-100 bg-zinc-50 focus:bg-white focus:border-orange-200"
+                                                    )}
+                                                />
+                                            </div>
+                                            {draft.mapsLink && !/^(https?:\/\/)/.test(draft.mapsLink) && (
+                                                <p className="text-[10px] text-rose-500 font-bold italic mt-1 ml-1">Ajoutez "https://" au début.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 )
             case 'persona':
                 return (
                     <div className="space-y-6">
-                        <Card className={cn("transition-all overflow-hidden", draft.createPersona ? "border-orange-500 shadow-lg shadow-orange-500/10" : "opacity-70 grayscale")}>
-                            <CardHeader className={cn("transition-colors", draft.createPersona ? "bg-orange-50/50" : "bg-muted/50")}>
+                        <Card className={cn("transition-all overflow-hidden", draft.createPersona ? "border-orange-500 shadow-lg shadow-orange-500/10" : "")}>
+                            <CardHeader className={cn("transition-colors", draft.createPersona ? "bg-orange-50/50" : "bg-zinc-50")}>
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
-                                        <CardTitle className="flex items-center gap-2">
-                                            👤 Carte de visite digitale
-                                            {draft.createPersona && <Badge className="bg-orange-500">Activé</Badge>}
-                                        </CardTitle>
+                                        <CardTitle>Votre page perso de propriétaire</CardTitle>
                                         <CardDescription>
-                                            Créez votre profil personnel ("Passport") pour rassurer vos clients et partager vos réseaux sociaux.
+                                            Présentez-vous à vos clients : votre nom, votre photo et un petit mot. Cela crée la confiance.
                                         </CardDescription>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer scale-110">
@@ -532,7 +718,7 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                             checked={draft.createPersona}
                                             onChange={(e) => setDraft(prev => ({ ...prev, createPersona: e.target.checked }))}
                                         />
-                                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-orange-500"></div>
                                     </label>
                                 </div>
                             </CardHeader>
@@ -545,38 +731,38 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                                 value={draft.personaName}
                                                 onChange={(e) => handlePersonaNameChange(e.target.value)}
                                                 placeholder="Ex: Moussa Koné"
-                                                className="rounded-xl border-orange-200 focus:ring-orange-500"
+                                                className="rounded-xl"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-sm font-semibold">Nom d'utilisateur public (@)</Label>
+                                            <Label className="text-sm font-semibold">Votre identifiant public</Label>
                                             <div className="relative">
                                                 <Input
                                                     value={draft.personaUsername}
                                                     onChange={(e) => setDraft(prev => ({ ...prev, personaUsername: formatSlug(e.target.value) }))}
                                                     placeholder="moussa-kone"
-                                                    className="pl-7 rounded-xl border-orange-200 focus:ring-orange-500"
+                                                    className="pl-7 rounded-xl"
                                                 />
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">@</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">@</span>
                                             </div>
-                                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                                🔗 Lien public : <span className="text-orange-600 font-medium">menlyla.app/passport/{draft.personaUsername || 'slug'}</span>
+                                            <p className="text-[10px] text-zinc-400">
+                                                Votre page sera visible ici : <span className="text-orange-600 font-medium">menlyla.app/passport/{draft.personaUsername || '...'}</span>
                                             </p>
                                         </div>
                                     </div>
                                     <div className="grid gap-6 lg:grid-cols-[1.5fr,1fr]">
                                         <div className="space-y-2">
-                                            <Label className="text-sm font-semibold">Bio (Une phrase qui vous définit)</Label>
+                                            <Label className="text-sm font-semibold">Présentez-vous en une phrase</Label>
                                             <Textarea
                                                 value={draft.personaBio}
                                                 onChange={(e) => setDraft(prev => ({ ...prev, personaBio: e.target.value }))}
-                                                placeholder="Passionné de cuisine ivoirienne, fondateur de Chez Moussa, je vous accueille avec plaisir !"
+                                                placeholder="Passionné de cuisine ivoirienne, fondateur de Chez Moussa. Bienvenue !"
                                                 rows={4}
-                                                className="rounded-xl border-orange-200 focus:ring-orange-500 resize-none"
+                                                className="rounded-xl resize-none"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-sm font-semibold">Photo de profil</Label>
+                                            <Label className="text-sm font-semibold">Votre photo</Label>
                                             <div className="flex justify-center">
                                                 <ImageUpload
                                                     id="persona-image"
@@ -592,21 +778,16 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                             )}
                         </Card>
                         {!draft.createPersona && (
-                            <div className="text-center py-12 px-6 bg-muted/20 rounded-3xl border-2 border-dashed flex flex-col items-center gap-4">
-                                <div className="p-4 bg-muted rounded-full">
-                                    <Circle className="h-8 w-8 text-muted-foreground opacity-50" />
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-foreground">Personnage sauté</p>
-                                    <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">Vous avez choisi de ne pas créer de personnage pour le moment. Votre menu sera quand même publié. Vous pourrez créer votre Passport plus tard.</p>
-                                </div>
+                            <div className="text-center py-10 px-6 bg-zinc-50 rounded-2xl border border-zinc-200 flex flex-col items-center gap-3">
+                                <p className="font-semibold text-zinc-700">Étape facultative</p>
+                                <p className="text-sm text-zinc-500 max-w-md mx-auto">Vous n'êtes pas obligé de remplir cette page. Votre menu sera publié normalement. Vous pourrez toujours la créer plus tard.</p>
                                 <Button
                                     type="button"
-                                    variant="secondary"
+                                    variant="outline"
                                     onClick={() => setDraft(prev => ({ ...prev, createPersona: true }))}
-                                    className="rounded-full px-8"
+                                    className="rounded-full px-8 mt-2 border-orange-300 text-orange-600 hover:bg-orange-50"
                                 >
-                                    ✨ Changer d'avis et créer mon personnage
+                                    Créer ma page perso
                                 </Button>
                             </div>
                         )}
@@ -615,90 +796,212 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
             case 'hours':
                 return (
                     <div className="space-y-6">
-                        <div className="flex flex-wrap gap-3 text-sm">
-                            <button type="button" className={cn('rounded-full border px-4 py-2', draft.hoursMode === 'simple' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-muted')} onClick={() => setDraft(prev => ({ ...prev, hoursMode: 'simple' }))}>Horaires simples</button>
-                            <button type="button" className={cn('rounded-full border px-4 py-2', draft.hoursMode === 'advanced' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-muted')} onClick={() => setDraft(prev => ({ ...prev, hoursMode: 'advanced' }))}>Horaires détaillés</button>
-                        </div>
-                        <label className="flex items-center gap-3 text-sm font-medium">
-                            <input type="checkbox" checked={draft.isTemporarilyClosed} onChange={(e) => setDraft(prev => ({ ...prev, isTemporarilyClosed: e.target.checked }))} className="h-4 w-4" />
-                            Restaurant fermé temporairement
-                        </label>
-                        {!draft.isTemporarilyClosed && draft.hoursMode === 'simple' && (
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label>Ouverture</Label>
-                                    <Input type="time" value={draft.simpleOpen} onChange={(e) => setDraft(prev => ({ ...prev, simpleOpen: e.target.value }))} />
+                        <Card className="border-none shadow-none bg-transparent">
+                            <CardHeader className="px-0 pt-0">
+                                <CardTitle>Horaires d'ouverture</CardTitle>
+                                <CardDescription>Indiquez quand vos clients peuvent commander.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-0 space-y-6">
+                                {/* Mode Selection Chips */}
+                                <div className="flex flex-wrap gap-2">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setDraft(prev => ({ ...prev, hoursMode: 'simple' }))}
+                                        className={cn(
+                                            'px-6 py-3 rounded-2xl text-sm font-bold border-2 transition-all',
+                                            draft.hoursMode === 'simple' 
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-sm' 
+                                                : 'border-zinc-100 bg-white text-zinc-500 hover:border-zinc-300'
+                                        )}
+                                    >
+                                        🕒 Horaires identiques
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setDraft(prev => ({ ...prev, hoursMode: 'advanced' }))}
+                                        className={cn(
+                                            'px-6 py-3 rounded-2xl text-sm font-bold border-2 transition-all',
+                                            draft.hoursMode === 'advanced' 
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-sm' 
+                                                : 'border-zinc-100 bg-white text-zinc-500 hover:border-zinc-300'
+                                        )}
+                                    >
+                                        📅 Par jour (Lundi-Dim)
+                                    </button>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Fermeture</Label>
-                                    <Input type="time" value={draft.simpleClose} onChange={(e) => setDraft(prev => ({ ...prev, simpleClose: e.target.value }))} />
+
+                                {/* Temporary Closure Toggle */}
+                                <div className={cn(
+                                    "flex items-center justify-between p-4 rounded-2xl border-2 transition-all",
+                                    draft.isTemporarilyClosed ? "border-rose-200 bg-rose-50" : "border-zinc-100 bg-zinc-50/50"
+                                )}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("p-2 rounded-xl", draft.isTemporarilyClosed ? "bg-rose-100 text-rose-600" : "bg-zinc-200 text-zinc-500")}>
+                                            <span className="text-xl">🚪</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-zinc-900">Le restaurant est fermé actuellement</p>
+                                            <p className="text-xs text-zinc-500">Cochez si vous faites des travaux ou congés.</p>
+                                        </div>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer" 
+                                            checked={draft.isTemporarilyClosed} 
+                                            onChange={(e) => setDraft(prev => ({ ...prev, isTemporarilyClosed: e.target.checked }))} 
+                                        />
+                                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                                    </label>
                                 </div>
-                            </div>
-                        )}
-                        {!draft.isTemporarilyClosed && draft.hoursMode === 'advanced' && (
-                            <div className="grid gap-3">
-                                {DAYS.map(day => (
-                                    <div key={day.key} className="flex flex-wrap items-center gap-3 rounded-2xl border px-3 py-2">
-                                        <div className="w-24 text-sm font-semibold">{day.label}</div>
-                                        <label className="flex items-center gap-2 text-xs font-medium">
-                                            <input type="checkbox" checked={draft.advancedHours[day.key].closed} onChange={(e) => updateAdvancedHour(day.key, 'closed', e.target.checked)} /> Fermé
-                                        </label>
-                                        {!draft.advancedHours[day.key].closed && (
-                                            <div className="flex flex-1 items-center gap-2 text-sm">
-                                                <Input type="time" value={draft.advancedHours[day.key].open} onChange={(e) => updateAdvancedHour(day.key, 'open', e.target.value)} />
-                                                <span>→</span>
-                                                <Input type="time" value={draft.advancedHours[day.key].close} onChange={(e) => updateAdvancedHour(day.key, 'close', e.target.value)} />
+
+                                {!draft.isTemporarilyClosed && (
+                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                        {draft.hoursMode === 'simple' ? (
+                                            <div className="grid grid-cols-2 gap-4 p-6 rounded-[28px] border-2 border-zinc-100 bg-white shadow-sm">
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs font-black uppercase tracking-widest text-zinc-400">Ouverture</Label>
+                                                    <div className="relative">
+                                                        <Input 
+                                                            type="time" 
+                                                            value={draft.simpleOpen} 
+                                                            onChange={(e) => setDraft(prev => ({ ...prev, simpleOpen: e.target.value }))} 
+                                                            className="h-14 text-lg font-bold rounded-2xl border-zinc-100 pl-4 bg-zinc-50"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs font-black uppercase tracking-widest text-zinc-400">Fermeture</Label>
+                                                    <div className="relative">
+                                                        <Input 
+                                                            type="time" 
+                                                            value={draft.simpleClose} 
+                                                            onChange={(e) => setDraft(prev => ({ ...prev, simpleClose: e.target.value }))} 
+                                                            className="h-14 text-lg font-bold rounded-2xl border-zinc-100 pl-4 bg-zinc-50"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <p className="col-span-2 text-xs text-zinc-400 text-center mt-2 italic">
+                                                    Ces horaires seront appliqués à tous les jours de la semaine.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {DAYS.map(day => (
+                                                    <div key={day.key} className={cn(
+                                                        "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all",
+                                                        draft.advancedHours[day.key].closed 
+                                                            ? "bg-zinc-50 border-zinc-100 opacity-60" 
+                                                            : "bg-white border-zinc-100 hover:border-orange-200"
+                                                    )}>
+                                                        <div className="w-24 shrink-0">
+                                                            <p className="text-sm font-black text-zinc-900">{day.label}</p>
+                                                        </div>
+                                                        
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => updateAdvancedHour(day.key, 'closed', !draft.advancedHours[day.key].closed)}
+                                                            className={cn(
+                                                                "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border-2 transition-all",
+                                                                draft.advancedHours[day.key].closed 
+                                                                    ? "bg-rose-50 border-rose-200 text-rose-600" 
+                                                                    : "bg-emerald-50 border-emerald-200 text-emerald-600"
+                                                            )}
+                                                        >
+                                                            {draft.advancedHours[day.key].closed ? 'Fermé ❌' : 'Ouvert ✅'}
+                                                        </button>
+
+                                                        {!draft.advancedHours[day.key].closed && (
+                                                            <div className="flex flex-1 items-center gap-2">
+                                                                <Input 
+                                                                    type="time" 
+                                                                    value={draft.advancedHours[day.key].open} 
+                                                                    onChange={(e) => updateAdvancedHour(day.key, 'open', e.target.value)} 
+                                                                    className="h-10 text-sm font-bold border-none bg-zinc-50 rounded-xl"
+                                                                />
+                                                                <span className="text-zinc-300">→</span>
+                                                                <Input 
+                                                                    type="time" 
+                                                                    value={draft.advancedHours[day.key].close} 
+                                                                    onChange={(e) => updateAdvancedHour(day.key, 'close', e.target.value)} 
+                                                                    className="h-10 text-sm font-bold border-none bg-zinc-50 rounded-xl"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
                 )
             case 'tables':
                 return (
                     <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Configuration de la salle</CardTitle>
-                                <CardDescription>Combien de tables possédez-vous ? Nous générerons les QR Codes pour chacune.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Nombre de tables</Label>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={draft.tableCount}
-                                        onChange={(e) => setDraft(prev => ({ ...prev, tableCount: parseInt(e.target.value) || 0 }))}
-                                        placeholder="Ex: 10"
-                                        className="text-lg font-bold"
-                                    />
-                                    <p className="text-sm text-muted-foreground">Laissez à 0 si vous ne faites que de la vente à emporter ou livraison.</p>
-                                </div>
+                        <div className="space-y-1">
+                            <h3 className="text-xl font-bold text-zinc-900">Configuration des tables</h3>
+                            <p className="text-sm text-zinc-500">Définissez le nombre de QR codes à générer pour vos tables.</p>
+                        </div>
 
-                                {draft.tableCount > 0 && (
-                                    <div className="rounded-2xl border bg-orange-50 p-4 flex items-start gap-4">
-                                        <div className="p-2 bg-white rounded-xl border shadow-sm">
-                                            <div className="h-6 w-6 grid grid-cols-2 gap-0.5">
-                                                <div className="bg-black" />
-                                                <div className="bg-black" />
-                                                <div className="bg-black" />
-                                                <div className="bg-orange-500" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-orange-950">Génération automatique</p>
-                                            <p className="text-sm text-orange-800 mt-1">
-                                                Nous allons créer <span className="font-bold">{draft.tableCount} tables</span> (Table 1 à Table {draft.tableCount}) et leurs QR Codes uniques prêts à imprimer.
-                                            </p>
-                                        </div>
+                        <div className="grid gap-6">
+                            {/* Pro Selector Card */}
+                            <div className="p-10 rounded-[40px] border-2 border-zinc-100 bg-white shadow-xl shadow-zinc-200/20 flex flex-col items-center">
+                                <div className="p-4 bg-orange-50 rounded-3xl mb-6">
+                                    <LayoutGrid className="w-8 h-8 text-orange-600" />
+                                </div>
+                                <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 mb-8">Nombre de tables</Label>
+                                
+                                <div className="flex items-center gap-12 bg-zinc-50 p-3 rounded-[32px] border border-zinc-100">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setDraft(prev => ({ ...prev, tableCount: Math.max(0, prev.tableCount - 1) }))}
+                                        className="w-14 h-14 rounded-full bg-white border border-zinc-200 flex items-center justify-center hover:bg-zinc-100 transition-all text-2xl font-light text-zinc-400 hover:text-zinc-900 shadow-sm"
+                                    >
+                                        −
+                                    </button>
+                                    <div className="w-20 text-center">
+                                        <span className="text-6xl font-black text-zinc-900 tabular-nums">{draft.tableCount}</span>
                                     </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setDraft(prev => ({ ...prev, tableCount: Math.min(100, prev.tableCount + 1) }))}
+                                        className="w-14 h-14 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-black transition-all text-2xl font-light text-white shadow-lg"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Status Confirmation */}
+                            <div className={cn(
+                                "flex items-center gap-5 p-5 rounded-[28px] border-2 transition-all duration-500",
+                                draft.tableCount === 0 
+                                    ? "bg-zinc-50 border-zinc-200 text-zinc-600" 
+                                    : "bg-orange-50 border-orange-100 text-orange-900"
+                            )}>
+                                <div className={cn(
+                                    "p-4 rounded-2xl shrink-0 transition-colors",
+                                    draft.tableCount === 0 ? "bg-zinc-200 text-zinc-500" : "bg-white text-orange-600 shadow-sm"
+                                )}>
+                                    {draft.tableCount === 0 ? <ShoppingBag className="w-6 h-6" /> : <QrCode className="w-6 h-6" />}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-sm tracking-tight">
+                                        {draft.tableCount === 0 
+                                            ? "Mode Vente à Emporter & Livraison uniquement" 
+                                            : `Mode Restauration sur place — ${draft.tableCount} tables`}
+                                    </p>
+                                    <p className="text-xs opacity-70 mt-1">
+                                        {draft.tableCount === 0 
+                                            ? "Utile pour la commande directe au comptoir sans QR code table." 
+                                            : `Nous générons automatiquement ${draft.tableCount} QR codes prêts à imprimer.`}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )
             case 'menu':
@@ -733,10 +1036,35 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                     <Label>Description (optionnel)</Label>
                                     <Textarea value={draft.primaryDishDescription} onChange={(e) => setDraft(prev => ({ ...prev, primaryDishDescription: e.target.value }))} placeholder="Servi avec attiéké et sauce maison." rows={3} />
                                 </div>
-                                <div className="rounded-2xl border bg-muted/40 p-4 text-sm">
-                                    <p className="font-semibold">Aperçu</p>
-                                    <p className="mt-1">{draft.primaryDishName || 'Plat à définir'} — {draft.primaryDishPrice ? `${Number(draft.primaryDishPrice).toLocaleString()} ${draft.currency}` : 'Prix à définir'}</p>
-                                    <p className="text-muted-foreground text-xs mt-1">{draft.primaryDishDescription || 'Ajoutez une phrase appétissante pour donner envie.'}</p>
+                                <div className="rounded-3xl border-2 border-zinc-100 bg-white p-6 shadow-sm relative overflow-hidden group">
+                                    <div 
+                                        className="absolute left-0 top-0 bottom-0 w-2 transition-colors duration-500" 
+                                        style={{ backgroundColor: draft.themeColor }}
+                                    />
+                                    <p className="text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+                                        <div className="w-1 h-1 rounded-full bg-zinc-300" /> Aperçu client
+                                    </p>
+                                    <div className="flex items-start justify-between gap-6">
+                                        <div className="flex-1 space-y-2">
+                                            <h4 className="font-black text-zinc-900 text-lg leading-tight uppercase tracking-tight">
+                                                {draft.primaryDishName || 'Nom de votre plat'}
+                                            </h4>
+                                            <p className="text-zinc-500 text-sm font-medium leading-relaxed italic">
+                                                {draft.primaryDishDescription || 'Décrivez brièvement la composition du plat...'}
+                                            </p>
+                                            <div className="pt-2 flex items-center gap-2">
+                                                <Badge variant="outline" className="bg-orange-50/50 text-orange-700 border-orange-100 font-bold text-[10px] uppercase px-2 py-0">Menu digital</Badge>
+                                            </div>
+                                        </div>
+                                        <div className="text-right flex flex-col items-end gap-1">
+                                            <div className="px-4 py-2 bg-zinc-900 rounded-2xl shadow-xl shadow-zinc-900/10">
+                                                <p className="text-xl font-black text-white tabular-nums">
+                                                    {draft.primaryDishPrice ? `${Number(draft.primaryDishPrice).toLocaleString()}` : '0'}
+                                                </p>
+                                            </div>
+                                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter">{draft.currency}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -752,10 +1080,42 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                 <CardDescription>Choisissez une ambiance, modifiable ensuite.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex flex-wrap gap-3">
+                                <div className="flex flex-wrap gap-4 p-4 bg-zinc-50/50 rounded-[32px] border-2 border-zinc-100">
                                     {THEME_COLORS.map(color => (
-                                        <button key={color} type="button" onClick={() => setDraft(prev => ({ ...prev, themeColor: color }))} className={cn('h-10 w-10 rounded-full border-2', draft.themeColor === color ? 'border-black' : 'border-transparent')} style={{ backgroundColor: color }} aria-label={`Couleur ${color}`} />
+                                        <button
+                                            key={color}
+                                            type="button"
+                                            onClick={() => setDraft(prev => ({ ...prev, themeColor: color }))}
+                                            className={cn(
+                                                'h-11 w-11 rounded-full transition-all duration-300 relative',
+                                                draft.themeColor === color
+                                                    ? 'scale-110 shadow-lg'
+                                                    : 'hover:scale-105 opacity-80 hover:opacity-100'
+                                            )}
+                                            style={{ backgroundColor: color }}
+                                        >
+                                            {draft.themeColor === color && (
+                                                <div className="absolute inset-[-6px] rounded-full border-2 animate-in zoom-in-50 duration-500" style={{ borderColor: color }} />
+                                            )}
+                                        </button>
                                     ))}
+                                    
+                                    {/* Custom Color Picker */}
+                                    <div className="relative group ml-auto">
+                                        <input 
+                                            type="color" 
+                                            value={draft.themeColor} 
+                                            onChange={(e) => setDraft(prev => ({ ...prev, themeColor: e.target.value }))}
+                                            className="h-11 w-11 rounded-full cursor-pointer opacity-0 absolute inset-0 z-10"
+                                        />
+                                        <div className={cn(
+                                            "h-11 w-11 rounded-full border-2 border-dashed border-zinc-300 flex items-center justify-center transition-all bg-white group-hover:border-orange-400",
+                                            !THEME_COLORS.includes(draft.themeColor) && "border-solid"
+                                        )}
+                                        style={!THEME_COLORS.includes(draft.themeColor) ? { borderColor: draft.themeColor, boxShadow: `0 0 0 2px white, 0 0 0 4px ${draft.themeColor}` } : {}}>
+                                            <span className="text-lg">🎨</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="grid gap-3 sm:grid-cols-3">
                                     {THEME_STYLES.map(style => (
@@ -765,12 +1125,38 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                                         </button>
                                     ))}
                                 </div>
-                                <div className="rounded-2xl border bg-white p-4">
-                                    <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Preview</p>
-                                    <div className="mt-3 rounded-2xl p-4 text-white" style={{ backgroundColor: designPreview.bg }}>
-                                        <p className="text-sm">{designPreview.styleLabel}</p>
-                                        <p className="text-2xl font-black">{draft.name || 'Votre restaurant'}</p>
-                                        <p className="text-sm opacity-80">{draft.primaryDishName || 'Plat à définir'} — {draft.primaryDishPrice ? `${Number(draft.primaryDishPrice).toLocaleString()} ${draft.currency}` : 'Prix ?'}</p>
+                                {/* Phone mockup preview */}
+                                <div className="flex justify-center">
+                                    <div className="w-[260px] rounded-[32px] border-[6px] border-zinc-900 bg-zinc-900 p-1 shadow-2xl">
+                                        <div className="rounded-[26px] overflow-hidden bg-white">
+                                            {/* Status bar */}
+                                            <div className="flex items-center justify-between px-5 py-2 bg-zinc-50">
+                                                <span className="text-[9px] font-bold text-zinc-400">9:41</span>
+                                                <div className="flex gap-1">
+                                                    <div className="w-3 h-1.5 bg-zinc-300 rounded-sm" />
+                                                    <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full" />
+                                                </div>
+                                            </div>
+                                            {/* Header */}
+                                            <div className="px-5 py-4" style={{ backgroundColor: designPreview.bg }}>
+                                                <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest">{designPreview.styleLabel}</p>
+                                                <p className="text-base font-black text-white mt-1 leading-tight">{draft.name || 'Votre restaurant'}</p>
+                                            </div>
+                                            {/* Menu item */}
+                                            <div className="px-5 py-3 border-b border-zinc-100">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="text-xs font-bold text-zinc-800">{draft.primaryDishName || 'Plat vedette'}</p>
+                                                        <p className="text-[10px] text-zinc-400 mt-0.5">{draft.primaryDishDescription || 'Description...'}</p>
+                                                    </div>
+                                                    <p className="text-xs font-black" style={{ color: designPreview.bg }}>{draft.primaryDishPrice ? `${Number(draft.primaryDishPrice).toLocaleString()} ${draft.currency}` : '— FCFA'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="px-5 py-3">
+                                                <div className="h-2 bg-zinc-100 rounded-full w-3/4" />
+                                                <div className="h-2 bg-zinc-100 rounded-full w-1/2 mt-2" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -931,13 +1317,78 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
     const needsPaymentNow = useMemo(() => draft.plan === 'pro' && !hasPaidParam, [draft.plan, hasPaidParam])
 
     return (
-        <Card className="w-full max-w-5xl mx-auto mt-10">
-            <CardHeader className="pb-4">
-                <CardTitle>Onboarding Menlyla</CardTitle>
-                <CardDescription>Complétez chaque étape (max 4 champs obligatoires) et publiez.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form action={formAction} className="space-y-8">
+        <div className="w-full max-w-5xl mx-auto mt-6 mb-12">
+
+            {/* ── BRANDED HEADER ── */}
+            <div className="relative overflow-hidden rounded-t-[28px] bg-gradient-to-r from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] px-10 py-10">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+                <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4" />
+                <div className="relative z-10 flex items-center gap-5">
+                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                        <span className="text-2xl font-black text-white">M</span>
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-white tracking-tight">Créez votre restaurant</h1>
+                        <p className="text-sm text-white/50 font-medium mt-0.5">Étape {step + 1} sur {currentSteps.length} — {currentSteps[step].title}</p>
+                    </div>
+                </div>
+                {/* Progress bar */}
+                <div className="relative z-10 mt-8 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            </div>
+
+            {/* ── STEP INDICATOR BAR ── */}
+            <div className="bg-[#fafafa] border-x border-b border-zinc-200/80 px-6 py-4 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-0 min-w-max">
+                    {currentSteps.map((metadata, index) => {
+                        const isLocked = index > step
+                        const isCompleted = index < step || (stepCompleted[metadata.id] && index !== step)
+                        const isCurrent = index === step
+
+                        return (
+                            <div key={metadata.id} className="flex items-center">
+                                <button
+                                    type="button"
+                                    onClick={() => canAccessStep(index) && setStep(index)}
+                                    disabled={isLocked}
+                                    className={cn(
+                                        'flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 whitespace-nowrap',
+                                        isCurrent && 'bg-orange-500 text-white shadow-md shadow-orange-500/20 scale-105',
+                                        isCompleted && !isCurrent && 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer',
+                                        isLocked && 'text-zinc-300 cursor-not-allowed',
+                                        !isCurrent && !isCompleted && !isLocked && 'text-zinc-400'
+                                    )}
+                                >
+                                    <span className={cn(
+                                        'flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black transition-all',
+                                        isCurrent && 'bg-white text-orange-600',
+                                        isCompleted && !isCurrent && 'bg-emerald-500 text-white',
+                                        isLocked && 'bg-zinc-100 text-zinc-300',
+                                        !isCurrent && !isCompleted && !isLocked && 'bg-zinc-100 text-zinc-400'
+                                    )}>
+                                        {isCompleted && !isCurrent ? '✓' : index + 1}
+                                    </span>
+                                    <span className="hidden sm:inline">{metadata.title}</span>
+                                </button>
+                                {index < currentSteps.length - 1 && (
+                                    <div className={cn(
+                                        'w-6 h-[2px] mx-1 rounded-full transition-colors',
+                                        index < step ? 'bg-emerald-300' : 'bg-zinc-200'
+                                    )} />
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* ── FORM CONTENT ── */}
+            <div className="bg-white border-x border-b border-zinc-200/80 rounded-b-[28px] shadow-xl shadow-black/[0.03]">
+                <form action={formAction}>
                     <input type="hidden" name="name" value={draft.name} />
                     <input type="hidden" name="slug" value={draft.slug} />
                     <input type="hidden" name="description" value={draft.description} />
@@ -954,7 +1405,6 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                     <input type="hidden" name="plan" value={draft.plan} />
                     <input type="hidden" name="settings" value={JSON.stringify(settingsPayload)} />
 
-                    {/* Profile / Persona Data */}
                     {draft.createPersona && (
                         <>
                             <input type="hidden" name="profile_full_name" value={draft.personaName} />
@@ -966,105 +1416,66 @@ export function OnboardingForm({ initialRestaurant }: OnboardingFormProps) {
                         </>
                     )}
 
-                    <Progress value={progress} className="h-2" />
+                    {/* Step Content */}
+                    <div className="px-8 py-10 sm:px-12 text-zinc-900" style={{ '--card': '#ffffff', '--card-foreground': '#09090b', '--foreground': '#09090b', '--muted': '#f4f4f5', '--muted-foreground': '#52525b', '--border': '#e4e4e7', '--input': '#ffffff', '--accent': '#f4f4f5', '--accent-foreground': '#18181b', '--popover': '#ffffff', '--popover-foreground': '#09090b', '--secondary': '#f4f4f5', '--secondary-foreground': '#18181b', '--destructive': '#ef4444', '--ring': '#FF7A00' } as React.CSSProperties}>
+                        {renderStep()}
 
-                    <div className="space-y-6">
-                        <div className="overflow-x-auto no-scrollbar pb-4">
-
-                            <div
-                                className="grid gap-4 min-w-[max-content]"
-                                style={{ gridTemplateColumns: `repeat(${currentSteps.length}, 180px)` }}
-                            >
-                                {currentSteps.map((metadata, index) => {
-                                    const isLocked = index > step
-                                    const isCompleted = stepCompleted[metadata.id]
-                                    const statusIcon = index < step || (isCompleted && index !== step)
-                                        ? <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                        : index === step
-                                            ? <Badge variant="secondary">En cours</Badge>
-                                            : <Circle className="h-4 w-4 text-muted-foreground" />
-                                    return (
-                                        <button
-                                            key={metadata.id}
-                                            type="button"
-                                            onClick={() => canAccessStep(index) && setStep(index)}
-                                            className={cn(
-                                                'rounded-2xl border px-3 py-2 text-left transition-all flex flex-col gap-1',
-                                                index === step ? 'border-orange-500 bg-orange-50 shadow-sm' : 'border-muted bg-white opacity-70',
-                                                isLocked && 'cursor-not-allowed'
-                                            )}
-                                            disabled={isLocked}
-                                            aria-disabled={isLocked}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[9px] uppercase font-bold text-muted-foreground">Étape {index + 1}</p>
-                                                {statusIcon}
-                                            </div>
-                                            <p className="font-bold text-xs truncate">{metadata.title}</p>
-                                        </button>
-                                    )
-                                })}
+                        {(state?.message || (state?.errors && Object.keys(state.errors).length > 0)) && (
+                            <div className="mt-6 p-5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm space-y-2">
+                                {state?.message && <p className="font-black">{state.message}</p>}
+                                {state?.errors && Object.entries(state.errors).map(([field, messages]) => (
+                                    <div key={field} className="flex gap-2 items-start">
+                                        <span className="font-black uppercase text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-md mt-0.5">{field}</span>
+                                        <ul className="list-disc pl-4 font-semibold">
+                                            {messages?.map((msg, i) => <li key={i}>{msg}</li>)}
+                                        </ul>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-
-
-                        <div className="space-y-6">
-
-                            {renderStep()}
-
-                            {(state?.errors || state?.message) && (
-                                <div className="p-4 bg-destructive/5 border border-destructive/20 text-destructive rounded-2xl text-sm space-y-2">
-                                    {state?.message && <p className="font-black italic uppercase tracking-tight">{state.message}</p>}
-                                    {state?.errors && Object.entries(state.errors).map(([field, messages]) => (
-                                        <div key={field} className="flex gap-2 items-start">
-                                            <span className="font-black uppercase text-[10px] bg-destructive text-white px-1.5 py-0.5 rounded-md mt-0.5">{field}</span>
-                                            <ul className="list-disc pl-4 font-bold">
-                                                {messages?.map((msg, i) => <li key={i}>{msg}</li>)}
-                                            </ul>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-
-                            {/* Hide navigation if in payment overlay but allow welcome step */}
-                            {(!(currentSteps[step].id !== 'welcome' && needsPaymentNow)) && (
-                                <div className="flex flex-wrap gap-4 justify-between pt-6 border-t">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={prevStep}
-                                        disabled={step === 0 || isPending}
-                                        className="h-12 px-6 rounded-xl font-bold"
-                                    >
-                                        Précédent
-                                    </Button>
-
-                                    {isLastStep ? (
-                                        <Button
-                                            type="submit"
-                                            size="lg"
-                                            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 rounded-xl shadow-xl shadow-orange-600/20 transition-all hover:scale-105"
-                                            disabled={isPending || !stepCompleted[currentStepId]}
-                                        >
-                                            {isPending ? 'Publication...' : 'Finaliser et Créer'}
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type="button"
-                                            onClick={nextStep}
-                                            disabled={!stepCompleted[currentSteps[step].id]}
-                                            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 rounded-xl h-12 shadow-lg shadow-orange-600/10"
-                                        >
-                                            Continuer
-                                        </Button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        )}
                     </div>
+
+                    {/* ── NAVIGATION FOOTER ── */}
+                    {(!(currentSteps[step].id !== 'welcome' && needsPaymentNow)) && (
+                        <div className="flex items-center justify-between px-8 py-6 sm:px-12 border-t border-zinc-100 bg-[#fafafa] rounded-b-[28px]">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={prevStep}
+                                disabled={step === 0 || isPending}
+                                className="h-12 px-8 rounded-2xl font-bold text-zinc-600 border-zinc-300 bg-white hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-200 disabled:opacity-30"
+                            >
+                                ← Précédent
+                            </Button>
+
+                            {isLastStep ? (
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    className="h-12 px-10 rounded-2xl font-black bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 transition-all duration-200"
+                                    disabled={isPending || !stepCompleted[currentStepId]}
+                                >
+                                    {isPending ? 'Publication...' : '🚀 Finaliser et Créer'}
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    onClick={nextStep}
+                                    disabled={!stepCompleted[currentSteps[step].id]}
+                                    className={cn(
+                                        "h-12 px-10 rounded-2xl font-black transition-all duration-300",
+                                        stepCompleted[currentSteps[step].id]
+                                            ? "bg-zinc-900 text-white border-0 shadow-xl shadow-zinc-900/20 hover:scale-[1.02] hover:-translate-y-0.5 animate-[pulse_2s_infinite]"
+                                            : "bg-zinc-100 text-zinc-400 cursor-not-allowed border-0"
+                                    )}
+                                >
+                                    Continuer →
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </form>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     )
 }

@@ -24,7 +24,17 @@ export async function POST(request: NextRequest) {
         // Verify order exists and get restaurant info
         const { data: order, error: orderError } = await supabase
             .from('orders')
-            .select('id, restaurant_id, total_amount, restaurants(name, slug)')
+            .select(`
+                id, 
+                restaurant_id, 
+                total_amount, 
+                restaurants(
+                    name, 
+                    slug,
+                    geniuspay_api_key,
+                    geniuspay_api_secret
+                )
+            `)
             .eq('id', order_id)
             .single()
 
@@ -45,17 +55,24 @@ export async function POST(request: NextRequest) {
 
         // Get app URL for redirects
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-        const restaurantSlug = (order.restaurants as any)?.slug || 'restaurant'
+        
+        const restaurantData = order.restaurants as any
+        const restaurantSlug = restaurantData?.slug || 'restaurant'
+        const restaurantName = restaurantData?.name || 'Restaurant'
+        
+        // Per-restaurant API keys (optional fallback to env)
+        const apiKey = restaurantData?.geniuspay_api_key || process.env.GENIUSPAY_API_KEY
+        const apiSecret = restaurantData?.geniuspay_api_secret || process.env.GENIUSPAY_API_SECRET
 
-        // Initialize GeniusPay client
-        const geniuspay = new GeniusPayClient()
+        // Initialize GeniusPay client with restaurant or global keys
+        const geniuspay = new GeniusPayClient(apiKey, apiSecret)
 
         // Initiate payment
         const paymentResponse = await geniuspay.initiatePayment({
             amount: Math.round(amount), // Convert to minor units (cents)
             currency: 'XOF',
             payment_method,
-            description: `Commande #${order_id.slice(0, 8)} - ${(order.restaurants as any)?.name || 'Restaurant'}`,
+            description: `Commande #${order_id.slice(0, 8)} - ${restaurantName}`,
             customer: {
                 name: customer.name,
                 email: customer.email,

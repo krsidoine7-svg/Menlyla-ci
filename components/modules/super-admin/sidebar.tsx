@@ -137,12 +137,6 @@ export function SuperAdminSidebar({
             </div>
 
             <div className="p-4 bg-gradient-to-t from-black to-transparent space-y-2">
-                <Link href="/dashboard">
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-white/40 hover:text-white hover:bg-white/5 h-11 rounded-xl group transition-all">
-                        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                        <span className="font-medium tracking-tight">Retour Site</span>
-                    </Button>
-                </Link>
                 <form action="/auth/signout" method="post" onSubmit={onItemClick}>
                     <Button variant="ghost" className="w-full justify-start gap-3 text-white/40 hover:text-red-500 hover:bg-red-500/10 h-11 rounded-xl group transition-all">
                         <LogOut className="h-4 w-4 transition-transform group-hover:rotate-12" />

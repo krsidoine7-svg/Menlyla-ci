@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
+import { GeniusPayClient } from '@/lib/geniuspay/client'
 
 /**
  * Ensures the requester is actually a super admin.
@@ -519,7 +520,15 @@ export async function updateSystemSettings(data: {
     is_order_payments_enabled?: boolean,
     platform_commission_percent?: number,
     monthly_pro_price_xof?: number,
-    is_maintenance_mode?: boolean
+    is_maintenance_mode?: boolean,
+    is_geniuspay_enabled?: boolean,
+    is_lygos_enabled?: boolean,
+    is_paystack_enabled?: boolean,
+    is_manual_payment_enabled?: boolean,
+    saas_geniuspay_key?: string,
+    saas_geniuspay_secret?: string,
+    saas_geniuspay_webhook_secret?: string,
+    lead_magnet_webhook_url?: string
 }) {
     try {
         await verifySuperAdmin()
@@ -527,14 +536,113 @@ export async function updateSystemSettings(data: {
 
         const { error } = await adminClient
             .from('system_settings')
-            .update(data)
-            .eq('id', 1)
+            .upsert({ id: 1, ...data })
 
         if (error) throw error
 
         revalidatePath('/admin/payments')
         revalidatePath('/admin/settings')
         return { success: true, message: 'Paramètres système mis à jour.' }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+export async function getSaaSGeniusPayClient() {
+    const settings = await getSystemSettings()
+    
+    // Check if we have DB overrides for the platform keys
+    const apiKey = settings.saas_geniuspay_key || process.env.GENIUSPAY_API_KEY
+    const apiSecret = settings.saas_geniuspay_secret || process.env.GENIUSPAY_API_SECRET
+    
+    return new GeniusPayClient(apiKey, apiSecret)
+}
+
+/**
+ * Fetch ALL reviews from ALL restaurants for global moderation.
+ */
+export async function getAllReviews() {
+    try {
+        await verifyAdmin()
+        const adminClient = getAdminClient()
+        
+        const { data, error } = await adminClient
+            .from('reviews')
+            .select(`
+                *,
+                restaurants(name, slug),
+                dishes(name)
+            `)
+            .order('created_at', { ascending: false })
+
+        if (error) throw error
+        return { success: true, data }
+    } catch (e: any) {
+        return { error: e.message, data: [] }
+    }
+}
+
+/**
+ * Admin override to update review status
+ */
+export async function adminUpdateReviewStatus(reviewId: string, status: 'approved' | 'rejected') {
+    try {
+        await verifyAdmin()
+        const adminClient = getAdminClient()
+
+        const { error } = await adminClient
+            .from('reviews')
+            .update({ status })
+            .eq('id', reviewId)
+
+        if (error) throw error
+        revalidatePath('/admin/moderation')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+/**
+ * Admin override to reply to a review on behalf of the platform
+ */
+export async function adminReplyToReview(reviewId: string, reply: string) {
+    try {
+        await verifyAdmin()
+        const adminClient = getAdminClient()
+
+        const { error } = await adminClient
+            .from('reviews')
+            .update({ 
+                platform_reply: reply,
+                platform_replied_at: new Date().toISOString()
+            })
+            .eq('id', reviewId)
+
+        if (error) throw error
+        revalidatePath('/admin/moderation')
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+/**
+ * Admin override to delete a review
+ */
+export async function adminDeleteReview(reviewId: string) {
+    try {
+        await verifyAdmin()
+        const adminClient = getAdminClient()
+
+        const { error } = await adminClient
+            .from('reviews')
+            .delete()
+            .eq('id', reviewId)
+
+        if (error) throw error
+        revalidatePath('/admin/moderation')
+        return { success: true }
     } catch (e: any) {
         return { error: e.message }
     }

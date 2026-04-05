@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { CheckCircle2, ChevronDown } from "lucide-react";
 
 const WA_NUMBER = "2250503681588";
 const WEBHOOK_URL = "https://hook.eu2.make.com/f87hedxh9899wk9jlx8xuot1um510nvw";
@@ -20,6 +22,18 @@ export default function LeadMagnet() {
   const [form, setForm] = useState({ name: "", restaurant: "", whatsapp: "", email: "" });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [proPrice, setProPrice] = useState(25000);
+
+  useEffect(() => {
+    async function fetchPricing() {
+      const supabase = createClient();
+      const { data } = await supabase.from('system_settings').select('monthly_pro_price_xof').single();
+      if (data?.monthly_pro_price_xof) {
+        setProPrice(data.monthly_pro_price_xof);
+      }
+    }
+    fetchPricing();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -292,6 +306,87 @@ export default function LeadMagnet() {
           font-size: 12px;
           flex-shrink: 0;
         }
+
+        /* ── PRICING SECTION ── */
+        .pricing-section {
+          padding: 100px 24px;
+          background: #000;
+          text-align: center;
+          position: relative;
+        }
+        .pricing-section h2 {
+          font-size: clamp(32px, 4vw, 48px);
+          font-weight: 900;
+          color: #fff;
+          margin-bottom: 20px;
+          letter-spacing: -0.03em;
+        }
+        .pricing-section h2 span { color: #f97316; }
+        .pricing-desc {
+          color: #94a3b8;
+          font-size: 16px;
+          margin-bottom: 60px;
+          max-width: 500px;
+          margin-inline: auto;
+        }
+
+        .pricing-cards {
+          display: flex;
+          gap: 30px;
+          max-width: 900px;
+          margin: 0 auto;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .pricing-card {
+          flex: 1;
+          min-width: 320px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 32px;
+          padding: 50px 40px;
+          text-align: left;
+          position: relative;
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .pricing-card.pro {
+          background: linear-gradient(180deg, rgba(249,115,22,0.1) 0%, rgba(255,255,255,0.03) 100%);
+          border: 1px solid rgba(249,115,22,0.3);
+          transform: translateY(-10px);
+        }
+
+        .pricing-card.pro:hover {
+          box-shadow: 0 20px 50px rgba(249,115,22,0.15);
+          transform: translateY(-15px);
+        }
+
+        .pricing-name { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #f97316; margin-bottom: 20px; display: inline-block;}
+        .pricing-price { font-size: 48px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 10px; display: flex; align-items: baseline; gap: 8px;}
+        .pricing-currency { font-size: 20px; color: rgba(255,255,255,0.4); font-weight: 700; }
+        .pricing-interval { font-size: 14px; color: #64748b; font-weight: 500; }
+        
+        .pricing-features { list-style: none; margin-top: 40px; space-y: 16px; }
+        .pricing-feature { display: flex; align-items: flex-start; gap: 12px; color: #cbd5e1; font-size: 15px; font-weight: 500; margin-bottom: 16px;}
+        .feature-icon { margin-top: 2px; flex-shrink: 0; color: #f97316; }
+
+        .pricing-action { width: 100%; margin-top: 40px; }
+        .pricing-card.pro .pricing-action { background: #f97316; }
+        
+        .scroll-down {
+          position: absolute;
+          bottom: 30px;
+          left: 50%;
+          transform: translateX(-50%);
+          color: rgba(255,255,255,0.3);
+          animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
+          40% { transform: translate(-50%, -10px); }
+          60% { transform: translate(-50%, -5px); }
+        }
       `}</style>
 
       {sent ? (
@@ -303,7 +398,8 @@ export default function LeadMagnet() {
           </div>
         </div>
       ) : (
-        <div className="page">
+        <>
+          <div className="page">
           <header className="header">
             <a href="/" className="logo-link">
               <img src="/logos/logo-icon.svg" alt="Logo" className="logo-icon" />
@@ -402,9 +498,63 @@ export default function LeadMagnet() {
             </div>
 
           </div>
+
+            <div className="scroll-down">
+                <ChevronDown className="w-8 h-8" />
+            </div>
         </div>
+
+        {/* ── PRICING SECTION ── */}
+        <section className="pricing-section" id="tarifs">
+          <h2>Des tarifs <span>simples et transparents</span>.</h2>
+          <p className="pricing-desc">
+            Ne payez que si vous avez besoin de plus. Commencez gratuitement et passez à la vitesse supérieure quand vous êtes prêts.
+          </p>
+
+          <div className="pricing-cards">
+            {/* STARTER */}
+            <div className="pricing-card">
+              <div className="pricing-name" style={{ color: '#94a3b8' }}>STARTER</div>
+              <div className="pricing-price">
+                0 <span className="pricing-currency">FCFA</span>
+              </div>
+              <p className="pricing-interval">Pour tester votre menu digital, gratuit à vie.</p>
+
+              <ul className="pricing-features">
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" style={{color: '#94a3b8'}} /> 1 Menu et catégories illimités</li>
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" style={{color: '#94a3b8'}} /> Ajout de plats avec images</li>
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" style={{color: '#94a3b8'}} /> Génération d'un Code QR unique</li>
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" style={{color: '#94a3b8'}} /> Personnalisation de base (Couleurs)</li>
+              </ul>
+
+              <a href="/signup" className="cta-btn pricing-action" style={{ background: '#1e293b', color: '#fff', textDecoration: 'none' }}>
+                Créer mon compte Gratuit
+              </a>
+            </div>
+
+            {/* PRO */}
+            <div className="pricing-card pro">
+              <div className="pricing-name">MENLYLA PRO</div>
+              <div className="pricing-price">
+                {proPrice.toLocaleString('fr-FR')} <span className="pricing-currency">FCFA</span>
+              </div>
+              <p className="pricing-interval">Par mois. Sans engagement.</p>
+
+              <ul className="pricing-features">
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" /> Commande et Paiement à table (Mobile Money & Visa)</li>
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" /> Écran de suivi en Cuisine (Kitchen Dashboard) en temps réel</li>
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" /> QR Codes multiples (1 QR Code par Table)</li>
+                <li className="pricing-feature"><CheckCircle2 className="w-5 h-5 feature-icon" /> Suivi Analytics et gestion des avis clients</li>
+              </ul>
+
+              <a href="/signup" className="cta-btn pricing-action" style={{ textDecoration: 'none' }}>
+                Essayer le forfait PRO
+              </a>
+            </div>
+          </div>
+        </section>
+        </>
       )}
     </>
-
   );
 }

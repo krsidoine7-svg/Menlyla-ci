@@ -72,9 +72,9 @@ export async function updateSession(request: NextRequest) {
 
         // If it's an admin, BYPASS everything else (including onboarding)
         if (isAdmin) {
-            // Force redirect to /admin if they hit /dashboard or /
-            const isDashboard = request.nextUrl.pathname === '/dashboard' || request.nextUrl.pathname === '/'
-            if (isDashboard) {
+            // Force redirect to /admin if they hit /
+            const isRoot = request.nextUrl.pathname === '/'
+            if (isRoot) {
                 const url = request.nextUrl.clone()
                 url.pathname = '/admin'
                 return NextResponse.redirect(url)

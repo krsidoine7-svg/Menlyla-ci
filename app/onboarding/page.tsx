@@ -34,7 +34,7 @@ export default async function OnboardingPage({
     }
 
     return (
-        <div className="min-h-screen bg-muted/20 p-4">
+        <div className="dashboard-theme min-h-screen bg-white p-4 font-sans selection:bg-orange-500 selection:text-white">
             <Suspense fallback={<div>Chargement...</div>}>
                 <OnboardingForm initialRestaurant={initialRestaurant} />
             </Suspense>

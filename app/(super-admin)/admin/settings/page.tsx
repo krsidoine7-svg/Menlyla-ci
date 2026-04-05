@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SecretInput } from '@/components/modules/super-admin/secret-input'
+import { SaasPricingConfig } from '@/components/modules/super-admin/saas-pricing-config'
 import { getSystemSettings, updateSystemSettings } from '@/app/(super-admin)/admin/actions'
 import { toast } from 'sonner'
 
@@ -48,7 +49,16 @@ export default function AdminSettingsPage() {
         const result = await updateSystemSettings({
             platform_commission_percent: parseFloat(settings.platform_commission_percent),
             monthly_pro_price_xof: parseInt(settings.monthly_pro_price_xof),
-            is_maintenance_mode: !!settings.is_maintenance_mode
+            is_maintenance_mode: !!settings.is_maintenance_mode,
+            is_saas_payments_enabled: !!settings.is_saas_payments_enabled,
+            is_geniuspay_enabled: !!settings.is_geniuspay_enabled,
+            is_lygos_enabled: !!settings.is_lygos_enabled,
+            is_paystack_enabled: !!settings.is_paystack_enabled,
+            is_manual_payment_enabled: !!settings.is_manual_payment_enabled,
+            saas_geniuspay_key: settings.saas_geniuspay_key || '',
+            saas_geniuspay_secret: settings.saas_geniuspay_secret || '',
+            saas_geniuspay_webhook_secret: settings.saas_geniuspay_webhook_secret || '',
+            lead_magnet_webhook_url: settings.lead_magnet_webhook_url || ''
         })
 
         if (result.success) {
@@ -95,6 +105,9 @@ export default function AdminSettingsPage() {
                     <TabsTrigger value="plateforme" className="rounded-xl font-bold text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black h-full transition-all">
                         <Globe className="h-4 w-4 mr-2" /> Plateforme
                     </TabsTrigger>
+                    <TabsTrigger value="paiements" className="rounded-xl font-bold text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black h-full transition-all">
+                        <CreditCard className="h-4 w-4 mr-2" /> Paiements
+                    </TabsTrigger>
                     <TabsTrigger value="api" className="rounded-xl font-bold text-[10px] uppercase tracking-widest px-8 data-[state=active]:bg-white data-[state=active]:text-black h-full transition-all">
                         <Webhook className="h-4 w-4 mr-2" /> API & Webhooks
                     </TabsTrigger>
@@ -104,41 +117,12 @@ export default function AdminSettingsPage() {
                 </TabsList>
 
                 <TabsContent value="plateforme" className="space-y-6 mt-6">
-                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden backdrop-blur-xl">
-                        <CardHeader className="bg-white/[0.02] border-b border-white/5 px-10 py-8">
-                            <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center gap-3">
-                                <Percent className="h-5 w-5 text-red-600" /> Tarification
-                            </CardTitle>
-                            <CardDescription className="text-xs font-medium text-white/20 uppercase tracking-widest leading-relaxed">Frais de plateforme et abonnements.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div className="space-y-4">
-                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Commission de service</Label>
-                                <div className="relative">
-                                    <Input 
-                                        value={settings.platform_commission_percent} 
-                                        onChange={(e) => setSettings({ ...settings, platform_commission_percent: e.target.value })}
-                                        type="number" 
-                                        step="0.1" 
-                                        className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold text-2xl text-white pl-8 pr-14 focus:border-red-600 transition-all shadow-inner" 
-                                    />
-                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-bold text-xl">%</span>
-                                </div>
-                            </div>
-                            <div className="space-y-4">
-                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Forfait PRO mensuel</Label>
-                                <div className="relative">
-                                    <Input 
-                                        value={settings.monthly_pro_price_xof} 
-                                        onChange={(e) => setSettings({ ...settings, monthly_pro_price_xof: e.target.value })}
-                                        type="number" 
-                                        className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold text-2xl text-white pl-8 pr-20 focus:border-red-600 transition-all shadow-inner" 
-                                    />
-                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-bold text-sm uppercase tracking-widest">XOF</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <SaasPricingConfig 
+                        settings={settings}
+                        setSettings={setSettings}
+                        onSave={handleSave}
+                        isSaving={isSaving}
+                    />
 
                     <Card className="bg-red-600/5 border-red-600/10 rounded-[3rem] shadow-3xl overflow-hidden backdrop-blur-xl">
                         <CardHeader className="border-b border-red-600/10 px-10 py-8 flex flex-row items-center justify-between">
@@ -166,32 +150,106 @@ export default function AdminSettingsPage() {
                     </Card>
                 </TabsContent>
 
+                <TabsContent value="paiements" className="space-y-6 mt-6">
+                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden">
+                        <CardHeader className="bg-black/40 border-b border-white/5 px-10 py-8">
+                            <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center gap-3">
+                                <CreditCard className="h-5 w-5 text-red-600" /> Agrégateurs & Passerelles
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium text-white/20 uppercase tracking-widest text-balance">
+                                Activez ou désactivez les options de paiement disponibles pour vos restaurateurs.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-10 space-y-8">
+                            {[
+                                { id: 'is_geniuspay_enabled', label: 'GeniusPay Africa', desc: 'Paiements Mobiles (Orange, MTN, Wave) & Cartes en Afrique de l\'Ouest.', icon: Zap },
+                                { id: 'is_lygos_enabled', label: 'LYGOS', desc: 'Solution de paiement sécurisée pour l\'Afrique (OM, Moov, MTN, Wave).', icon: Globe },
+                                { id: 'is_paystack_enabled', label: 'Paystack', desc: 'Solution robuste pour l\'Afrique, supportant les cartes et le Mobile Money.', icon: CreditCard },
+                                { id: 'is_manual_payment_enabled', label: 'Paiement Manuel & Livraison', desc: 'Le client commande en ligne et règle directement sur place ou à la livraison.', icon: Smartphone }
+                            ].map((gateway) => (
+                                <div key={gateway.id} className="flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all">
+                                    <div className="flex items-center gap-6">
+                                        <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                                            <gateway.icon className="h-5 w-5 text-red-600" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-bold text-white tracking-tight">{gateway.label}</p>
+                                            <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest">{gateway.desc}</p>
+                                        </div>
+                                    </div>
+                                    <Switch 
+                                        checked={settings[gateway.id]}
+                                        onCheckedChange={(val) => setSettings({ ...settings, [gateway.id]: val })}
+                                        className="data-[state=checked]:bg-red-600" 
+                                    />
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
                 <TabsContent value="api" className="space-y-6 mt-6">
                     <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden">
                         <CardHeader className="bg-black/40 border-b border-white/5 px-10 py-8">
                             <CardTitle className="text-2xl font-bold italic text-white tracking-tight flex items-center gap-3">
-                                <Webhook className="h-5 w-5 text-red-600" /> Connexions Externes
+                                <Webhook className="h-5 w-5 text-red-600" /> Connexions SaaS (VOTRE REVENU)
                             </CardTitle>
+                            <CardDescription className="text-[10px] font-medium text-white/20 uppercase tracking-widest text-balance">
+                                Ces clés sont utilisées pour encaisser les abonnements de vos restaurateurs. Priorité sur le fichier .env
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-10 space-y-10">
+                        <CardContent className="p-10 space-y-12">
                             <div className="space-y-4">
-                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Webhook Lead Magnet (Make.com)</Label>
+                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Clé API (Live Account)</Label>
                                 <SecretInput 
-                                    defaultValue={process.env.NEXT_PUBLIC_MAKE_WEBHOOK_URL || ""} 
-                                    placeholder="https://hook.make.com/..." 
+                                    value={settings.saas_geniuspay_key || ""} 
+                                    onChange={(v: string) => setSettings({ ...settings, saas_geniuspay_key: v })}
+                                    placeholder="apik_live_..." 
                                 />
                             </div>
 
-                            <div className="space-y-4 pt-10 border-t border-white/5">
-                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">GeniusPay / Lygos - Clé API Secrète (Live)</Label>
-                                <SecretInput 
-                                    defaultValue="lyg_live_sk_..." 
-                                    placeholder="Clé Secrète" 
-                                />
-                                <div className="flex items-center gap-3 px-4 py-2 bg-emerald-500/5 rounded-full border border-emerald-500/10 w-fit">
-                                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                                    <span className="text-[9px] font-black text-emerald-500/60 uppercase tracking-widest">Utilisé pour le checkout global Menlyla</span>
+                            <div className="grid sm:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Secret API (Live)</Label>
+                                    <SecretInput 
+                                        value={settings.saas_geniuspay_secret || ""} 
+                                        onChange={(v: string) => setSettings({ ...settings, saas_geniuspay_secret: v })}
+                                        placeholder="apis_live_..." 
+                                    />
                                 </div>
+                                <div className="space-y-4">
+                                    <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Webhook Secret</Label>
+                                    <SecretInput 
+                                        value={settings.saas_geniuspay_webhook_secret || ""} 
+                                        onChange={(v: string) => setSettings({ ...settings, saas_geniuspay_webhook_secret: v })}
+                                        placeholder="whs_live_..." 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 w-fit">
+                                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                                <span className="text-[10px] font-black text-emerald-500/60 uppercase tracking-widest italic">
+                                    Ces clés écrasent automatiquement celles présentes dans votre fichier de configuration .env si elles sont renseignées.
+                                </span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/5 border-white/10 rounded-[3rem] shadow-3xl overflow-hidden mt-8">
+                         <CardHeader className="bg-black/20 border-b border-white/5 px-10 py-8">
+                            <CardTitle className="text-xl font-bold italic text-white tracking-tight flex items-center gap-3">
+                                <Activity className="h-5 w-5 text-red-600" /> Webhooks de Notification
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-10">
+                            <div className="space-y-4">
+                                <Label className="font-bold text-white/40 text-[10px] uppercase tracking-widest ml-1">Webhook Lead Magnet (Make.com)</Label>
+                                <SecretInput 
+                                    value={settings.lead_magnet_webhook_url || process.env.NEXT_PUBLIC_MAKE_WEBHOOK_URL || ""} 
+                                    onChange={(v: string) => setSettings({ ...settings, lead_magnet_webhook_url: v })}
+                                    placeholder="https://hook.make.com/..." 
+                                />
                             </div>
                         </CardContent>
                     </Card>

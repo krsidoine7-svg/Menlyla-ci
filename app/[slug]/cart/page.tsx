@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, Trash2, ShoppingBag, Store, Zap, Loader2 } from 'lucide-react'
+import { ArrowLeft, Trash2, ShoppingBag, Store, Zap, Loader2, Info } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -59,7 +59,7 @@ export default function CartPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#080808] p-4 pb-32 text-white">
+        <div className="min-h-screen bg-[#080808] p-4 pb-10 text-white">
             <header className="flex items-center gap-4 mb-10 sticky top-0 bg-[#080808]/80 backdrop-blur-md z-20 py-4 -mx-4 px-4 border-b border-white/5">
                 <Link href={`/${slug}`}>
                     <Button variant="ghost" size="icon" className="hover:bg-white/5 text-white">
@@ -155,25 +155,29 @@ export default function CartPage() {
                     
                     <div className="h-px bg-white/5 w-full" />
                     
-                    <div className="flex items-center gap-3 text-orange-500">
-                        <Zap className="h-4 w-4" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">Paiement ultra-sécurisé via GeniusPay</p>
-                    </div>
-                </div>
-
-                <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black to-transparent z-30">
-                    <Button 
-                        className="w-full max-w-md mx-auto block text-lg font-black uppercase tracking-widest h-16 rounded-[2rem] bg-orange-600 hover:bg-orange-700 shadow-[0_20px_50px_rgba(234,88,12,0.3)] transition-all active:scale-95 disabled:grayscale" 
-                        onClick={handleOrder} 
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? (
-                            <div className="flex items-center gap-3">
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                <span>Transmission...</span>
+                    {restaurantId && (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10">
+                                <Info className="h-4 w-4 shrink-0" />
+                                <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                                    Règlement direct sur place (Espèces ou TPE)
+                                </p>
                             </div>
-                        ) : 'Confirmer la commande'}
-                    </Button>
+
+                            <Button 
+                                className="w-full text-lg font-black uppercase tracking-widest h-20 rounded-[2rem] bg-orange-600 hover:bg-orange-700 shadow-2xl shadow-orange-600/20 transition-all active:scale-[0.98] border border-white/10" 
+                                onClick={handleOrder} 
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <div className="flex items-center justify-center gap-3">
+                                        <Loader2 className="h-6 w-6 animate-spin" />
+                                        <span>Envoi...</span>
+                                    </div>
+                                ) : 'Confirmer la commande'}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
