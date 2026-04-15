@@ -20,42 +20,49 @@ export function DishComparisonChart({ data }: Props) {
                 data={chartData}
                 layout="vertical"
                 margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                barGap={4}
             >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.2} />
                 <XAxis type="number" hide />
                 <YAxis
                     dataKey="name"
                     type="category"
-                    width={100}
-                    fontSize={11}
+                    width={110}
+                    fontSize={12}
+                    fontWeight={500}
+                    stroke="#475569"
                     tickLine={false}
                     axisLine={false}
                 />
                 <Tooltip
-                    cursor={{ fill: '#f1f5f9' }}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '8px' }}
                 />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: '500' }} />
                 <Bar
                     name="Commandés"
                     dataKey="ordered"
-                    fill="#94a3b8"
+                    fill="#cbd5e1"
                     radius={[0, 4, 4, 0]}
-                    barSize={20}
+                    barSize={12}
+                    animationDuration={1500}
                 />
                 <Bar
-                    name="Servis"
+                    name="Servis (ROI)"
                     dataKey="served"
-                    fill="#22c55e"
+                    fill="#10b981"
                     radius={[0, 4, 4, 0]}
-                    barSize={20}
+                    barSize={12}
+                    animationDuration={1500}
                 />
                 <Bar
-                    name="Refusés"
+                    name="Perte (Annulés)"
                     dataKey="refused"
                     fill="#ef4444"
                     radius={[0, 4, 4, 0]}
-                    barSize={20}
+                    barSize={12}
+                    animationDuration={1500}
                 />
             </BarChart>
         </ResponsiveContainer>

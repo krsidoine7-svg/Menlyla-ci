@@ -82,54 +82,64 @@ export function MenuDisplay({ categories, restaurant }: Props) {
         )
     }
 
-    const handleDeleteCategory = async (id: string) => {
+    const handleDeleteCategory = async (cat: any) => {
         ask({
             title: 'Supprimer la catégorie ?',
-            description: 'Cette catégorie et tous ses plats seront définitivement supprimés. Cette action est irréversible.',
+            description: `"${cat.name}" et tous ses plats seront définitivement supprimés. Cette action est irréversible.`,
             confirmLabel: 'Supprimer définitivement',
             variant: 'destructive',
             onConfirm: async () => {
-                const result = await deleteCategory(id)
+                const result = await deleteCategory(cat.id)
                 if (result?.message) toast.success(result.message)
             }
         })
     }
 
-    const handleToggleCategory = async (id: string, current: boolean) => {
+    const handleToggleCategory = async (cat: any) => {
         ask({
-            title: current ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
-            description: current
-                ? 'Cette catégorie sera masquée du menu client.'
-                : 'Cette catégorie sera visible sur le menu client.',
-            confirmLabel: current ? 'Désactiver' : 'Activer',
-            variant: current ? 'warning' : 'default',
+            title: cat.is_active ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
+            description: cat.is_active
+                ? `La catégorie "${cat.name}" sera masquée du menu client.`
+                : `La catégorie "${cat.name}" sera visible sur le menu client.`,
+            confirmLabel: cat.is_active ? 'Désactiver' : 'Activer',
+            variant: cat.is_active ? 'warning' : 'default',
             onConfirm: async () => {
-                const result = await toggleCategoryStatus(id, !current)
+                const result = await toggleCategoryStatus(cat.id, !cat.is_active)
                 if (result?.message) toast.error(result.message)
-                else toast.success(current ? 'Catégorie désactivée' : 'Catégorie activée')
+                else toast.success(cat.is_active ? 'Catégorie désactivée' : 'Catégorie activée')
             }
         })
     }
 
-    const handleDeleteDish = async (id: string) => {
+    const handleDeleteDish = async (dish: any) => {
         ask({
             title: 'Supprimer ce plat ?',
-            description: 'Ce plat sera définitivement supprimé. Cette action est irréversible.',
+            description: `Le plat "${dish.name}" sera définitivement supprimé. Cette action est irréversible.`,
             confirmLabel: 'Supprimer',
             variant: 'destructive',
             onConfirm: async () => {
-                const result = await deleteDish(id)
+                const result = await deleteDish(dish.id)
                 if (result?.message) toast.success(result.message)
             }
         })
     }
 
-    const handleToggleDish = async (id: string, current: boolean) => {
-        const result = await toggleDishStatus(id, !current)
-        if (result?.message) toast.error(result.message)
-        else {
-            toast.success(!current ? 'Plat disponible' : 'Plat marqué en rupture')
-        }
+    const handleToggleDish = async (dish: any) => {
+        ask({
+            title: dish.is_available ? 'Marquer en rupture de stock ?' : 'Remettre le plat en stock ?',
+            description: dish.is_available 
+                ? `Le plat "${dish.name}" apparaîtra comme "Épuisé".`
+                : `Le plat "${dish.name}" sera à nouveau disponible à la commande.`,
+            confirmLabel: dish.is_available ? 'Marquer épuisé' : 'Remettre en stock',
+            variant: dish.is_available ? 'warning' : 'default',
+            onConfirm: async () => {
+                const result = await toggleDishStatus(dish.id, !dish.is_available)
+                if (result?.message) toast.error(result.message)
+                else {
+                    toast.success(!dish.is_available ? 'Plat disponible' : 'Plat marqué en rupture')
+                }
+            }
+        })
     }
 
     return (
@@ -239,7 +249,7 @@ export function MenuDisplay({ categories, restaurant }: Props) {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <Button variant="outline" size="sm" className="rounded-full text-[10px] uppercase font-black" onClick={() => handleToggleDish(dish.id, dish.is_available)}>
+                                                        <Button variant="outline" size="sm" className="rounded-full text-[10px] uppercase font-black" onClick={() => handleToggleDish(dish)}>
                                                             {dish.is_available ? "Marquer rupture" : "Remettre"}
                                                         </Button>
                                                         <DropdownMenu>
@@ -252,7 +262,7 @@ export function MenuDisplay({ categories, restaurant }: Props) {
                                                                 <DropdownMenuItem onClick={() => setEditingDish(dish)}>
                                                                     <Pencil className="mr-2 h-4 w-4" /> Modifier
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteDish(dish.id)}>
+                                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteDish(dish)}>
                                                                     <Trash2 className="mr-2 h-4 w-4" /> Supprimer
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>

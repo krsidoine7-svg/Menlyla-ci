@@ -10,9 +10,6 @@ import {
     useSensors,
     DragEndEvent,
     DragStartEvent,
-    DragOverlay,
-    defaultDropAnimationSideEffects,
-    DropAnimation
 } from '@dnd-kit/core'
 import {
     arrayMove,
@@ -38,7 +35,6 @@ import { cn } from '@/lib/utils'
 import { reorderCategories, reorderDishes } from '../actions'
 import { toast } from 'sonner'
 import { DishDialog } from './dish-dialog'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 // --- SORTABLE CATEGORY ITEM ---
 function SortableCategoryItem({ category, children, viewMode }: { category: any, children: React.ReactNode, viewMode: string }) {
@@ -112,7 +108,7 @@ function SortableDishListItem({ dish, onToggle, onDelete, onEdit, currency, attr
                     variant={dish.is_available ? "outline" : "default"}
                     size="sm"
                     className={cn("h-8 px-3 rounded-full text-[10px] font-black uppercase tracking-tight")}
-                    onClick={() => onToggle(dish.id, dish.is_available)}
+                    onClick={() => onToggle(dish)}
                 >
                     {dish.is_available ? <><PackageX className="h-3 w-3 mr-1" /> Rupture</> : <><PackageCheck className="h-3 w-3 mr-1" /> En Stock</>}
                 </Button>
@@ -126,7 +122,7 @@ function SortableDishListItem({ dish, onToggle, onDelete, onEdit, currency, attr
                         <DropdownMenuItem onClick={() => onEdit(dish)}>
                             <Pencil className="mr-2 h-4 w-4" /> Modifier
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(dish.id)}>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(dish)}>
                             <Trash2 className="mr-2 h-4 w-4" /> Supprimer
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -139,14 +135,14 @@ function SortableDishListItem({ dish, onToggle, onDelete, onEdit, currency, attr
 function SortableDishGridItem({ dish, onToggle, onDelete, onEdit, currency, attributes, listeners, setNodeRef, style }: any) {
     return (
         <Card ref={setNodeRef} style={style} className={cn(
-            "group/dish overflow-hidden relative rounded-[1.5rem] border-none shadow-sm transition-all hover:shadow-lg hover:shadow-orange-100",
+            "group/dish overflow-hidden relative rounded-[1.5rem] border-none shadow-sm transition-all hover:shadow-lg hover:shadow-orange-500/10 bg-card",
             !dish.is_available && 'opacity-60 border-muted'
         )}>
-            <div className="absolute top-2 left-2 z-30 cursor-move opacity-0 group-hover/dish:opacity-100 transition-opacity p-1 bg-white/80 rounded-full shadow-sm text-muted-foreground" {...attributes} {...listeners}>
+            <div className="absolute top-2 left-2 z-30 cursor-move opacity-0 group-hover/dish:opacity-100 transition-opacity p-1 bg-background/80 backdrop-blur rounded-full shadow-sm text-muted-foreground" {...attributes} {...listeners}>
                 <GripVertical className="h-4 w-4" />
             </div>
 
-            <div className="aspect-[4/3] relative p-4 bg-slate-50/50 overflow-visible">
+            <div className="aspect-[4/3] relative p-4 bg-muted/30 overflow-visible">
                 {dish.image_urls?.[0] ? (
                     <div className="w-full h-full relative group/img-3d perspective-1000">
                         <img
@@ -166,7 +162,7 @@ function SortableDishGridItem({ dish, onToggle, onDelete, onEdit, currency, attr
                             "shadow-lg font-black text-[8px] py-0.5 px-2 border-none cursor-pointer hover:scale-105 transition-transform",
                             dish.is_available ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
                         )}
-                        onClick={() => onToggle(dish.id, dish.is_available)}
+                        onClick={() => onToggle(dish)}
                     >
                         {dish.is_available ? 'DISPO' : 'ÉPUISÉ'}
                     </Badge>
@@ -201,7 +197,7 @@ function SortableDishGridItem({ dish, onToggle, onDelete, onEdit, currency, attr
                     variant="ghost"
                     size="sm"
                     className="text-destructive h-6 px-1.5 hover:bg-red-50 hover:text-red-700 rounded-lg text-[9px] font-black uppercase tracking-tight"
-                    onClick={() => onDelete(dish.id)}
+                    onClick={() => onDelete(dish)}
                 >
                     <Trash2 className="h-3 w-3 mr-1" /> Supprimer
                 </Button>
@@ -220,7 +216,7 @@ function SortableDishGridItem({ dish, onToggle, onDelete, onEdit, currency, attr
 
 function SortableDishMiniItem({ dish, onToggle, onDelete, onEdit, currency, attributes, listeners, setNodeRef, style }: any) {
     return (
-        <div ref={setNodeRef} style={style} className="rounded-2xl border bg-white shadow-sm hover:shadow-md transition-all p-4 flex flex-col gap-3 group/dish relative">
+        <div ref={setNodeRef} style={style} className="rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all p-4 flex flex-col gap-3 group/dish relative">
             <div className="absolute top-2 right-2 z-30 cursor-move opacity-0 group-hover/dish:opacity-100 transition-opacity p-1 bg-muted rounded-full text-muted-foreground" {...attributes} {...listeners}>
                 <GripVertical className="h-3 w-3" />
             </div>
@@ -245,7 +241,7 @@ function SortableDishMiniItem({ dish, onToggle, onDelete, onEdit, currency, attr
                 </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
-                <Button size="sm" variant="outline" className="flex-1 rounded-full text-[10px] uppercase tracking-[0.2em]" onClick={() => onToggle(dish.id, dish.is_available)}>
+                <Button size="sm" variant="outline" className="flex-1 rounded-full text-[10px] uppercase tracking-[0.2em]" onClick={() => onToggle(dish)}>
                     {dish.is_available ? "Désactiver" : "Activer"}
                 </Button>
                 <DropdownMenu>
@@ -258,7 +254,7 @@ function SortableDishMiniItem({ dish, onToggle, onDelete, onEdit, currency, attr
                         <DropdownMenuItem onClick={() => onEdit(dish)}>
                             <Pencil className="mr-2 h-4 w-4" /> Modifier
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(dish.id)}>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(dish)}>
                             <Trash2 className="mr-2 h-4 w-4" /> Supprimer
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -313,24 +309,6 @@ export function SortableCategoryList({
 }: any) {
     const [categories, setCategories] = useState(initialCategories)
     const [activeId, setActiveId] = useState<string | null>(null)
-    const [confirm, setConfirm] = useState<{
-        open: boolean
-        title: string
-        description: string
-        confirmLabel: string
-        variant: 'destructive' | 'warning' | 'default'
-        onConfirm: () => void
-    }>({
-        open: false,
-        title: '',
-        description: '',
-        confirmLabel: 'Confirmer',
-        variant: 'destructive',
-        onConfirm: () => {},
-    })
-
-    const ask = (cfg: Omit<typeof confirm, 'open'>) => setConfirm({ open: true, ...cfg })
-    const closeConfirm = () => setConfirm(c => ({ ...c, open: false }))
 
     useEffect(() => {
         setCategories(initialCategories)
@@ -397,7 +375,6 @@ export function SortableCategoryList({
     }
 
     return (
-        <>
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -413,7 +390,7 @@ export function SortableCategoryList({
                         <SortableCategoryItem key={cat.id} category={cat} viewMode={viewMode}>
                             {/* RENDER CATEGORY HEADER BASED ON MODE */}
                             {viewMode === 'list' && (
-                                <Card className={cn("rounded-[2rem] border-none shadow-sm bg-white/80 backdrop-blur-sm", !cat.is_active && "opacity-60 grayscale")}>
+                                <Card className={cn("rounded-[2rem] border-none shadow-sm bg-card/80 backdrop-blur-sm border border-border/50", !cat.is_active && "opacity-60 grayscale")}>
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                                         <div className="space-y-1">
                                             <CardTitle className="text-xl font-black flex items-center gap-3">{cat.name}</CardTitle>
@@ -427,23 +404,9 @@ export function SortableCategoryList({
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="rounded-xl">
                                                     <DropdownMenuItem onClick={() => onEdit(cat)}><Pencil className="mr-2 h-4 w-4" /> Modifier catégorie</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => ask({
-                                                        title: cat.is_active ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
-                                                        description: cat.is_active
-                                                            ? `La catégorie "${cat.name}" sera masquée du menu client.`
-                                                            : `La catégorie "${cat.name}" sera visible sur le menu client.`,
-                                                        confirmLabel: cat.is_active ? 'Désactiver' : 'Activer',
-                                                        variant: cat.is_active ? 'warning' : 'default',
-                                                        onConfirm: () => onToggle(cat.id, cat.is_active)
-                                                    })}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => onToggle(cat)}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => ask({
-                                                        title: 'Supprimer la catégorie ?',
-                                                        description: `"${cat.name}" et tous ses plats seront définitivement supprimés. Cette action est irréversible.`,
-                                                        confirmLabel: 'Supprimer définitivement',
-                                                        variant: 'destructive',
-                                                        onConfirm: () => onDelete(cat.id)
-                                                    })}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(cat)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -452,13 +415,7 @@ export function SortableCategoryList({
                                         <SortableContext items={cat.dishes?.map((d: any) => d.id) || []} strategy={verticalListSortingStrategy}>
                                             <div className="space-y-3">
                                                 {cat.dishes?.map((dish: any) => (
-                                                    <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={(id: string) => ask({
-                                                        title: 'Supprimer le plat ?',
-                                                        description: `"${dish.name}" sera définitivement supprimé. Cette action est irréversible.`,
-                                                        confirmLabel: 'Supprimer',
-                                                        variant: 'destructive',
-                                                        onConfirm: () => onDeleteDish(id)
-                                                    })} onEdit={onEditDish || onEdit} />
+                                                    <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={onDeleteDish} onEdit={onEditDish || onEdit} />
                                                 ))}
                                             </div>
                                         </SortableContext>
@@ -487,23 +444,9 @@ export function SortableCategoryList({
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="rounded-xl">
                                                     <DropdownMenuItem onClick={() => onEdit(cat)}><Pencil className="mr-2 h-4 w-4" /> Modifier catégorie</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => ask({
-                                                        title: cat.is_active ? 'Désactiver la catégorie ?' : 'Activer la catégorie ?',
-                                                        description: cat.is_active
-                                                            ? `La catégorie "${cat.name}" sera masquée du menu client.`
-                                                            : `La catégorie "${cat.name}" sera visible sur le menu client.`,
-                                                        confirmLabel: cat.is_active ? 'Désactiver' : 'Activer',
-                                                        variant: cat.is_active ? 'warning' : 'default',
-                                                        onConfirm: () => onToggle(cat.id, cat.is_active)
-                                                    })}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => onToggle(cat)}>{cat.is_active ? <><PowerOff className="mr-2 h-4 w-4" /> Désactiver</> : <><Power className="mr-2 h-4 w-4" /> Activer</>}</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => ask({
-                                                        title: 'Supprimer la catégorie ?',
-                                                        description: `"${cat.name}" et tous ses plats seront définitivement supprimés. Cette action est irréversible.`,
-                                                        confirmLabel: 'Supprimer définitivement',
-                                                        variant: 'destructive',
-                                                        onConfirm: () => onDelete(cat.id)
-                                                    })}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(cat)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -518,13 +461,7 @@ export function SortableCategoryList({
                                             : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                                         }>
                                             {cat.dishes?.map((dish: any) => (
-                                                <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={(id: string) => ask({
-                                                    title: 'Supprimer le plat ?',
-                                                    description: `"${dish.name}" sera définitivement supprimé. Cette action est irréversible.`,
-                                                    confirmLabel: 'Supprimer',
-                                                    variant: 'destructive',
-                                                    onConfirm: () => onDeleteDish(id)
-                                                })} onEdit={onEditDish || onEdit} />
+                                                <SortableDishItem key={dish.id} dish={dish} viewMode={viewMode} currency={restaurant?.currency || 'FCFA'} onToggle={onToggleDish} onDelete={onDeleteDish} onEdit={onEditDish || onEdit} />
                                             ))}
                                             {(!cat.dishes || cat.dishes.length === 0) && (
                                                 <div className="col-span-full py-12 text-center border-2 border-dashed rounded-[2rem] bg-muted/5 text-muted-foreground font-medium">
@@ -540,19 +477,5 @@ export function SortableCategoryList({
                 </div>
             </SortableContext>
         </DndContext>
-
-        <ConfirmDialog
-            open={confirm.open}
-            onOpenChange={closeConfirm}
-            title={confirm.title}
-            description={confirm.description}
-            confirmLabel={confirm.confirmLabel}
-            variant={confirm.variant}
-            onConfirm={() => {
-                confirm.onConfirm()
-                closeConfirm()
-            }}
-        />
-        </>
     )
 }

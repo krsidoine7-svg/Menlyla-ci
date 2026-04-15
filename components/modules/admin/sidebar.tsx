@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard, ShieldCheck, Zap, History } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, QrCode, Settings, LogOut, Receipt, BarChart3, MessageSquare, ChevronDown, ChevronRight, User, Palette, Share2, Stamp, CalendarDays, BellRing, Database, Scale, LayoutGrid, Clock3, CreditCard, ShieldCheck, Zap, History, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
 const navItems = [
     { name: 'Vue d\'ensemble', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Menu & Carte', href: '/dashboard/menu', icon: BookOpen },
     { name: 'QR Codes & Tables', href: '/dashboard/tables', icon: QrCode },
     { name: 'Commandes', href: '/dashboard/orders', icon: Receipt },
     { name: 'Historique & Factures', href: '/dashboard/archive', icon: History },

@@ -2,7 +2,6 @@ import { getRestaurantOrders } from '@/components/modules/orders/actions'
 import { KitchenBoard } from '@/components/modules/orders/components/kitchen-board'
 import { createClient } from '@/lib/supabase/server'
 import { NoRestaurantState } from '@/components/modules/admin/no-restaurant'
-import { UtensilsCrossed } from 'lucide-react'
 
 export default async function OrdersPage() {
     const supabase = await createClient()
@@ -19,21 +18,21 @@ export default async function OrdersPage() {
         .limit(50)
 
     return (
-        <div className="flex flex-col gap-12 p-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-10 duration-1000">
-            <header className="p-10 md:p-14 rounded-[3.5rem] bg-white border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.04)] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-12 rotate-45 opacity-[0.03] transition-transform duration-1000 group-hover:scale-110">
-                    <UtensilsCrossed className="h-64 w-64" />
-                </div>
-                <div className="relative z-10 space-y-4">
-                    <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-orange-600 animate-ping" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-orange-600 italic">Direct Kitchen</p>
+        <div className="flex flex-col gap-8 p-2 md:p-6 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+            <header className="relative flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-100">
+                <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-100">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                        </span>
+                        <p className="text-xs font-medium text-slate-600">Service en direct</p>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 italic leading-none">
-                        Tableau de <span className="text-orange-600 underline decoration-orange-100 decoration-8 underline-offset-8">Cuisine</span>
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
+                        Commandes en cuisine
                     </h1>
-                    <p className="text-slate-500 font-bold text-sm tracking-tight italic max-w-sm">
-                        Gérez vos commandes en temps réel et assurez un service d'excellence. 🍲☕🔥
+                    <p className="text-slate-500 text-lg max-w-xl">
+                        Gérez l'état de vos commandes en temps réel.
                     </p>
                 </div>
             </header>

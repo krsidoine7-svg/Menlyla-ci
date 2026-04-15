@@ -13,7 +13,8 @@ import {
     ExternalLink as ExternalLinkIcon,
     CheckCircle2 as CheckIcon,
     Loader2 as LoaderIcon,
-    EllipsisVertical as EllipsisIcon
+    EllipsisVertical as EllipsisIcon,
+    Printer as PrinterIcon
 } from "lucide-react"
 import {
     DropdownMenu,
@@ -96,45 +97,49 @@ export function ExportButton({ stats, restaurantId }: Props) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full border-orange-200 text-orange-600">
-                    <EllipsisIcon className="h-5 w-5" />
+                <Button variant="outline" className="h-11 rounded-xl bg-white border border-slate-200 px-4 gap-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm focus:ring-0">
+                    <DownloadIcon className="h-4 w-4 text-slate-400" />
+                    Exporter
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Exports rapides</DropdownMenuLabel>
-                <DropdownMenuItem onClick={handleExportCSV} className="font-medium">
-                    <DownloadIcon className="mr-2 h-4 w-4" /> Export CSV
+            <DropdownMenuContent align="end" className="w-56 bg-white rounded-xl shadow-lg border-slate-100 p-2">
+                <DropdownMenuLabel className="text-xs font-semibold text-slate-500 mb-1 px-2">Téléchargements</DropdownMenuLabel>
+                <DropdownMenuItem onClick={handleExportCSV} className="rounded-lg h-10 font-medium cursor-pointer !text-slate-700 data-[highlighted]:!bg-slate-50 data-[highlighted]:!text-slate-900 border-none outline-none focus:outline-none">
+                    <TableIcon className="mr-2 h-4 w-4 text-emerald-600" /> Excel (CSV)
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.print()} className="rounded-lg h-10 font-medium cursor-pointer !text-slate-700 data-[highlighted]:!bg-slate-50 data-[highlighted]:!text-slate-900 border-none outline-none focus:outline-none">
+                    <PrinterIcon className="mr-2 h-4 w-4 text-blue-600" /> Imprimer / en PDF
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-1 bg-slate-100" />
                 {!isGoogleConnected ? (
-                    <DropdownMenuItem onClick={handleGoogleConnect} disabled={isConnecting} className="font-medium">
+                    <DropdownMenuItem onClick={handleGoogleConnect} disabled={isConnecting} className="rounded-lg h-10 font-medium cursor-pointer !text-slate-700 data-[highlighted]:!bg-slate-50 data-[highlighted]:!text-slate-900 border-none outline-none focus:outline-none">
                         {isConnecting ? (
                             <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
                         ) : (
-                            <LinkIcon className="mr-2 h-4 w-4" />
+                            <LinkIcon className="mr-2 h-4 w-4 text-violet-600" />
                         )}
                         Connexion Gmail
                     </DropdownMenuItem>
                 ) : (
                     <>
-                        <DropdownMenuItem onClick={handleSync} disabled={isSyncing} className="font-medium">
+                        <DropdownMenuItem onClick={handleSync} disabled={isSyncing} className="rounded-lg h-10 font-medium cursor-pointer !text-slate-700 data-[highlighted]:!bg-slate-50 data-[highlighted]:!text-slate-900 border-none outline-none focus:outline-none">
                             {isSyncing ? (
                                 <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
                             ) : hasSheet ? (
-                                <CheckIcon className="mr-2 h-4 w-4" />
+                                <CheckIcon className="mr-2 h-4 w-4 text-emerald-600" />
                             ) : (
-                                <TableIcon className="mr-2 h-4 w-4" />
+                                <TableIcon className="mr-2 h-4 w-4 text-violet-600" />
                             )}
                             {isSyncing ? 'Sync...' : hasSheet ? 'Sync Google Sheets' : 'Créer le fichier Sheets'}
                         </DropdownMenuItem>
                         {sheetUrl && (
-                            <DropdownMenuItem className="font-medium" asChild>
-                                <a href={sheetUrl} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLinkIcon className="mr-2 h-4 w-4" /> Ouvrir le fichier
+                            <DropdownMenuItem className="rounded-lg h-10 font-medium cursor-pointer !text-slate-700 data-[highlighted]:!bg-slate-50 data-[highlighted]:!text-slate-900 border-none outline-none focus:outline-none" asChild>
+                                <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                                    <ExternalLinkIcon className="mr-2 h-4 w-4 text-blue-600" /> Ouvrir le fichier
                                 </a>
                             </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => {
+                        <DropdownMenuItem className="rounded-lg h-10 font-medium cursor-pointer !text-red-600 data-[highlighted]:!bg-red-50 data-[highlighted]:!text-red-700 border-none outline-none focus:outline-none" onClick={() => {
                             if (confirm("Déconnecter votre compte Google ?")) disconnectGoogle()
                         }}>
                             <UnlinkIcon className="mr-2 h-4 w-4" /> Déconnecter Google

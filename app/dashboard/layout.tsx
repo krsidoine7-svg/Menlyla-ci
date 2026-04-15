@@ -12,7 +12,7 @@ export default async function DashboardLayout({
     const plan = restaurant?.plan || 'solo'
 
     return (
-        <div className="dashboard-theme min-h-screen bg-background">
+        <div className="dashboard-theme min-h-screen bg-background text-foreground">
             <div className="grid w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
                 <div className="hidden border-r bg-muted/40 md:block">
                     <DashboardSidebar restaurantSlug={slug} plan={plan} />

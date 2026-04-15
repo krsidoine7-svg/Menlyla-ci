@@ -78,10 +78,13 @@ export async function createCategory(prevState: any, formData: FormData) {
     return { message: "Catégorie ajoutée !" }
 }
 
-export async function updateCategory(id: string, prevState: any, formData: FormData) {
+export async function updateCategory(prevState: any, formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { message: "Non connecté" }
+    
+    const id = formData.get('id') as string;
+    if (!id) return { message: "ID categorie manquant" };
 
     const validated = categorySchema.safeParse({
         name: formData.get('name'),
@@ -245,10 +248,13 @@ export async function createDish(prevState: any, formData: FormData) {
     return { message: "Plat ajouté !" }
 }
 
-export async function updateDish(id: string, prevState: any, formData: FormData) {
+export async function updateDish(prevState: any, formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { message: "Non connecté" }
+
+    const id = formData.get('id') as string;
+    if (!id) return { message: "ID plat manquant" }
 
     // Parse image_url correctly
     const imageUrl = formData.get('image_url')?.toString();
@@ -346,26 +352,11 @@ export async function likeDish(dishId: string) {
 export async function getPossibleUpsells(restaurantId: string, excludeId?: string) {
     const supabase = await createClient()
 
-    // 1. Get Drink Categories IDs
-    const { data: categories } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('restaurant_id', restaurantId)
-        .ilike('name', '%Boisson%')
-
-    const drinkCategoryIds = categories?.map(c => c.id) || []
-
-    // If no drink category found, return empty
-    if (drinkCategoryIds.length === 0) {
-        return []
-    }
-
     let query = supabase
         .from('dishes')
         .select('id, name, price, image_urls')
         .eq('restaurant_id', restaurantId)
         .eq('is_available', true)
-        .in('category_id', drinkCategoryIds)
 
     if (excludeId) {
         query = query.neq('id', excludeId)

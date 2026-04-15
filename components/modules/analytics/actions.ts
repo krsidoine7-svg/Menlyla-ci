@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
+export async function getAnalyticsData(range: 'today' | '7d' | '30d' | 'year' | 'custom' | string = '7d', customStart?: string, customEnd?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,8 +19,33 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
 
     // Calculate start date
     const now = new Date()
-    const startDate = new Date()
-    startDate.setDate(now.getDate() - (range === '7d' ? 7 : 30))
+    let startDate = new Date()
+    let endDate = new Date()
+    
+    if (range === 'custom' && customStart && customEnd) {
+        let s = new Date(customStart)
+        let e = new Date(customEnd)
+        
+        if (s > e) {
+            const temp = s
+            s = e
+            e = temp
+        }
+        
+        startDate = s
+        startDate.setHours(0,0,0,0)
+        
+        endDate = e
+        endDate.setHours(23,59,59,999)
+    } else if (range === 'today') {
+        startDate.setHours(0,0,0,0)
+    } else if (range === '30d') {
+        startDate.setDate(now.getDate() - 30)
+    } else if (range === 'year') {
+        startDate.setFullYear(now.getFullYear(), 0, 1)
+    } else {
+        startDate.setDate(now.getDate() - 7)
+    }
 
     // Fetch Orders within range
     const { data: orders, error: ordersError } = await supabase
@@ -41,6 +66,7 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
         `)
         .eq('restaurant_id', restaurant.id)
         .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
         .order('created_at', { ascending: true })
 
     if (ordersError) {
@@ -50,7 +76,7 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
     const safeOrders = orders || []
 
     // Process Data
-    const dailyRevenue: Record<string, number> = {}
+    const revenueByDate: Record<string, number> = {}
 
     // Product Stats: { [name]: { ordered: 0, refused: 0, served: 0, revenue: 0 } }
     const dishPerformance: Record<string, { name: string, ordered: number, refused: number, served: number, revenue: number }> = {}
@@ -65,8 +91,14 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
 
         if (isRevenueStatus) {
             totalRevenue += Number(order.total_amount)
-            const day = new Date(order.created_at).toLocaleDateString('fr-FR', { weekday: 'short' })
-            dailyRevenue[day] = (dailyRevenue[day] || 0) + Number(order.total_amount)
+            const d = new Date(order.created_at)
+            
+            let key = d.toISOString().split('T')[0] // Sortable key YYYY-MM-DD
+            if (range === 'year') {
+                key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` // Sortable YYYY-MM
+            }
+
+            revenueByDate[key] = (revenueByDate[key] || 0) + Number(order.total_amount)
         }
 
         order.order_items?.forEach((item: any) => {
@@ -84,11 +116,25 @@ export async function getAnalyticsData(range: '7d' | '30d' = '7d') {
         })
     })
 
-    // Format for Recharts
-    const chartData = Object.keys(dailyRevenue).map(day => ({
-        name: day,
-        total: dailyRevenue[day]
-    }))
+    // Format for Recharts and sort chronologically
+    const sortedKeys = Object.keys(revenueByDate).sort()
+    const chartData = sortedKeys.map(key => {
+        let label = key
+        // Beautify the label for the chart
+        if (range === 'year') {
+            const [y, m] = key.split('-')
+            label = new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('fr-FR', { month: 'short' })
+        } else if (range === '7d' || range === 'today') {
+            label = new Date(key).toLocaleDateString('fr-FR', { weekday: 'short' })
+        } else {
+            label = new Date(key).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+        }
+        
+        return {
+            name: label,
+            total: revenueByDate[key]
+        }
+    })
 
     // Sort to find best sellers
     const performanceList = Object.values(dishPerformance).sort((a, b) => b.ordered - a.ordered)

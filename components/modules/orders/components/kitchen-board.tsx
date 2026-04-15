@@ -1,29 +1,28 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Clock, CheckCircle2, PlayCircle, Loader2, AlertCircle, Volume2, Store, ShoppingBag, ShieldCheck, Zap, Printer, TrendingUp } from 'lucide-react'
+import { Clock, CheckCircle2, PlayCircle, Loader2, AlertCircle, Volume2, Store, ShoppingBag, ShieldCheck, Zap, Printer } from 'lucide-react'
 import { updateOrderStatus } from '../actions'
 import { toast } from 'sonner'
 import { cn, formatOrderId } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import { useMemo } from 'react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled'
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: any }> = {
-    pending: { label: 'En attente', color: 'bg-red-600', icon: Clock },
-    confirmed: { label: 'Confirmé', color: 'bg-blue-500', icon: CheckCircle2 },
-    preparing: { label: 'En cuisine', color: 'bg-orange-500', icon: PlayCircle },
-    ready: { label: 'Prêt', color: 'bg-emerald-500', icon: CheckCircle2 },
-    delivered: { label: 'Servi', color: 'bg-slate-500', icon: CheckCircle2 },
-    completed: { label: 'Terminé', color: 'bg-black', icon: CheckCircle2 },
-    cancelled: { label: 'Annulé', color: 'bg-slate-300', icon: AlertCircle },
+    pending: { label: 'En attente', color: 'text-red-500', icon: Clock },
+    confirmed: { label: 'Confirmé', color: 'text-blue-500', icon: CheckCircle2 },
+    preparing: { label: 'En cuisine', color: 'text-orange-500', icon: PlayCircle },
+    ready: { label: 'Prêt', color: 'text-emerald-500', icon: CheckCircle2 },
+    delivered: { label: 'Servi', color: 'text-slate-500', icon: CheckCircle2 },
+    completed: { label: 'Terminé', color: 'text-slate-900', icon: CheckCircle2 },
+    cancelled: { label: 'Annulé', color: 'text-slate-300', icon: AlertCircle },
 }
 
 export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }: { initialOrders: any[], restaurantId: string, restaurantSettings?: any }) {
@@ -38,11 +37,9 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
     const vocalStyle = (restaurantSettings as any)?.notification_vocal_style || 'continuous'
 
     useEffect(() => {
-        // Initialize audio
         audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
     }, [])
 
-    // Continuous Vocal Reminder Effect
     useEffect(() => {
         if (vocalStyle !== 'continuous') return
 
@@ -53,7 +50,7 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
                 utterance.lang = 'fr-FR'
                 window.speechSynthesis.speak(utterance)
             }
-        }, 60000) // Every 1 minute to be persistent but less intrusive
+        }, 60000)
 
         return () => clearInterval(interval)
     }, [orders, vocalStyle])
@@ -63,7 +60,6 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
             audioRef.current.play().catch(e => console.log("Audio play blocked by browser. Click anywhere to enable."))
         }
         
-        // Vocal Alert Logic
         if (vocalStyle === 'twice' && typeof window !== 'undefined') {
             for(let i=0; i<2; i++) {
                 const utterance = new SpeechSynthesisUtterance('Nouvelle commande arrivée !')
@@ -81,7 +77,7 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
 
         toast("🔔 Nouvelle Commande !", {
             description: "Une nouvelle commande vient d'arriver en cuisine.",
-            className: "bg-red-600 text-white border-none rounded-3xl",
+            className: "border-slate-100 rounded-2xl",
             duration: 10000
         })
     }
@@ -126,7 +122,7 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
         setLoading(orderId)
         try {
             await updateOrderStatus(orderId, nextStatus)
-            toast.info(`Status mis à jour : ${STATUS_CONFIG[nextStatus].label}`)
+            toast.success(`Statut mis à jour : ${STATUS_CONFIG[nextStatus].label}`)
         } catch (error: any) {
             toast.error(error.message)
         } finally {
@@ -161,11 +157,10 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
                 </head>
                 <body>
                     <div class="header">
-                        <h2 style="margin: 0;">MENLYLA</h2>
-                        <div style="font-size: 12px;">Ticket Cuisine</div>
+                        <h2 style="margin: 0;">CUISINE</h2>
                     </div>
                     <div class="details">
-                        <div style="font-weight: bold; font-size: 18px;">ORDRE #${formatOrderId(order.id, order.created_at)}</div>
+                        <div style="font-weight: bold; font-size: 18px;">COMMANDE #${formatOrderId(order.id, order.created_at)}</div>
                         <div style="margin-top: 5px;">${type}</div>
                         <div style="font-size: 10px; margin-top: 5px;">${new Date(order.created_at).toLocaleString('fr-FR')}</div>
                     </div>
@@ -173,7 +168,7 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
                         ${itemsHtml}
                     </div>
                     <div class="footer">
-                        Bon appétit !<br>Généré par Menlyla.com
+                        Généré le ${new Date().toLocaleTimeString('fr-FR')} 
                     </div>
                     <script>
                         window.onload = () => {
@@ -191,47 +186,50 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
 
     return (
         <div className="flex flex-col gap-6 h-full pb-10">
-            <div className="flex items-center justify-between bg-black/5 p-4 rounded-[2.5rem] border border-black/5 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-2xl bg-orange-600/10 flex items-center justify-center text-orange-600 border border-orange-600/20">
+            <div className="flex items-center justify-between bg-white p-3 md:p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3 md:gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-700">
                         <Zap className="h-5 w-5" />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-black/20">Flux Direct</p>
-                        <p className="text-sm font-bold italic">Synchronisation cuisine active</p>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Synchronisation</p>
+                        <p className="text-sm font-bold text-slate-900">En direct avec la salle</p>
                     </div>
                 </div>
                 <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => audioRef.current?.play()}
-                    className="rounded-2xl border-black/10 bg-white shadow-sm hover:bg-black hover:text-white transition-all font-bold text-[10px] uppercase tracking-widest h-10 px-6 gap-2"
+                    className="rounded-xl border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 h-10 px-4 gap-2"
                 >
-                    <Volume2 className="h-3 w-3" /> Tester le son
+                    <Volume2 className="h-4 w-4" /> <span className="hidden md:inline">Tester le son</span>
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
                 {sections.map((status) => (
                     <div 
                         key={status} 
                         className={cn(
-                            "flex flex-col h-full bg-white border border-black/5 rounded-[3rem] p-6 shadow-sm transition-all duration-500",
-                            status === 'pending' && lastOrderFlash ? "ring-4 ring-red-600/20 bg-red-600/[0.02] border-red-600/20" : ""
+                            "flex flex-col h-full bg-slate-50/50 border border-slate-100 rounded-3xl p-4 md:p-5 shadow-sm",
+                            status === 'pending' && lastOrderFlash ? "ring-2 ring-red-300 bg-red-50/50" : ""
                         )}
                     >
-                        <div className="flex items-center justify-between mb-8 px-2">
-                            <div className="flex items-center gap-3">
-                                <div className={cn("h-4 w-4 rounded-full border-2 border-white shadow-sm", STATUS_CONFIG[status].color)} />
-                                <h3 className="font-black uppercase tracking-widest text-[10px] text-black/40">{STATUS_CONFIG[status].label}</h3>
+                        <div className="flex items-center justify-between mb-5 px-1">
+                            <div className="flex items-center gap-2">
+                                {(() => {
+                                    const Icon = STATUS_CONFIG[status].icon;
+                                    return <Icon className={cn("h-5 w-5", STATUS_CONFIG[status].color)} />;
+                                })()}
+                                <h3 className="font-bold text-slate-700 uppercase tracking-wide text-sm">{STATUS_CONFIG[status].label}</h3>
                             </div>
-                            <Badge variant="secondary" className="rounded-full px-4 h-6 font-black text-[10px] bg-black text-white">
+                            <Badge variant="secondary" className="rounded-lg px-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 shadow-sm">
                                 {orders.filter(o => o.status === status).length}
                             </Badge>
                         </div>
 
                         <ScrollArea className="flex-1 pr-2">
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {orders
                                     .filter(o => o.status === status)
                                     .map((order) => {
@@ -248,11 +246,11 @@ export function KitchenBoard({ initialOrders, restaurantId, restaurantSettings }
                                     })}
 
                                 {orders.filter(o => o.status === status).length === 0 && (
-                                    <div className="flex flex-col items-center justify-center py-20 opacity-10">
-                                        <div className="h-16 w-16 border-2 border-dashed border-black rounded-full flex items-center justify-center">
-                                            <div className="h-2 w-2 bg-black rounded-full animate-ping" />
+                                    <div className="flex flex-col items-center justify-center py-20 opacity-40">
+                                        <div className="h-12 w-12 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mb-3">
+                                            <div className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-pulse" />
                                         </div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest mt-4">Aucun flux</p>
+                                        <p className="text-sm font-medium text-slate-500">Aucune commande</p>
                                     </div>
                                 )}
                             </div>
@@ -285,70 +283,70 @@ function OrderCard({ order, onStatusUpdate, onPrint, onCancel, loading }: any) {
     const isPaid = order.payment_status === 'paid'
 
     return (
-        <Card className="group relative rounded-[2rem] border border-black/[0.03] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden bg-white">
-            <CardHeader className="p-6 pb-4 border-b border-black/[0.02] space-y-4">
+        <Card className="group relative rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+            <CardHeader className="p-4 md:p-5 border-b border-slate-50 space-y-3">
                 <div className="flex justify-between items-start">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                             <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest leading-none">Bon</span>
-                             <div className="font-bold text-xl tracking-tight text-slate-900">#{formatOrderId(order.id, order.created_at)}</div>
+                             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Cmde</span>
+                             <span className="font-bold text-lg text-slate-900">#{formatOrderId(order.id, order.created_at)}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             {isTakeAway ? (
-                                <div className="bg-orange-50 text-orange-600 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full border border-orange-100 flex items-center gap-1.5">
-                                    <ShoppingBag className="h-2.5 w-2.5" /> Emporter
-                                </div>
+                                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-semibold gap-1">
+                                    <ShoppingBag className="h-3 w-3" /> Emporter
+                                </Badge>
                             ) : (
-                                <div className="bg-slate-100 text-slate-600 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full border border-slate-200 flex items-center gap-1.5">
-                                    <Store className="h-2.5 w-2.5" /> {order.tables?.name || 'Salle'}
-                                </div>
+                                <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 font-semibold gap-1">
+                                    <Store className="h-3 w-3" /> {order.tables?.name || 'Salle'}
+                                </Badge>
                             )}
-                            <div className={cn(
-                                "text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full flex items-center gap-1.5 border",
-                                isPaid ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100 shadow-sm shadow-red-600/5"
+                            <Badge variant="outline" className={cn(
+                                "font-semibold gap-1",
+                                isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"
                             )}>
-                                {isPaid ? <ShieldCheck className="h-2.5 w-2.5" /> : <Loader2 className="h-2.5 w-2.5 animate-spin" />}
+                                {isPaid ? <ShieldCheck className="h-3 w-3" /> : <Loader2 className="h-3 w-3 animate-spin" />}
                                 {isPaid ? 'Payé' : 'À régler'}
-                            </div>
+                            </Badge>
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col items-end gap-2">
+                        <div className={cn(
+                            "text-xs font-semibold flex items-center gap-1.5 px-2.5 py-1 rounded-lg border",
+                            elapsed > 15 ? "bg-red-50 text-red-700 border-red-200 animate-pulse" : "bg-slate-50 text-slate-600 border-slate-200"
+                        )}>
+                            <Clock className="h-3.5 w-3.5" /> {elapsed} min
+                        </div>
                         <Button 
                             variant="ghost" 
                             size="icon" 
                             onClick={onPrint}
-                            className="h-8 w-8 rounded-xl bg-slate-50 hover:bg-slate-900 hover:text-white transition-all border border-slate-100"
+                            className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100"
                         >
                             <Printer className="h-4 w-4" />
                         </Button>
-                        <div className={cn(
-                            "text-[10px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-xl uppercase tracking-tighter border",
-                            elapsed > 15 ? "bg-red-600 text-white animate-pulse border-red-600" : "bg-slate-50 text-slate-400 border-slate-100"
-                        )}>
-                            <Clock className="h-3 w-3" /> {elapsed} min
-                        </div>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 md:p-5 space-y-4">
                 <div className="space-y-3">
                     {order.order_items?.map((item: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-sm items-center">
-                            <div className="flex items-center gap-3">
-                                <span className="h-8 w-8 rounded-xl bg-black text-white flex items-center justify-center font-black text-xs shadow-lg">{item.quantity}</span>
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-black italic tracking-tight">{item.dishes?.name}</span>
-                                    <span className="text-[9px] font-black uppercase text-black/20 tracking-widest">Préparation standard</span>
+                        <div key={idx} className="flex justify-between items-start gap-3">
+                            <div className="flex items-start gap-3">
+                                <span className="h-7 w-7 min-w-[28px] rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">{item.quantity}</span>
+                                <div className="flex flex-col mt-0.5">
+                                    <span className="font-semibold text-slate-900">{item.dishes?.name}</span>
+                                    {item.notes && <span className="text-xs text-slate-500 mt-0.5">{item.notes}</span>}
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="space-y-3 pt-4 border-t border-black/5">
+                <div className="space-y-2 pt-3 border-t border-slate-100">
                     {order.status === 'pending' && (
                         <Button
-                            className="w-full rounded-[1.5rem] bg-orange-600 hover:bg-orange-700 h-14 font-black text-xs uppercase tracking-widest shadow-xl shadow-orange-600/20 transition-all active:scale-95"
+                            className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-medium shadow-sm transition-all h-11"
                             onClick={() => onStatusUpdate(order.id, 'preparing')}
                             disabled={loading}
                         >
@@ -357,7 +355,7 @@ function OrderCard({ order, onStatusUpdate, onPrint, onCancel, loading }: any) {
                     )}
                     {order.status === 'preparing' && (
                         <Button
-                            className="w-full rounded-[1.5rem] bg-emerald-600 hover:bg-emerald-700 h-14 font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/20 transition-all active:scale-95"
+                            className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all h-11"
                             onClick={() => onStatusUpdate(order.id, 'ready')}
                             disabled={loading}
                         >
@@ -366,7 +364,7 @@ function OrderCard({ order, onStatusUpdate, onPrint, onCancel, loading }: any) {
                     )}
                     {order.status === 'ready' && (
                         <Button
-                            className="w-full rounded-[1.5rem] bg-black hover:bg-slate-900 h-14 font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20 transition-all active:scale-95 text-white"
+                            className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-sm transition-all h-11"
                             onClick={() => onStatusUpdate(order.id, 'delivered')}
                             disabled={loading}
                         >
@@ -377,11 +375,11 @@ function OrderCard({ order, onStatusUpdate, onPrint, onCancel, loading }: any) {
                     {['pending', 'preparing'].includes(order.status) && (
                         <Button
                             variant="ghost"
-                            className="w-full rounded-2xl h-10 font-bold text-[10px] uppercase text-black/20 hover:text-red-600 hover:bg-red-50 transition-all"
+                            className="w-full rounded-xl text-xs font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors h-10"
                             onClick={onCancel}
                             disabled={loading}
                         >
-                            Annuler cette commande
+                            Annuler la commande
                         </Button>
                     )}
                 </div>

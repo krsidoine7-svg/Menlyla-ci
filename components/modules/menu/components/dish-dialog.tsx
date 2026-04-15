@@ -110,9 +110,25 @@ export function DishDialog({ categoryId, restaurantId }: Props) {
 
                         {possibleUpsells.length > 0 && (
                             <div className="space-y-3">
-                                <Label className="text-orange-600 font-bold uppercase text-[10px] tracking-widest">
-                                    S'accompagne bien avec (Suggestions)
-                                </Label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <Label className="text-orange-600 font-bold uppercase text-[10px] tracking-widest">
+                                        S'accompagne bien avec (Suggestions)
+                                    </Label>
+                                    <div className="flex items-center gap-2 cursor-pointer group">
+                                        <Checkbox 
+                                            id="new-select-all-upsells" 
+                                            checked={possibleUpsells.length > 0 && selectedUpsells.length === possibleUpsells.length}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setSelectedUpsells(possibleUpsells.map(u => u.id))
+                                                } else {
+                                                    setSelectedUpsells([])
+                                                }
+                                            }}
+                                        />
+                                        <Label htmlFor="new-select-all-upsells" className="text-[10px] uppercase font-black text-muted-foreground group-hover:text-foreground transition-colors cursor-pointer tracking-wider">Tout cocher</Label>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-1 gap-2 border rounded-xl p-3">
                                     <ScrollArea className="h-32">
                                         <div className="grid gap-2">

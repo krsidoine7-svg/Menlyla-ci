@@ -32,13 +32,14 @@ export function EditCategoryDialog({ category, open, onOpenChange }: Props) {
     }, [open, category])
 
     const handleSubmit = async (formData: FormData) => {
+        formData.append('id', category.id)
         if (iconUrl) {
             formData.append('icon_url', iconUrl)
         } else {
             formData.append('icon_url', '') // Explicitly empty it if removed
         }
 
-        const result = await updateCategory(category.id, null, formData)
+        const result = await updateCategory(null, formData)
         if (result?.message) {
             if (result.message.includes('mise à jour') || result.message.includes('succès')) {
                 toast.success(result.message)
