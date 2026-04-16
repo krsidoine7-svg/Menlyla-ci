@@ -79,42 +79,54 @@ function SortableCategoryItem({ category, children, viewMode }: { category: any,
 function SortableDishListItem({ dish, onToggle, onDelete, onEdit, currency, attributes, listeners, setNodeRef, style }: any) {
     return (
         <div ref={setNodeRef} style={style} className={cn(
-            "flex items-center justify-between rounded-2xl border p-4 transition-all group/dish bg-card hover:border-orange-200 relative",
-            !dish.is_available && 'opacity-50 bg-muted/20 border-muted'
+            "flex items-center justify-between rounded-2xl border p-3 sm:p-4 transition-all group/dish bg-card hover:border-orange-200 relative gap-3 sm:gap-4",
+            !dish.is_available && 'opacity-60 bg-muted/20 border-muted'
         )}>
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 cursor-move opacity-0 group-hover/dish:opacity-100 transition-opacity p-2 text-muted-foreground" {...attributes} {...listeners}>
                 <GripVertical className="h-4 w-4" />
             </div>
 
-            <div className="flex items-center gap-4 pl-2">
+            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 {dish.image_urls?.[0] ? (
-                    <img src={dish.image_urls[0]} alt={dish.name} className="h-12 w-12 rounded-xl object-cover bg-muted shadow-sm" />
+                    <img src={dish.image_urls[0]} alt={dish.name} className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover shrink-0 border border-slate-100 shadow-sm" />
                 ) : (
-                    <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-200">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-orange-50 flex items-center justify-center text-orange-200 shrink-0 border border-dashed border-orange-100">
                         <Plus className="h-4 w-4" />
                     </div>
                 )}
-                <div>
-                    <div className="font-bold flex items-center gap-2">
-                        {dish.name}
-                        {!dish.is_available && <Badge variant="destructive" className="text-[9px] px-1 font-black uppercase">Épuisé</Badge>}
-                        {dish.is_promo && <Badge className="bg-red-500 text-[9px] px-1 font-black uppercase">Promo</Badge>}
+                <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <h3 className="font-bold text-sm sm:text-base text-slate-900 line-clamp-1">{dish.name}</h3>
+                        <div className="flex gap-1 shrink-0">
+                            {!dish.is_available && <Badge variant="destructive" className="text-[8px] sm:text-[9px] px-1 py-0 font-black uppercase h-4">Épuisé</Badge>}
+                            {dish.is_promo && <Badge className="bg-red-500 text-white text-[8px] sm:text-[9px] px-1 py-0 font-black uppercase h-4">Promo</Badge>}
+                        </div>
                     </div>
-                    <div className="text-sm font-black text-orange-600">{Math.round(dish.price).toLocaleString()} {currency}</div>
+                    <div className="text-xs sm:text-sm font-black text-orange-600 tabular-nums">
+                        {Math.round(dish.price).toLocaleString()} <span className="text-[10px] opacity-70">{currency}</span>
+                    </div>
                 </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <Button
                     variant={dish.is_available ? "outline" : "default"}
                     size="sm"
-                    className={cn("h-8 px-3 rounded-full text-[10px] font-black uppercase tracking-tight")}
+                    className={cn(
+                        "h-8 px-2 sm:px-4 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-tight transition-all",
+                        dish.is_available ? "hover:bg-orange-50 hover:text-orange-600" : "bg-orange-600 hover:bg-orange-700"
+                    )}
                     onClick={() => onToggle(dish)}
                 >
-                    {dish.is_available ? <><PackageX className="h-3 w-3 mr-1" /> Rupture</> : <><PackageCheck className="h-3 w-3 mr-1" /> En Stock</>}
+                    {dish.is_available ? (
+                        <><PackageX className="h-3 w-3 mr-1" /><span className="hidden xs:inline">Rupture</span><span className="xs:hidden">Off</span></>
+                    ) : (
+                        <><PackageCheck className="h-3 w-3 mr-1" /><span className="hidden xs:inline">En Stock</span><span className="xs:hidden">On</span></>
+                    )}
                 </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100">
                             <MoreVertical className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>

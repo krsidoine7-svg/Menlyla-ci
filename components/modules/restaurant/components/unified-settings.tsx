@@ -168,9 +168,52 @@ export function UnifiedSettings({ restaurant, initialProfile, initialReviews, sy
 
     const isExternalView = ['menu', 'legal', 'analytics', 'notifications', 'reviews', 'subscription'].includes(activeSection)
 
+    const SECTIONS = [
+        { id: 'profile', label: 'Profil', icon: User },
+        { id: 'design', label: 'Apparence', icon: Palette },
+        { id: 'hours', label: 'Horaires', icon: Clock3 },
+        { id: 'reviews', label: 'Avis', icon: MessageSquare },
+        { id: 'events', label: 'Événements', icon: CalendarDays },
+        { id: 'subscription', label: 'Abonnement', icon: Shield },
+        { id: 'payments', label: 'Paiements', icon: Settings },
+    ]
+
     return (
         <div className="flex flex-col min-h-[80vh]">
-            <main className="flex-1 w-full max-w-5xl mx-auto pb-20 pt-4">
+            {/* MOBILE SECTION SWITCHER */}
+            <div className="lg:hidden sticky top-14 z-40 bg-background/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-3 mb-4 overflow-x-auto no-scrollbar">
+                <div className="flex gap-2 min-w-max">
+                    {SECTIONS.map(sec => {
+                        const Icon = sec.icon
+                        const isActive = activeSection === sec.id
+                        return (
+                            <Button
+                                key={sec.id}
+                                variant={isActive ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams.toString())
+                                    params.set('section', sec.id)
+                                    window.history.pushState(null, '', `?${params.toString()}`)
+                                    // Note: we might need a better way to trigger re-render if searchParams doesn't auto-update
+                                    // but nextjs useSearchParams is reactive. However, pushState might not trigger it.
+                                    // For simplicity and since it's client component, window.location might be safer if pushState fails.
+                                    window.location.search = params.toString()
+                                }}
+                                className={cn(
+                                    "rounded-full px-4 h-9 text-[10px] font-black uppercase tracking-widest",
+                                    isActive ? "bg-orange-50 text-orange-600 border border-orange-100" : "text-slate-400"
+                                )}
+                            >
+                                <Icon className="mr-2 h-3.5 w-3.5" />
+                                {sec.label}
+                            </Button>
+                        )
+                    })}
+                </div>
+            </div>
+
+            <main className="flex-1 w-full max-w-5xl mx-auto pb-20 pt-4 px-2 sm:px-0">
                 {activeSection === 'menu' && <MenuSettings restaurant={restaurant} />}
                 {activeSection === 'legal' && <LegalSettings restaurant={restaurant} />}
                 {activeSection === 'analytics' && <AnalyticsSettings restaurant={restaurant} />}

@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     const { data: restaurant } = await supabase.from('restaurants').select('id, name').eq('owner_id', user.id).single()
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700 p-2 md:p-6 max-w-7xl mx-auto">
+        <div className="space-y-6 sm:space-y-10 animate-in fade-in duration-700 p-2 md:p-6 max-w-7xl mx-auto">
             {/* HERO HEADER */}
             <header className="relative flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-100">
                 <div className="space-y-3">
@@ -37,12 +37,12 @@ export default async function DashboardPage() {
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        <p className="text-xs font-medium text-slate-600">Service en cours</p>
+                        <p className="text-[10px] sm:text-xs font-medium text-slate-600 uppercase tracking-wider">Service en cours</p>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
                         Bonjour, {restaurant?.name || 'Chef'} 👋
                     </h1>
-                    <p className="text-slate-500 text-lg">
+                    <p className="text-slate-500 text-base sm:text-lg">
                         Voici un aperçu de vos performances aujourd'hui.
                     </p>
                 </div>
@@ -56,82 +56,83 @@ export default async function DashboardPage() {
             )}
 
             {/* STATS GRID */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {/* Revenue Card */}
-                <Card className="rounded-3xl border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle className="text-sm font-medium text-slate-500">Chiffre d'affaires</CardTitle>
-                        <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
-                            <DollarSign className="h-5 w-5" />
+                <Card className="rounded-[2rem] border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-row items-center justify-between space-y-0">
+                        <CardTitle className="text-[10px] sm:text-sm font-bold uppercase tracking-widest text-slate-500">Chiffre d'affaires</CardTitle>
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                     </CardHeader>
-                    <CardContent className="p-6 pt-0">
-                        <div className="text-3xl font-bold tabular-nums text-slate-900">
-                            {stats.revenue.toLocaleString()} <span className="text-sm font-medium text-slate-400">{stats.currency}</span>
+                    <CardContent className="p-4 sm:p-6 pt-0">
+                        <div className="text-xl sm:text-3xl font-black tabular-nums text-slate-900">
+                            {stats.revenue.toLocaleString()} <span className="text-[10px] sm:text-sm font-medium text-slate-400">{stats.currency}</span>
                         </div>
-                        <div className="mt-4 text-xs font-medium text-emerald-600 flex items-center gap-1.5">
-                            <TrendingUp className="h-3.5 w-3.5" />
+                        <div className="mt-2 sm:mt-4 text-[10px] font-bold text-emerald-600 flex items-center gap-1.5 uppercase tracking-wide">
+                            <TrendingUp className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
                             <span>À jour</span>
                         </div>
                     </CardContent>
                 </Card>
+...
 
                 {/* Orders Card */}
-                <Card className="rounded-3xl border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
-                         <CardTitle className="text-sm font-medium text-slate-500">Commandes</CardTitle>
-                         <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-700">
-                            <ShoppingBag className="h-5 w-5" />
+                <Card className="rounded-[2rem] border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-row items-center justify-between space-y-0">
+                         <CardTitle className="text-[10px] sm:text-sm font-bold uppercase tracking-widest text-slate-500">Commandes</CardTitle>
+                         <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-700">
+                            <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                     </CardHeader>
-                    <CardContent className="p-6 pt-0 text-slate-900">
-                        <div className="text-3xl font-bold tabular-nums">
+                    <CardContent className="p-4 sm:p-6 pt-0 text-slate-900">
+                        <div className="text-xl sm:text-3xl font-black tabular-nums">
                              {stats.count}
                         </div>
-                        <div className="mt-4 text-xs font-medium text-slate-400">
-                             Total de la journée
+                        <div className="mt-2 sm:mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                             Aujourd'hui
                         </div>
                     </CardContent>
                 </Card>
-
+ 
                 {/* Kitchen Activity Card */}
-                <Card className="rounded-3xl border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                     <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
-                         <CardTitle className="text-sm font-medium text-slate-500">En cuisine</CardTitle>
+                <Card className="rounded-[2rem] border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                     <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-row items-center justify-between space-y-0">
+                         <CardTitle className="text-[10px] sm:text-sm font-bold uppercase tracking-widest text-slate-500">En cuisine</CardTitle>
                          <div className={cn(
-                            "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
+                            "h-8 w-8 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center transition-colors",
                             stats.preparing > 0 ? "bg-orange-100 text-orange-600" : "bg-slate-50 text-slate-400"
                          )}>
-                            <Activity className="h-5 w-5" />
+                            <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                      </CardHeader>
-                     <CardContent className="p-6 pt-0">
-                        <div className="text-3xl font-bold tabular-nums text-slate-900">
+                     <CardContent className="p-4 sm:p-6 pt-0">
+                        <div className="text-xl sm:text-3xl font-black tabular-nums text-slate-900">
                              {stats.preparing}
                         </div>
-                        <div className="mt-4 flex items-center gap-2">
-                             <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="mt-2 sm:mt-4 flex items-center gap-2">
+                             <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
                                   <div className={cn("h-full rounded-full transition-all duration-500", stats.preparing > 5 ? "bg-orange-500 w-full" : "bg-emerald-500 w-1/3")} />
                              </div>
-                             <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{stats.preparing > 0 ? 'Actif' : 'Calme'}</span>
+                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">{stats.preparing > 0 ? 'Actif' : 'Prêt'}</span>
                         </div>
                      </CardContent>
                 </Card>
-
+ 
                 {/* Satisfaction Card */}
-                <Card className="rounded-3xl border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
-                         <CardTitle className="text-sm font-medium text-slate-500">Note moyenne</CardTitle>
-                         <div className="h-10 w-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
-                            <Star className="h-5 w-5" />
+                <Card className="rounded-[2rem] border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-row items-center justify-between space-y-0">
+                         <CardTitle className="text-[10px] sm:text-sm font-bold uppercase tracking-widest text-slate-500">Satisfaction</CardTitle>
+                         <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
+                            <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                     </CardHeader>
-                    <CardContent className="p-6 pt-0">
-                        <div className="text-3xl font-bold tabular-nums text-slate-900">
-                             {stats.avgRating || '5.0'} <span className="text-sm font-medium text-slate-400">/ 5</span>
+                    <CardContent className="p-4 sm:p-6 pt-0">
+                        <div className="text-xl sm:text-3xl font-black tabular-nums text-slate-900">
+                             {stats.avgRating || '5.0'} <span className="text-[10px] sm:text-sm font-medium text-slate-400">/ 5</span>
                         </div>
-                        <div className="mt-4 flex gap-1">
-                             {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
+                        <div className="mt-2 sm:mt-4 flex gap-0.5">
+                             {[1,2,3,4,5].map(i => <Star key={i} className="h-2.5 sm:h-3.5 w-2.5 sm:w-3.5 fill-yellow-400 text-yellow-400" />)}
                         </div>
                     </CardContent>
                 </Card>

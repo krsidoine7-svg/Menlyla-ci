@@ -228,9 +228,16 @@ export default function LeadMagnet() {
         }
 
         @media (max-width: 480px) {
-          .page { padding: 40px 16px; }
+          .page { padding: 80px 16px 40px; align-items: flex-start; }
           .form-card { padding: 32px 24px; }
-          .content-side h1 { font-size: 36px; }
+          .content-side h1 { font-size: 32px; }
+          .content-side h1 br { display: none; }
+          .secondary-cta-btn { padding: 12px 20px; font-size: 13px; gap: 8px; }
+          .header { padding: 12px 16px; }
+          .logo-icon { height: 32px; width: 32px; }
+          .logo-text { height: 14px; }
+          .login-link { padding: 8px 16px; font-size: 13px; }
+          .badge { margin-bottom: 20px; padding: 6px 14px; font-size: 10px; }
         }
 
         .header {
@@ -265,6 +272,7 @@ export default function LeadMagnet() {
           transition: all 0.2s;
           border: 1px solid rgba(255,255,255,0.1);
           background: rgba(255,255,255,0.05);
+          white-space: nowrap;
         }
         .login-link:hover {
           color: #fff;

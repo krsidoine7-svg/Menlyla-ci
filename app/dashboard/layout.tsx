@@ -17,9 +17,9 @@ export default async function DashboardLayout({
                 <div className="hidden border-r bg-muted/40 md:block">
                     <DashboardSidebar restaurantSlug={slug} plan={plan} />
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col min-w-0">
                     <MobileHeader restaurantSlug={slug} plan={plan} />
-                    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-8 lg:p-10">
+                    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-8 lg:p-10 overflow-x-hidden">
                         <div className="mx-auto w-full max-w-7xl">
                             {children}
                         </div>

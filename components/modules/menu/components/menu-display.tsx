@@ -144,40 +144,61 @@ export function MenuDisplay({ categories, restaurant }: Props) {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap justify-center bg-muted/50 p-1.5 rounded-full w-fit mx-auto gap-1">
-                <Button
-                    variant={view === 'grid' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setView('grid')}
-                    className="rounded-full px-6"
-                >
-                    <LayoutGrid className="mr-2 h-4 w-4" /> Grille
-                </Button>
-                <Button
-                    variant={view === 'list' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setView('list')}
-                    className="rounded-full px-6"
-                >
-                    <List className="mr-2 h-4 w-4" /> Liste
-                </Button>
-
-                <Button
-                    variant={view === 'table' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setView('table')}
-                    className="rounded-full px-6"
-                >
-                    <TableIcon className="mr-2 h-4 w-4" /> Tableau
-                </Button>
-                <Button
-                    variant={view === 'mini' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setView('mini')}
-                    className="rounded-full px-6"
-                >
-                    <Square className="mr-2 h-4 w-4" /> Mini-cartes
-                </Button>
+            <div className="flex bg-muted/40 p-1.5 rounded-full w-full sm:w-fit mx-auto overflow-x-auto no-scrollbar border shadow-sm">
+                <div className="flex gap-1.5 min-w-max">
+                    <Button
+                        variant={view === 'grid' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setView('grid')}
+                        className={cn(
+                            "rounded-full px-4 sm:px-6 h-8 sm:h-9 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300",
+                            view === 'grid' 
+                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105" 
+                                : "text-slate-500 hover:text-slate-900"
+                        )}
+                    >
+                        <LayoutGrid className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" /> Grille
+                    </Button>
+                    <Button
+                        variant={view === 'list' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setView('list')}
+                        className={cn(
+                            "rounded-full px-4 sm:px-6 h-8 sm:h-9 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300",
+                            view === 'list' 
+                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105" 
+                                : "text-slate-500 hover:text-slate-900"
+                        )}
+                    >
+                        <List className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" /> Liste
+                    </Button>
+                    <Button
+                        variant={view === 'table' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setView('table')}
+                        className={cn(
+                            "rounded-full px-4 sm:px-6 h-8 sm:h-9 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300",
+                            view === 'table' 
+                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105" 
+                                : "text-slate-500 hover:text-slate-900"
+                        )}
+                    >
+                        <TableIcon className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" /> Tableau
+                    </Button>
+                    <Button
+                        variant={view === 'mini' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setView('mini')}
+                        className={cn(
+                            "rounded-full px-4 sm:px-6 h-8 sm:h-9 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300",
+                            view === 'mini' 
+                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105" 
+                                : "text-slate-500 hover:text-slate-900"
+                        )}
+                    >
+                        <Square className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" /> Mini
+                    </Button>
+                </div>
             </div>
 
             <Tabs value={view} onValueChange={(v: any) => setView(v)} className="w-full">
